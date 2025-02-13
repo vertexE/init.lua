@@ -32,44 +32,18 @@ return {
                 end,
             })
 
-            local mini_diff = require("mini.diff")
-            mini_diff.setup({
-                view = {
-                    style = "sign",
-                    signs = { add = "│", change = "│", delete = "│" },
-                    priority = 0,
-                },
-                mappings = {
-                    -- Apply hunks inside a visual/operator region
-                    apply = "gh",
-
-                    -- Reset hunks inside a visual/operator region
-                    reset = "gH",
-
-                    -- Hunk range textobject to be used inside operator
-                    -- Works also in Visual mode if mapping differs from apply and reset
-                    textobject = "gh",
-
-                    -- Go to hunk range in corresponding direction
-                    goto_first = "[C",
-                    goto_prev = "[c",
-                    goto_next = "]c",
-                    goto_last = "]C",
-                },
-            })
-
-            vim.keymap.set("n", "<leader>gd", function()
-                mini_diff.toggle_overlay(0)
-            end)
-
             require("core.extensions.folds").load("mini")
 
             local mini_git = require("mini.git")
             mini_git.setup()
 
-            vim.keymap.set({ "n", "v" }, "<leader>gi", function()
-                mini_git.show_at_cursor()
-            end)
+            vim.keymap.set("n", "<leader>gc", function()
+                vim.cmd("Git commit")
+            end, { desc = "mini.git: commit" })
+
+            -- vim.keymap.set({ "n", "v" }, "<leader>gi", function()
+            --     mini_git.show_at_cursor()
+            -- end)
 
             -- vim.keymap.set({ "n" }, "<leader>gb", function()
             --     vim.cmd("Git blame -- %")

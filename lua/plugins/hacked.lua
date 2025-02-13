@@ -7,6 +7,15 @@ return {
             require("hacked.blame").setup()
             require("hacked.executor").setup()
             require("hacked.portal").setup()
+            require("hacked.buffers").setup()
+
+            vim.keymap.set("n", "<leader>gg", function()
+                require("hacked.git").status()
+            end)
+
+            vim.keymap.set({ "n" }, "<leader>M", function()
+                require("hacked.buffers").open()
+            end)
 
             vim.keymap.set({ "n", "x" }, "<leader>ba", function()
                 require("hacked.portal").save()
@@ -18,10 +27,6 @@ return {
 
             vim.keymap.set("n", "<leader>bz", function()
                 require("hacked.portal").clear()
-            end)
-
-            vim.keymap.set("n", "<leader>fe", function()
-                require("hacked.multibuffer").diagnostics()
             end)
 
             vim.keymap.set("n", "gb", function()
