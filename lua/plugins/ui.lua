@@ -13,19 +13,30 @@ return {
                 config = function()
                     local gitsigns = require("gitsigns")
                     local buffer = require("core.editor.buffer")
-
                     gitsigns.setup({
                         signs_staged_enable = false,
                     })
+
+                    vim.keymap.set("n", "]c", function()
+                        gitsigns.nav_hunk("next")
+                    end, { desc = "gitsigns: next hunk" })
+
+                    vim.keymap.set("n", "[c", function()
+                        gitsigns.nav_hunk("prev")
+                    end, { desc = "gitsigns: previous hunk" })
+
                     vim.keymap.set("n", "<leader>gR", function()
                         gitsigns.reset_buffer()
-                    end)
+                    end, { desc = "gitsigns: reset buffer" })
+
                     vim.keymap.set("n", "<leader>gh", function()
                         gitsigns.stage_buffer()
                     end, { desc = "gitsigns: stage buffer" })
+
                     vim.keymap.set({ "n", "v" }, "gh", function()
                         gitsigns.stage_hunk()
                     end, { desc = "gitsigns: stage hunk" })
+
                     vim.keymap.set("n", "gH", function()
                         local status = vim.api.nvim_get_mode()
                         local is_visual_mode = status.mode == "v" or status.mode == "V" or status.mode == "^V"
@@ -77,18 +88,6 @@ return {
                 require("minty.shades").open()
             end, { desc = "color hues" })
         end,
-    },
-    {
-        "stevearc/dressing.nvim",
-        enabled = true,
-        dependencies = {
-            { "nvim-telescope/telescope.nvim" },
-        },
-        opts = {
-            input = {
-                relative = "win",
-            },
-        },
     },
     {
         "folke/todo-comments.nvim",

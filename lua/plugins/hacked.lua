@@ -37,7 +37,8 @@ return {
                 require("hacked.blame").selection()
             end, { desc = "" })
 
-            vim.keymap.set("v", "<leader>gb", function()
+            vim.keymap.set("v", "<leader>go", function()
+                -- TODO: if not visual- browse file?
                 require("hacked.blame").browse()
             end, { desc = "" })
         end,

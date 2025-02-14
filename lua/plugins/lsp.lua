@@ -7,31 +7,6 @@ return {
     -- },
     -- LSP Configuration & Plugins
     {
-        "stevearc/aerial.nvim",
-        opts = {},
-        -- Optional dependencies
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter",
-            "nvim-tree/nvim-web-devicons",
-        },
-        config = function()
-            require("aerial").setup({
-                -- optionally use on_attach to set keymaps when aerial has attached to a buffer
-                on_attach = function(bufnr)
-                    -- Jump forwards/backwards with '{' and '}'
-                    vim.keymap.set("n", "[s", "<cmd>AerialPrev<CR>", { buffer = bufnr })
-                    vim.keymap.set("n", "]s", "<cmd>AerialNext<CR>", { buffer = bufnr })
-                end,
-                layout = {
-                    -- max_width = {40, 0.2} means "the lesser of 40 columns or 20% of total"
-                    min_width = { 0.2 },
-                },
-            })
-            -- You probably also want to set a keymap to toggle aerial
-            vim.keymap.set("n", "<leader>fo", "<cmd>AerialToggle!<CR>")
-        end,
-    },
-    {
         "neovim/nvim-lspconfig",
         dependencies = {
             -- "nvim-java",
