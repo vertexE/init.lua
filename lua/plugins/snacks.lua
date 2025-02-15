@@ -48,10 +48,6 @@ return {
                 snacks.picker.notifications()
             end, { desc = "snacks: notification history" })
 
-            vim.keymap.set("n", "<leader>ft", function()
-                snacks.picker.lsp_symbols({ layout = { preset = "ivy", preview = "main" } })
-            end, { desc = "snacks: find lsp symbol" })
-
             vim.keymap.set("n", "<leader>hk", function()
                 snacks.picker.keymaps({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: find keymap" })
