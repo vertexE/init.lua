@@ -1,5 +1,22 @@
 return {
     {
+        "bassamsdata/namu.nvim",
+        config = function()
+            require("namu").setup({
+                namu_symbols = {
+                    enable = true,
+                    options = { icon = "󱙝 ", window = { title_prefix = "󱙝 " } },
+                },
+                colorscheme = { enable = false },
+                ui_select = { enable = false },
+            })
+            local namu = require("namu.namu_symbols")
+            vim.keymap.set("n", "<leader>ft", function()
+                namu.show()
+            end, { desc = "Jump to LSP symbol", silent = true })
+        end,
+    },
+    {
         -- GitSignsUpdate -- use in statusbar
         "josiahdenton/statusbar.nvim",
         -- dir = "/Users/jfdenton/work/statusbar.nvim",
