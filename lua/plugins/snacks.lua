@@ -84,8 +84,16 @@ return {
                 snacks.picker.git_branches({ layout = { preset = "vscode" } })
             end, { desc = "snacks: git branches" })
 
+            vim.keymap.set("n", "<leader>fH", function()
+                snacks.picker.highlights()
+            end)
+
             vim.keymap.set("n", "<leader>u", function()
                 snacks.picker.undo({ layout = { preset = "sidebar" } })
+            end)
+
+            vim.keymap.set("n", "<leader>fy", function()
+                require("core.extensions.picker").clipboard()
             end)
         end,
     },
