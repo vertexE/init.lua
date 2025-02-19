@@ -1,9 +1,113 @@
 return {
-    -- vim.cmd("highlight CustomCmpPicker guibg=#b4ebbc guifg=#212031 gui=bold")
+    {
+        "catppuccin/nvim",
+        name = "catppuccin",
+        priority = 1000,
+        enabled = true,
+        config = function()
+            require("catppuccin").setup({
+                flavour = "auto", -- latte, frappe, macchiato, mocha
+                background = { -- :h background
+                    light = "latte",
+                    dark = "mocha",
+                },
+                transparent_background = false, -- disables setting the background color.
+                show_end_of_buffer = false, -- shows the '~' characters after the end of buffers
+                term_colors = false, -- sets terminal colors (e.g. `g:terminal_color_0`)
+                dim_inactive = {
+                    enabled = true, -- dims the background color of inactive window
+                    shade = "dark",
+                    percentage = 0.15, -- percentage of the shade to apply to the inactive window
+                },
+                no_italic = false, -- Force no italic
+                no_bold = false, -- Force no bold
+                no_underline = false, -- Force no underline
+                styles = { -- Handles the styles of general hi groups (see `:h highlight-args`):
+                    comments = { "italic" }, -- Change the style of comments
+                    conditionals = {},
+                    loops = {},
+                    functions = {},
+                    keywords = { "bold" },
+                    strings = {},
+                    variables = {},
+                    numbers = {},
+                    booleans = {},
+                    properties = {},
+                    types = {},
+                    operators = {},
+                    -- miscs = {}, -- Uncomment to turn off hard-coded styles
+                },
+                color_overrides = {
+                    mocha = {
+                        rosewater = "#f5e0dc",
+                        flamingo = "#f2cdcd",
+                        pink = "#f5c2e7",
+                        mauve = "#b3b7ee",
+                        red = "#f38ba8",
+                        maroon = "#eba0ac",
+                        peach = "#fab387",
+                        yellow = "#f9e2af",
+                        green = "#a8aa4b",
+                        teal = "#ffafc5",
+                        sky = "#89dceb",
+                        sapphire = "#74c7ec",
+                        blue = "#cba6f7",
+                        lavender = "#b4befe",
+                        text = "#c0c0c0",
+                        subtext1 = "#bac2de",
+                        subtext0 = "#a6adc8",
+                        overlay2 = "#f6c177",
+                        overlay1 = "#7f849c",
+                        overlay0 = "#6c7086",
+                        surface2 = "#585b70",
+                        surface1 = "#45475a",
+                        surface0 = "#313244",
+                        base = "#151320",
+                        mantle = "#181825",
+                        crust = "#11111b",
+                    },
+                },
+                custom_highlights = function(colors)
+                    return {
+                        HighlightYank = { bg = colors.mauve },
+                        Comment = { fg = "#494c5e" },
+                        Folded = { fg = colors.peach, bg = "" },
+                        -- -- copilot
+                        AIActionsHeader = { fg = colors.lavender, style = { "bold" } },
+                        AIActionsAction = { fg = colors.mauve },
+                        AIActionsInActiveContext = { link = "Comment" },
+                        AIActionsActiveContext = { fg = colors.teal, style = { "bold" } },
+                        -- -- hacked
+                        HackedPortalNC = { fg = colors.surface0, bg = colors.blue },
+                        HackedPortal = { fg = colors.surface0, bg = colors.green },
+                        HackedPortalEdgeNC = { fg = colors.blue },
+                        HackedPortalEdge = { fg = colors.green },
+                        -- -- statusbar
+                        Statusbar = { fg = colors.surface1, bg = colors.red, bold = true },
+                        StatusbarEdge = { fg = colors.red },
+                    }
+                end,
+                default_integrations = true,
+                integrations = {
+                    cmp = true,
+                    gitsigns = true,
+                    nvimtree = true,
+                    treesitter = true,
+                    notify = true,
+                    mini = {
+                        enabled = true,
+                        indentscope_color = "",
+                    },
+                },
+            })
+
+            vim.cmd.colorscheme("catppuccin")
+        end,
+    },
     {
         "folke/tokyonight.nvim",
         lazy = false,
-        enabled = true,
+        enabled = false,
         priority = 1000,
         config = function()
             require("tokyonight").setup({
@@ -27,29 +131,6 @@ return {
             })
 
             vim.cmd.colorscheme("tokyonight-night")
-        end,
-    },
-    {
-        "catppuccin/nvim",
-        name = "catppuccin",
-        enabled = false,
-        priority = 1000,
-        lazy = false,
-        config = function()
-            require("catppuccin").setup({
-                custom_highlights = function(colors)
-                    return {
-                        MiniTablineTabpagesection = { fg = colors.green, style = { "bold" } },
-                        HighlightYank = { bg = colors.mauve },
-                        AIActionsHeader = { fg = colors.lavender, style = { "bold" } }, -- mauve
-                        AIActionsAction = { fg = colors.lavender },
-                        AIActionsInActiveContext = { link = "Comment" },
-                        AIActionsActiveContext = { fg = colors.peach, style = { "bold" } },
-                        Folded = { fg = colors.peach, bg = "" },
-                    }
-                end,
-            })
-            vim.cmd.colorscheme("catppuccin")
         end,
     },
     {

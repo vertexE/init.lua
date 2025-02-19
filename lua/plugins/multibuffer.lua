@@ -1,6 +1,7 @@
 return {
     {
-        dir = "/Users/jfdenton/work/multibuffer.nvim",
+        -- dir = "/Users/jfdenton/work/multibuffer.nvim",
+        "josiahdenton/multibuffer.nvim",
         config = function()
             vim.keymap.set("n", "<leader>fe", function()
                 require("multibuffer").lsp_diagnostics()
