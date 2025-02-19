@@ -69,6 +69,7 @@ return {
                 },
                 custom_highlights = function(colors)
                     return {
+                        Visual = { bg = "#2a2345" },
                         HighlightYank = { bg = colors.mauve },
                         Comment = { fg = "#494c5e" },
                         Folded = { fg = colors.peach, bg = "" },
