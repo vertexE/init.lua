@@ -21,8 +21,8 @@ return {
                     hl.HackedPortalEdgeNC = { fg = c.blue7 }
                     hl.HackedPortalEdge = { fg = c.green }
                     -- statusbar
-                    hl.Statusbar = { fg = c.bg_highlight, bg = c.blue }
-                    hl.StatusbarEdge = { fg = c.blue }
+                    hl.Statusbar = { fg = c.bg_highlight, bg = c.red, bold = true }
+                    hl.StatusbarEdge = { fg = c.red }
                 end,
             })
 
