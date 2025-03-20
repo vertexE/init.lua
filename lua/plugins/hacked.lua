@@ -8,6 +8,7 @@ return {
             require("hacked.executor").setup()
             require("hacked.portal").setup()
             require("hacked.buffers").setup()
+            require("hacked.clipboard").setup()
 
             vim.keymap.set("n", "<leader>gg", function()
                 require("hacked.git").status()
