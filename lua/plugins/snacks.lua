@@ -80,6 +80,14 @@ return {
                 snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: declarations" })
 
+            vim.keymap.set("n", "<leader>gI", function()
+                snacks.picker.lsp_implementations({ layout = { preset = "sidebar" } })
+            end, { desc = "snacks: implementation" })
+
+            vim.keymap.set("n", "<leader>gl", function()
+                snacks.picker.git_log({ layout = { preset = "vscode" } })
+            end, { desc = "snacks: git log" })
+
             vim.keymap.set("n", "<leader>gb", function()
                 snacks.picker.git_branches({ layout = { preset = "vscode" } })
             end, { desc = "snacks: git branches" })

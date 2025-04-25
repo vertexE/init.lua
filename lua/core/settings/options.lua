@@ -48,6 +48,8 @@ M.setup = function()
     plugin_globals()
     custom_globals()
 
+    -- vim.opt.diffopt = "filler,in"
+
     -- reduce update time
     vim.opt.updatetime = 250
 

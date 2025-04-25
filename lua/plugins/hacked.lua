@@ -11,6 +11,7 @@ return {
             require("hacked.clipboard").setup()
 
             vim.keymap.set("n", "<leader>gg", function()
+                -- FIXME: renames don't work, need to enable auto update on git add
                 require("hacked.git").status()
             end)
 

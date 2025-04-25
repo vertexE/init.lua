@@ -5,6 +5,7 @@ return {
         enabled = true,
         event = "VeryLazy",
         config = function()
+            require("mini.icons").setup()
             require("mini.notify").setup()
             require("mini.cursorword").setup({ delay = 500 })
             require("mini.ai").setup()

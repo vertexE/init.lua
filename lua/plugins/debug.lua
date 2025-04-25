@@ -22,7 +22,9 @@ return {
                         dap = { justMyCode = false },
                     }),
                     require("neotest-jest")({
-                        jestCommand = "npm test --",
+                        jestCommand = function(path)
+                            return string.format("npx jest -- %s", path)
+                        end,
                         jestConfigFile = "custom.jest.config.ts",
                         env = { CI = true },
                         cwd = function(path)
@@ -82,6 +84,17 @@ return {
             local keymap = vim.keymap.set
             local dap = require("dap")
             local dapui = require("dapui")
+
+            vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "MiniIconsRed", linehl = "", numhl = "" })
+            vim.fn.sign_define(
+                "DapBreakpointCondition",
+                { text = "", texthl = "MiniIconsCyan", linehl = "", numhl = "" }
+            )
+            vim.fn.sign_define("DapStopped", { text = "", texthl = "MiniIconsGreen", linehl = "Visual", numhl = "" })
+            vim.fn.sign_define(
+                "DapBreakpointRejection",
+                { text = "", texthl = "MiniIconsPurple", linehl = "", numhl = "" }
+            )
 
             dapui.setup({
                 floating = {
