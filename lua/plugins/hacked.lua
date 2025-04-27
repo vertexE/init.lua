@@ -3,7 +3,7 @@ return {
         "josiahdenton/hacked.nvim",
         -- dir = "/Users/jfdenton/work/hacked.nvim",
         config = function()
-            require("hacked.diagnostics").setup()
+            -- require("hacked.diagnostics").setup()
             require("hacked.blame").setup()
             require("hacked.executor").setup()
             require("hacked.portal").setup()
