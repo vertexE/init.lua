@@ -73,7 +73,19 @@ return {
             end, { desc = "snacks: references" })
 
             vim.keymap.set("n", "gd", function()
-                snacks.picker.lsp_definitions({ layout = { preset = "sidebar" } })
+                -- snacks.picker.lsp_definitions({ layout = { preset = "sidebar" } })
+                snacks.picker.lsp_definitions({
+                    layout = { preset = "sidebar" },
+                    filter = {
+                        filter = function(item, filter)
+                            if string.match(item.file, "react/index.d.ts") ~= nil then
+                                return false
+                            end
+
+                            return filter(item)
+                        end,
+                    },
+                })
             end, { desc = "snacks: definitions" })
 
             vim.keymap.set("n", "gD", function()
