@@ -39,6 +39,7 @@ local function set_diagnostic_config()
         virtual_text = {
             spacing = 4,
             source = "if_many",
+            current_line = true,
             --- @param diagnostic vim.Diagnostic
             format = function(diagnostic)
                 local icon = ""
@@ -57,7 +58,11 @@ local function set_diagnostic_config()
                 if diagnostic.severity == vim.diagnostic.severity.HINT then
                     icon = signs.Hint
                 end
-                local message = vim.split(diagnostic.message, "\n")[1]
+                local lines = vim.split(diagnostic.message, "\n")
+                local message = lines[1]
+                if #lines > 1 then
+                    message = message .. "..."
+                end
                 return string.format("%s %s", icon, message)
             end,
             prefix = "",

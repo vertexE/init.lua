@@ -1,5 +1,9 @@
 local M = {}
 
+local lsp = function()
+    vim.o.winborder = "single"
+end
+
 local custom_filetypes = function()
     vim.filetype.add({
         extension = {
@@ -47,6 +51,7 @@ M.setup = function()
     vim_globals()
     plugin_globals()
     custom_globals()
+    lsp()
 
     -- vim.opt.diffopt = "filler,in"
 
