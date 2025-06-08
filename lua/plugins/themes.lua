@@ -134,17 +134,4 @@ return {
             vim.cmd.colorscheme("tokyonight-night")
         end,
     },
-    {
-        "rktjmp/lush.nvim",
-        -- if you wish to use your own colorscheme:
-    },
-    {
-        dir = os.getenv("HOME") .. "/.config/nvim/lua/themes/focus",
-        enabled = false,
-        lazy = false,
-        priority = 1000,
-        config = function()
-            vim.cmd("colorscheme focus")
-        end,
-    },
 }

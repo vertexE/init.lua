@@ -111,7 +111,7 @@ M.setup = function()
     -- vim.opt.cursorline    = true    -- Highlight current line
     vim.opt.linebreak = true -- Wrap long lines at 'breakat' (if 'wrap' is set)
     vim.opt.number = true -- Show line numbers
-    vim.opt.relativenumber = true
+    vim.opt.relativenumber = false
     vim.opt.splitbelow = true -- Horizontal splits will be below
     vim.opt.splitright = true -- Vertical splits will be to the right
 

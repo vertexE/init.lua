@@ -79,6 +79,7 @@ return {
             -- adapters
             "mfussenegger/nvim-dap-python",
             "leoluz/nvim-dap-go",
+            "jbyuki/one-small-step-for-vimkind",
         },
         config = function()
             local keymap = vim.keymap.set
@@ -184,6 +185,7 @@ return {
                 },
             }
 
+            -- support for node projects
             local js_filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
             for _, language in ipairs(js_filetypes) do
                 if not dap.configurations[language] then
@@ -231,7 +233,23 @@ return {
                 end
             end
 
-            -- TODO: can also add reverse continue...
+            -- support for nvim/lua
+            dap.configurations.lua = {
+                {
+                    type = "nlua",
+                    request = "attach",
+                    name = "Attach to running Neovim instance",
+                },
+            }
+
+            dap.adapters.nlua = function(callback, config)
+                callback({ type = "server", host = config.host or "127.0.0.1", port = config.port or 8086 })
+            end
+
+            vim.keymap.set("n", "<leader>dl", function()
+                require("osv").launch({ port = 8086 })
+            end, { noremap = true })
+
             keymap("n", "<leader>q", function()
                 dap.terminate()
             end, { desc = "DAP: end session" })
@@ -272,9 +290,9 @@ return {
                 dap.set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
             end, { desc = "DAP: set breakpoint with debug log" })
 
-            keymap("n", "<Leader>dl", function()
-                require("dap").run_last()
-            end, { desc = "DAP: re-run last" })
+            -- keymap("n", "<Leader>dl", function()
+            --     require("dap").run_last()
+            -- end, { desc = "DAP: re-run last" })
 
             keymap("n", "<Leader>dr", function()
                 require("dap").repl.open()
