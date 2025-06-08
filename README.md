@@ -1,20 +1,21 @@
 # Neovim
 
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/db047b1b-4b69-4f46-951d-26992242dc43">
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/2ce83e98-5da7-4402-a74d-a6e774bba3f4">
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/f4f1b2e7-8d34-492c-bba1-97eba551f07a">
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/6f29a2ff-3909-42d4-98a3-82e31f88e092">
+### LSP + DAP setup
+
+<img width="1512" alt="image" src="https://github.com/user-attachments/assets/67bd406a-0eb8-4cee-81ef-8e6e990dd85a" />
+<img width="1512" alt="image" src="https://github.com/user-attachments/assets/213dd8b4-a013-49eb-b137-c93c2b069bd5" />
+
+### Multibuffer
+<img width="1512" alt="image" src="https://github.com/user-attachments/assets/01ac6c3a-c9e7-4792-991a-755f03df16ab" />
+
+### Simple git-blame
+<img width="1512" alt="Screenshot 2025-06-08 at 3 00 49 PM" src="https://github.com/user-attachments/assets/b3f12b0d-a64d-4d6a-b3ec-b6bb61a46b09" />
 
 
 ### Prerequisites
 
 - install nvim, for macOS you can run `brew install neovim`
    
-### Theming
-
-This setup uses [`night-owl`](https://github.com/oxfist/night-owl.nvim) with the experimental noice UI.
-- I use [this background](https://www.reddit.com/r/wallpapers/comments/xbnouy/the_not_so_void_black_hole_by_victor_sales/) and iterm2 with opacity 5%
-
 ### Debugging
 
 #### JS/TS
@@ -44,7 +45,7 @@ table.insert(require("dap").configurations.python, {
 
 ### Setup
 
-This setup requires `0.10.x` or above. During your first open,
+This setup requires `0.11.x` or above. During your first open,
 Lazy (the package manager) will install itself if not found.
 If you want to use dap, you will need the debugger tools, such as
 - [debugpy for python](https://github.com/microsoft/debugpy)
@@ -69,66 +70,63 @@ If you want to use dap, you will need the debugger tools, such as
 
 ### Plugins
 ```
-    ● cmp-buffer 0.2ms  nvim-cmp
-    ● cmp-nvim-lsp 0.2ms  nvim-cmp
-    ● cmp-path 0.2ms  nvim-cmp
-    ● cmp_luasnip 0.11ms  nvim-cmp
-    ● copilot.vim 1.44ms  CopilotChat.nvim
-    ● CopilotChat.nvim 7.36ms  start
-    ● curl.nvim 0.93ms  start
-    ● diffview.nvim 3.69ms  VeryLazy
-    ● fidget.nvim 0.63ms  nvim-lspconfig
-    ● FixCursorHold.nvim 0.31ms  neotest
-    ● flash.nvim 0.96ms  VeryLazy
+    ● catppuccin 3ms  start
+    ● cmp-buffer 0.18ms  nvim-cmp
+    ● cmp-nvim-lsp 0.16ms  nvim-cmp
+    ● cmp-path 0.26ms  nvim-cmp
+    ● cmp_luasnip 0.03ms  nvim-cmp
+    ● copilot-chat-context.nvim 16.79ms  start
+    ● copilot.vim 2.04ms  CopilotChat.nvim
+    ● CopilotChat.nvim 11.23ms  copilot-chat-context.nvim
+    ● fidget.nvim 2.39ms  nvim-lspconfig
+    ● FixCursorHold.nvim 0.52ms  neotest
+    ● flash.nvim 0.97ms  VeryLazy
     ● friendly-snippets 0.22ms  nvim-cmp
-    ● harpoon 1.34ms  VeryLazy
-    ● lazy.nvim 10.39ms  init.lua
-    ● lazydev.nvim 0.51ms  nvim-lspconfig
-    ● lspkind.nvim 0.18ms  nvim-cmp
-    ● lua-async-await 0.15ms  nvim-java
-    ● LuaSnip 3.43ms  nvim-cmp
-    ● mason-lspconfig.nvim 0.17ms  nvim-lspconfig
-    ● mason.nvim 2.58ms  nvim-java
-    ● mini.nvim 2.9ms  VeryLazy
-    ● neotest 7.96ms  VeryLazy
-    ● neotest-go 0.22ms  neotest
-    ● neotest-jest 0.3ms  neotest
-    ● neotest-python 0.22ms  neotest
-    ● night-owl.nvim 2.81ms  start
-    ● noice.nvim 0.8ms  VeryLazy
-    ● nui.nvim 0.19ms  nvim-java
-    ● nvim-cmp 5.61ms  nvim-lspconfig
-    ● nvim-dap 0.34ms  nvim-java
-    ● nvim-dap-go 0.25ms  nvim-dap-ui
-    ● nvim-dap-python 0.26ms  nvim-dap-ui
-    ● nvim-dap-ui 3.52ms  VeryLazy
-    ● nvim-dap-virtual-text 0.27ms  nvim-dap-ui
-    ● nvim-java 23.9ms  nvim-lspconfig
-    ● nvim-java-core 0.17ms  nvim-java
-    ● nvim-java-dap 0.15ms  nvim-java
-    ● nvim-java-refactor 0.17ms  nvim-java
-    ● nvim-java-test 0.34ms  nvim-java
-    ● nvim-lint 0.04ms  VeryLazy
-    ● nvim-lspconfig 49.77ms  start
-    ● nvim-neoclip.lua 0.2ms  telescope.nvim
-    ● nvim-nio 0.23ms  neotest
-    ● nvim-treesitter 5.75ms  refactoring.nvim
-    ● nvim-web-devicons 0.15ms  octo.nvim
-    ● octo.nvim 14.02ms  VeryLazy
-    ● plenary.nvim 0.42ms  refactoring.nvim
-    ● refactoring.nvim 12.14ms  start
-    ● rose-pine 0.19ms  start
-    ● rustaceanvim 0.04ms  start
-    ● spring-boot.nvim 0.18ms  nvim-java
-    ● telescope-fzf-native.nvim 0.2ms  telescope.nvim
-    ● telescope.nvim 10.4ms  octo.nvim
-    ● todo-comments.nvim 0.9ms  VeryLazy
-    ● toggleterm.nvim 1.61ms  BufEnter
-    ● tokyonight.nvim 0.1ms  start
-    ● trouble.nvim 1.24ms  VeryLazy
-    ● undotree 0.24ms  VeryLazy
-    ● vim-table-mode 0.48ms  BufEnter
-    ● conform.nvim  ConformInfo  <leader>rf  <leader>rf (v)  BufWritePre 
+    ● gitsigns.nvim 1.56ms  statusbar.nvim
+    ● grug-far.nvim 0.46ms  start
+    ● hacked.nvim 1.05ms  start
+    ● inline-session-notes.nvim 0.52ms  start
+    ● kulala.nvim 2.91ms  start
+    ● lazy.nvim 8.95ms  init.lua
+    ● lazydev.nvim 0.4ms  nvim-lspconfig
+    ● lspkind.nvim 0.2ms  nvim-cmp
+    ● LuaSnip 2.72ms  nvim-cmp
+    ● mason-lspconfig.nvim 0.04ms  nvim-lspconfig
+    ● mason.nvim 1.87ms  nvim-lspconfig
+    ● mini.nvim 4.29ms  copilot-chat-context.nvim
+    ● minty 0.4ms  VeryLazy
+    ● multibuffer.nvim 0.53ms  start
+    ● namu.nvim 1.18ms  start
+    ● neotest 16.44ms  VeryLazy
+    ● neotest-go 0.31ms  neotest
+    ● neotest-jest 0.25ms  neotest
+    ● neotest-python 0.29ms  neotest
+    ● noice.nvim 1.28ms  VeryLazy
+    ● nui.nvim 0.23ms  noice.nvim
+    ● nvim-cmp 4.78ms  nvim-lspconfig
+    ● nvim-dap 0.39ms  nvim-dap-ui
+    ● nvim-dap-go 0.22ms  nvim-dap-ui
+    ● nvim-dap-python 0.23ms  nvim-dap-ui
+    ● nvim-dap-ui 3.49ms  VeryLazy
+    ● nvim-dap-virtual-text 0.25ms  nvim-dap-ui
+    ● nvim-lint 0.08ms  VeryLazy
+    ● nvim-lspconfig 73.79ms  start
+    ● nvim-nio 0.25ms  neotest
+    ● nvim-treesitter 5.68ms  start
+    ● nvim-ts-autotag 1.13ms  start
+    ● one-small-step-for-vimkind 0.23ms  nvim-dap-ui
+    ● plenary.nvim 0.22ms  CopilotChat.nvim
+    ● rustaceanvim 0.05ms  start
+    ● snacks.nvim 0.56ms  start
+    ● statusbar.nvim 2.44ms  start
+    ● todo-comments.nvim 0.84ms  start
+    ● vim-dadbod 0.24ms  start
+    ● vim-dadbod-completion 0.13ms  start
+    ● vim-dadbod-ui 0.4ms  start
+    ● volt 0.25ms  minty
+    ● conform.nvim  BufWritePre  ConformInfo  <leader>rr (v)  <leader>rr 
+    ● vim-table-mode  md 
+
 ```
 
-<img width="1512" alt="image" src="https://github.com/user-attachments/assets/3df88f9f-d4d3-4e09-91dc-17e851c25201">
+<img width="1510" alt="image" src="https://github.com/user-attachments/assets/83807a27-a186-41eb-84d5-a640d398fcb0" />
