@@ -160,8 +160,7 @@ return {
             require("dap-python").setup()
             require("dap-go").setup()
 
-            local js_debug_path = require("mason-registry").get_package("js-debug-adapter"):get_install_path()
-                .. "/js-debug/src/dapDebugServer.js"
+            local js_debug_path = vim.fn.expand("$MASON/packages/js-debug-adapter/js-debug/src/dapDebugServer.js")
 
             dap.adapters["pwa-node"] = {
                 type = "server",
