@@ -28,6 +28,10 @@ return {
                 snacks.picker.projects()
             end)
 
+            vim.keymap.set("n", "<leader>fs", function()
+                snacks.picker.git_stash({ layout = { preset = "sidebar" } })
+            end)
+
             vim.keymap.set("n", "<leader>fg", function()
                 snacks.picker.grep({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: find text" })
@@ -73,11 +77,24 @@ return {
             end, { desc = "snacks: references" })
 
             vim.keymap.set("n", "gd", function()
-                -- snacks.picker.lsp_definitions({ layout = { preset = "sidebar" } })
+                --- @type table<string,table<integer,boolean>>
+                local item_ln_set = {}
                 snacks.picker.lsp_definitions({
                     layout = { preset = "sidebar" },
                     filter = {
                         filter = function(item, filter)
+                            if
+                                item_ln_set[item.file] ~= nil
+                                and #item.pos > 0
+                                and item_ln_set[item.file][item.pos[1]]
+                            then
+                                return false
+                            elseif item_ln_set[item.file] ~= nil and #item.pos > 0 then
+                                item_ln_set[item.file][item.pos[1]] = true
+                            else
+                                item_ln_set[item.file] = { [item.pos[1]] = true }
+                            end
+
                             if string.match(item.file, "react/index.d.ts") ~= nil then
                                 return false
                             end

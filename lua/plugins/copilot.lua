@@ -1,15 +1,14 @@
 return {
     {
-        -- TODO: go back
-        "josiahdenton/copilot-chat-context.nvim",
-        -- dir = "/Users/jfdenton/work/copilot-chat-context.nvim",
+        "josiahdenton/chat-context-ui.nvim",
+        -- dir = "/Users/jfdenton/work/chat-context-ui.nvim",
         dependencies = {
             "CopilotC-Nvim/CopilotChat.nvim",
             "echasnovski/mini.nvim",
             -- other dependencies
         },
         config = function()
-            local context = require("copilot-chat-context")
+            local context = require("chat-context-ui")
             context.setup()
             vim.keymap.set("n", "<leader>ai", function()
                 context.open()

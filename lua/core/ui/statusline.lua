@@ -1,5 +1,7 @@
 local M = {}
 
+local symbols = require("core.ui.symbols")
+
 ---@return string
 M.active_macro_register = function()
     if vim.fn.reg_recording() ~= "" then
@@ -68,11 +70,23 @@ M.mode = function()
     return string.format("%%#MiniStatuslineMode%s#%s", hl, " " .. mode)
 end
 
+M.tools = function()
+    local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local client_symbols = vim.iter(clients)
+        :map(function(client)
+            return "%#MiniIconsBlue#" .. symbols.lsp_servers(client.name)
+        end)
+        :join(" ")
+    local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsRed#" .. " "
+    return dap .. " " .. client_symbols
+end
+
 M.active = function()
     return table.concat({
         "",
         "%{%v:lua.require'core.ui.statusline'.mode()%}",
         "%#StatusLine#",
+        "%{%v:lua.require'core.ui.statusline'.tools()%}",
         "%=",
         "%{%v:lua.require'core.ui.statusline'.active_macro_register()%}",
         "",

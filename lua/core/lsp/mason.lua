@@ -9,6 +9,7 @@ M.setup = function()
 
     mason_lspconfig.setup()
 
+    -- TODO: this might not always work?
     vim.lsp.config("*", {
         capabilities = global.capabilities,
         on_attach = global.on_attach,
