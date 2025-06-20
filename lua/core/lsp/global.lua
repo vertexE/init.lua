@@ -3,7 +3,7 @@ local keymap = vim.keymap.set
 
 -- TODO: check if this line will do anything
 -- local def_capabilities = vim.lsp.protocol.make_client_capabilities()
-M.capabilities = require("cmp_nvim_lsp").default_capabilities()
+-- M.capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 -- client, buf id
 local function lsp_keymaps(_, bufnr)

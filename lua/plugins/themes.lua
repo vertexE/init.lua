@@ -69,6 +69,7 @@ return {
                 },
                 custom_highlights = function(colors)
                     return {
+                        Pmenu = { fg = colors.subtext1, bg = colors.base },
                         Visual = { bg = "#2a2345" },
                         HighlightYank = { bg = colors.mauve },
                         Comment = { fg = "#494c5e" },
@@ -90,7 +91,7 @@ return {
                 end,
                 default_integrations = true,
                 integrations = {
-                    cmp = true,
+                    blink_cmp = true,
                     gitsigns = true,
                     nvimtree = true,
                     treesitter = true,

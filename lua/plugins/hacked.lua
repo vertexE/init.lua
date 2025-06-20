@@ -2,16 +2,35 @@ return {
     {
         "josiahdenton/hacked.nvim",
         -- dir = "/Users/jfdenton/work/hacked.nvim",
+        dependencies = {
+            "lewis6991/gitsigns.nvim",
+        },
         config = function()
-            -- require("hacked.diagnostics").setup()
             require("hacked.blame").setup()
             require("hacked.executor").setup()
             require("hacked.portal").setup()
             require("hacked.buffers").setup()
             require("hacked.clipboard").setup()
 
+            require("hacked.git").setup({
+                actions = {
+                    ["x"] = function(change, ctx) -- open compare
+                        vim.api.nvim_set_current_win(ctx.prev_winr)
+                        vim.cmd("edit " .. change.path)
+                        if change.stage ~= "untracked" then
+                            vim.defer_fn(function()
+                                require("gitsigns").diffthis()
+                            end, 500)
+                        else
+                            vim.notify("cannot diff untracked file", vim.log.levels.INFO, {})
+                        end
+
+                        return change
+                    end,
+                },
+            })
+
             vim.keymap.set("n", "<leader>gg", function()
-                -- FIXME: renames don't work, need to enable auto update on git add
                 require("hacked.git").status()
             end)
 

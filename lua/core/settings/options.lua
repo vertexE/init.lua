@@ -1,7 +1,7 @@
 local M = {}
 
 local lsp = function()
-    vim.o.winborder = "single"
+    vim.o.winborder = "rounded"
 end
 
 local custom_filetypes = function()
