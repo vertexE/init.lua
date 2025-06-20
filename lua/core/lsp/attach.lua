@@ -8,10 +8,11 @@ M.setup = function()
     local servers = require("core.lsp.servers")
 
     mason_lspconfig.setup()
-
     -- TODO: this might not always work?
     vim.lsp.config("*", {
-        capabilities = global.capabilities,
+        -- TODO: replace capabilities with blink-cmp
+        -- capabilities = global.capabilities,
+        -- TODO: move this to LspAttach autocommand
         on_attach = global.on_attach,
     })
 
