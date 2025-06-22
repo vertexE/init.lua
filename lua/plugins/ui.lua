@@ -10,10 +10,10 @@ return {
                 colorscheme = { enable = false },
                 ui_select = { enable = false },
             })
-            local namu = require("namu.namu_symbols")
-            vim.keymap.set("n", "<leader>ft", function()
-                namu.show()
-            end, { desc = "Jump to LSP symbol", silent = true })
+            vim.keymap.set("n", "<leader>ft", ":Namu symbols<cr>", {
+                desc = "Jump to LSP symbol",
+                silent = true,
+            })
         end,
     },
     {

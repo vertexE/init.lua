@@ -2,6 +2,70 @@ local M = {}
 
 local symbols = require("core.ui.symbols")
 
+local cache = {
+    stat = {},
+}
+
+local valid = {
+    stat = false,
+}
+
+--- @type table<line.ChangeType, string>
+local to_change_symbol = {
+    file = "",
+    ins = "",
+    del = "",
+}
+
+--- @alias line.ChangeType "file"|"ins"|"del"
+
+--- @return line.ChangeType|nil,string|nil
+local change_symbol = function(change)
+    if string.find(change, "file") then
+        return to_change_symbol.file, "markdownUrl"
+    elseif string.find(change, "ins") then
+        return to_change_symbol.ins, "DiagnosticOk"
+    elseif string.find(change, "del") then
+        return to_change_symbol.del, "DiagnosticError"
+    end
+end
+
+--- @return table<table<string>>
+local stat = function()
+    if cache.stat and valid.stat then
+        return cache.stat
+    end
+
+    vim.system({ "git", "diff", "--stat" }, { text = true }, function(out)
+        if #out.stdout > 0 then
+            local lines = vim.split(out.stdout, "\n", { trimempty = true })
+            local changes = lines[#lines]
+            if changes and #changes > 0 then
+                local changes_by_type = vim.split(changes, ",", { trimempty = true })
+                local content = {}
+                local total = 0
+                for _, change in ipairs(changes_by_type) do
+                    local amount = string.match(change, "%d+")
+                    total = total + tonumber(vim.trim(amount))
+                    local symbol, hg = change_symbol(change)
+                    table.insert(content, { " ", "Comment" })
+                    table.insert(content, { amount, "Comment" })
+                    table.insert(content, { symbol, hg })
+                end
+                if total > 0 then
+                    cache.stat = content
+                else
+                    cache.stat = {}
+                end
+            end
+        else
+            cache.stat = {}
+        end
+        valid.stat = true
+    end)
+    return cache.stat or {}
+end
+
 ---@return string
 M.active_macro_register = function()
     if vim.fn.reg_recording() ~= "" then
@@ -81,6 +145,16 @@ M.tools = function()
     return dap .. " " .. client_symbols
 end
 
+M.git = function()
+    local content = stat()
+    local expanded = ""
+    for _, block in ipairs(content) do
+        local s, hl = unpack(block)
+        expanded = expanded .. string.format("%%#%s# %s", hl, s)
+    end
+    return expanded
+end
+
 M.active = function()
     return table.concat({
         "",
@@ -89,6 +163,8 @@ M.active = function()
         "%{%v:lua.require'core.ui.statusline'.tools()%}",
         "%=",
         "%{%v:lua.require'core.ui.statusline'.active_macro_register()%}",
+        "%{%v:lua.require'core.ui.statusline'.git()%}",
+        "%#Comment#",
         "",
         "%l:%c",
         "",
@@ -110,11 +186,28 @@ end)
 M.setup = function()
     vim.opt.laststatus = 2
     vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter" }, {
-        group = vim.api.nvim_create_augroup("user/statusline", { clear = true }),
+        group = vim.api.nvim_create_augroup("user/statusline/draw", { clear = true }),
         desc = "Attach statusline",
         callback = function()
             draw_statusline()
         end,
+    })
+
+    vim.api.nvim_create_autocmd("User", {
+        pattern = "MiniGitCommandDone",
+        group = vim.api.nvim_create_augroup("user/statusline/git", { clear = true }),
+        desc = "refresh git stats",
+        callback = vim.schedule_wrap(function()
+            valid.stat = false
+        end),
+    })
+
+    vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost" }, {
+        group = vim.api.nvim_create_augroup("user/statusline/git", { clear = true }),
+        desc = "refresh git stats",
+        callback = vim.schedule_wrap(function()
+            valid.stat = false
+        end),
     })
 end
 

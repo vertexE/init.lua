@@ -87,6 +87,8 @@ return {
                         -- -- statusbar
                         Statusbar = { fg = colors.surface1, bg = colors.red, bold = true },
                         StatusbarEdge = { fg = colors.red },
+                        -- -- plugins
+                        NamuFilter = { fg = colors.red },
                     }
                 end,
                 default_integrations = true,
