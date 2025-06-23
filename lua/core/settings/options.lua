@@ -38,15 +38,8 @@ local vim_globals = function()
     vim.g.hidden = true -- explicitly set to play nice with diffview
 end
 
-local statusline = function()
-    -- vim.opt.laststatus = 2 -- Or 3 for global statusline
-    -- vim.opt.statusline = " %f %m %= %l:%c ♥ "
-    require("core.ui.statusline").setup()
-end
-
 M.setup = function()
     local ui = require("core.ui.style")
-    statusline()
     custom_filetypes()
     vim_globals()
     plugin_globals()

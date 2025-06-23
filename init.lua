@@ -5,6 +5,7 @@ require("install")
 
 require("core.settings")
 require("core.extensions")
+require("core.ui")
 
 require("lazy").setup({
     spec = {

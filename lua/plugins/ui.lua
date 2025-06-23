@@ -17,75 +17,63 @@ return {
         end,
     },
     {
-        -- GitSignsUpdate -- use in statusbar
-        "josiahdenton/statusbar.nvim",
-        -- dir = "/Users/jfdenton/work/statusbar.nvim",
-        lazy = false,
-        priority = 1000,
-        dependencies = {
-            {
-                "lewis6991/gitsigns.nvim",
-                lazy = true,
-                event = "VeryLazy",
-                config = function()
-                    local gitsigns = require("gitsigns")
-                    local buffer = require("core.editor.buffer")
-                    gitsigns.setup({
-                        signs_staged_enable = false,
-                    })
-
-                    vim.keymap.set("n", "]c", function()
-                        gitsigns.nav_hunk("next")
-                    end, { desc = "gitsigns: next hunk" })
-
-                    vim.keymap.set("n", "[c", function()
-                        gitsigns.nav_hunk("prev")
-                    end, { desc = "gitsigns: previous hunk" })
-
-                    vim.keymap.set("n", "<leader>gR", function()
-                        gitsigns.reset_buffer()
-                    end, { desc = "gitsigns: reset buffer" })
-
-                    vim.keymap.set("n", "<leader>gh", function()
-                        gitsigns.stage_buffer()
-                    end, { desc = "gitsigns: stage buffer" })
-
-                    vim.keymap.set({ "n", "v" }, "gh", function()
-                        gitsigns.stage_hunk()
-                    end, { desc = "gitsigns: stage hunk" })
-
-                    vim.keymap.set("n", "gH", function()
-                        local status = vim.api.nvim_get_mode()
-                        local is_visual_mode = status.mode == "v" or status.mode == "V" or status.mode == "^V"
-                        if is_visual_mode then
-                            local sel_start, sel_end = buffer.active_selection()
-                            gitsigns.reset_hunk({ sel_start, sel_end })
-                        else
-                            gitsigns.reset_hunk()
-                        end
-                    end, { desc = "gitsigns: reset hunk" })
-
-                    vim.keymap.set("n", "<leader>gd", function()
-                        gitsigns.diffthis()
-                    end)
-
-                    vim.keymap.set("n", "<leader>gD", function()
-                        vim.ui.input({ prompt = "git revision" }, function(input)
-                            if input == nil then
-                                return
-                            end
-                            input = vim.trim(input)
-                            if #input == 0 then
-                                return
-                            end
-                            gitsigns.diffthis(input)
-                        end)
-                    end)
-                end,
-            },
-        },
+        "lewis6991/gitsigns.nvim",
+        lazy = true,
+        event = "VeryLazy",
         config = function()
-            require("statusbar").setup()
+            local gitsigns = require("gitsigns")
+            local buffer = require("core.editor.buffer")
+            gitsigns.setup({
+                signs_staged_enable = false,
+            })
+
+            vim.keymap.set("n", "]c", function()
+                gitsigns.nav_hunk("next")
+            end, { desc = "gitsigns: next hunk" })
+
+            vim.keymap.set("n", "[c", function()
+                gitsigns.nav_hunk("prev")
+            end, { desc = "gitsigns: previous hunk" })
+
+            vim.keymap.set("n", "<leader>gR", function()
+                gitsigns.reset_buffer()
+            end, { desc = "gitsigns: reset buffer" })
+
+            vim.keymap.set("n", "<leader>gh", function()
+                gitsigns.stage_buffer()
+            end, { desc = "gitsigns: stage buffer" })
+
+            vim.keymap.set({ "n", "v" }, "gh", function()
+                gitsigns.stage_hunk()
+            end, { desc = "gitsigns: stage hunk" })
+
+            vim.keymap.set("n", "gH", function()
+                local status = vim.api.nvim_get_mode()
+                local is_visual_mode = status.mode == "v" or status.mode == "V" or status.mode == "^V"
+                if is_visual_mode then
+                    local sel_start, sel_end = buffer.active_selection()
+                    gitsigns.reset_hunk({ sel_start, sel_end })
+                else
+                    gitsigns.reset_hunk()
+                end
+            end, { desc = "gitsigns: reset hunk" })
+
+            vim.keymap.set("n", "<leader>gd", function()
+                gitsigns.diffthis()
+            end)
+
+            vim.keymap.set("n", "<leader>gD", function()
+                vim.ui.input({ prompt = "git revision" }, function(input)
+                    if input == nil then
+                        return
+                    end
+                    input = vim.trim(input)
+                    if #input == 0 then
+                        return
+                    end
+                    gitsigns.diffthis(input)
+                end)
+            end)
         end,
     },
     {
