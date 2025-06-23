@@ -78,21 +78,27 @@ return {
     },
     {
         "nvchad/minty",
-        enabled = true,
-        lazy = true,
-        event = "VeryLazy",
         dependencies = {
-            { "nvchad/volt", lazy = true },
+            { "nvchad/volt", lazy = true, event = "VeryLazy" },
         },
-        config = function()
-            vim.keymap.set("n", "<leader>ch", function()
-                require("minty.huefy").open()
-            end, { desc = "color hues" })
-
-            vim.keymap.set("n", "<leader>cs", function()
-                require("minty.shades").open()
-            end, { desc = "color hues" })
-        end,
+        keys = {
+            {
+                "<leader>ch",
+                function()
+                    require("minty.huefy").open()
+                end,
+                mode = { "n" },
+                desc = "color hues",
+            },
+            {
+                "<leader>cs",
+                function()
+                    require("minty.shades").open()
+                end,
+                mode = { "n" },
+                desc = "color shades",
+            },
+        },
     },
     {
         "folke/todo-comments.nvim",
