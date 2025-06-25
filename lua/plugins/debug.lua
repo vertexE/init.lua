@@ -8,19 +8,19 @@ return {
             "antoinemadec/FixCursorHold.nvim",
             "nvim-treesitter/nvim-treesitter",
             -- testing adapters
-            {
-                "nvim-neotest/neotest-python",
-                commit = "2e83d2bc00acbcc1fd529dbf0a0e677cabfe6b50",
-            },
+            -- {
+            --     "nvim-neotest/neotest-python",
+            --     commit = "2e83d2bc00acbcc1fd529dbf0a0e677cabfe6b50",
+            -- },
             "nvim-neotest/neotest-go",
             "nvim-neotest/neotest-jest",
         },
         config = function()
             require("neotest").setup({
                 adapters = {
-                    require("neotest-python")({
-                        dap = { justMyCode = false },
-                    }),
+                    -- require("neotest-python")({
+                    --     dap = { justMyCode = false },
+                    -- }),
                     require("neotest-jest")({
                         jestCommand = function(path)
                             return string.format("npx jest -- %s", path)
@@ -93,7 +93,7 @@ return {
             )
             vim.fn.sign_define("DapStopped", { text = "", texthl = "MiniIconsGreen", linehl = "Visual", numhl = "" })
             vim.fn.sign_define(
-                "DapBreakpointRejection",
+                "DapBreakpointRejected",
                 { text = "", texthl = "MiniIconsPurple", linehl = "", numhl = "" }
             )
 
