@@ -68,7 +68,7 @@ local battery = function()
 end
 
 local hours_minutes = function()
-    local current_time = os.date("%H:%M")
+    local current_time = os.date("%a %H:%M")
     return tostring(current_time)
 end
 
