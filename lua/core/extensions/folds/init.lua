@@ -9,7 +9,7 @@ M.setup = function()
 
     vim.api.nvim_create_user_command("FocusMarks", focus.marks, {})
 
-    vim.keymap.set("n", "<leader>M", focus.marks, { desc = "focus marks" })
+    -- vim.keymap.set("n", "<leader>M", focus.marks, { desc = "focus marks" })
 
     vim.api.nvim_create_user_command("FocusVisualSelection", focus.visual_selection, {})
     vim.keymap.set({ "n", "v", "x" }, "<leader>v", focus.visual_selection, { desc = "focus visual selection" })

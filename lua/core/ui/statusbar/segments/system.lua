@@ -5,6 +5,7 @@ local store = require("core.ui.statusbar.store")
 local CACHE_UPDATE_TIME = 20000
 local cache = {
     battery_level = nil,
+    battery_hl = "DiagnosticOk",
 }
 local valid = {
     battery_level = false,
@@ -16,23 +17,23 @@ local valid = {
 --- @field charging string
 
 local battery_levels = {
-    { condition = 95, discharging = " ", charging = " 󱐋" },
-    { condition = 90, discharging = " ", charging = " 󱐋" },
-    { condition = 80, discharging = " ", charging = " 󱐋" },
-    { condition = 70, discharging = " ", charging = " 󱐋" },
-    { condition = 60, discharging = " ", charging = " 󱐋" },
-    { condition = 50, discharging = " ", charging = " 󱐋" },
-    { condition = 40, discharging = " ", charging = " 󱐋" },
-    { condition = 30, discharging = " ", charging = " 󱐋" },
-    { condition = 20, discharging = " ", charging = " 󱐋" },
-    { condition = 10, discharging = " ", charging = " 󱐋" },
-    { condition = 0, discharging = " ", charging = " 󱐋" },
+    { condition = 95, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 90, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 80, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 70, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 60, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 50, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 40, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 30, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
+    { condition = 20, discharging = " ", charging = " 󱐋", hl = "MiniIconsOrange" },
+    { condition = 10, discharging = " ", charging = " 󱐋", hl = "MiniIconsOrange" },
+    { condition = 0, discharging = "󱚡 ", charging = " 󱐋", hl = "MiniIconsRed" },
 }
 
---- @return string
+--- @return string,string
 local battery = function()
-    if cache.battery_level and valid.battery_level then
-        return cache.battery_level
+    if cache.battery_level ~= nil and valid.battery_level then
+        return cache.battery_level, cache.battery_hl
     end
 
     vim.system({ "pmset", "-g", "batt" }, { text = true }, function(cmd)
@@ -49,7 +50,8 @@ local battery = function()
             end
         end
         if #percentage == 0 then
-            cache.battery_level = "󰂑"
+            cache.battery_level = "󱚡 "
+            cache.battery_hl = "MiniIconsYellow"
             valid.battery_level = true
             return
         end
@@ -58,13 +60,14 @@ local battery = function()
         for _, level in ipairs(battery_levels) do
             if remaining >= level.condition then
                 cache.battery_level = string.find(cmd.stdout, "discharging") and level.discharging or level.charging
+                cache.battery_hl = level.hl
                 valid.battery_level = true
                 return
             end
         end
     end)
 
-    return cache.battery_level or ""
+    return cache.battery_level or "", cache.battery_hl or "DiagnosticOk"
 end
 
 local hours_minutes = function()
@@ -77,10 +80,12 @@ M.setup = function()
         name = "system",
         split = false,
         focused = function()
-            return { { hours_minutes, "DiagnosticOk" }, { " ", "Comment" }, { battery, "DiagnosticOk" } }
+            local icon, hl = battery()
+            return { { hours_minutes, "DiagnosticOk" }, { " ", "Comment" }, { icon, hl } }
         end,
         default = function()
-            return { { hours_minutes, "DiagnosticOk" }, { " ", "Comment" }, { battery, "DiagnosticOk" } }
+            local icon, hl = battery()
+            return { { hours_minutes, "DiagnosticOk" }, { " ", "Comment" }, { icon, hl } }
         end,
     })
 
