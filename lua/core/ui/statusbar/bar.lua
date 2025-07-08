@@ -4,6 +4,10 @@ local segments = require("core.ui.statusbar.segments")
 local store = require("core.ui.statusbar.store")
 local ui = require("core.ui.statusbar.draw")
 
+--- which filetypes to never draw statusbar in
+--- @type string[]
+local EXCLUDE_FNAME = { "dbui" }
+
 M.draw_all = function()
     store.tick()
     return ui.winbar(store.content())
@@ -43,8 +47,11 @@ local get_drawable_wins = function()
 
     for _, winr in ipairs(wins) do
         local buf = vim.api.nvim_win_get_buf(winr)
+        local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
         local can_draw = not vim.api.nvim_win_get_config(winr).zindex -- no floating
             and vim.bo[buf].buftype == "" -- normal buffer
+            -- and not vim.tbl_contains(EXCLUDE_FT, vim.bo[buf].filetype)
+            and not vim.tbl_contains(EXCLUDE_FNAME, name)
             and not vim.wo[winr].diff -- not in diff mode
 
         if can_draw and winr == current then
