@@ -7,13 +7,32 @@ return {
             "echasnovski/mini.nvim",
             -- other dependencies
         },
-        config = function()
-            local context = require("chat-context-ui")
-            context.setup()
-            vim.keymap.set("n", "<leader>ai", function()
-                context.open()
-            end, { desc = "open AI action panel" })
-        end,
+        keys = {
+            {
+                "<leader>ai",
+                function()
+                    require("chat-context-ui").open()
+                end,
+                mode = { "n" },
+                desc = "open AI actions panel",
+            },
+        },
+        --- @type ccc.PluginOpts
+        opts = {
+            ui = {
+                layout = "split",
+            },
+            agent = {
+                callback = function(prompt, resolve)
+                    require("CopilotChat").ask(prompt, {
+                        headless = true,
+                        callback = function(response)
+                            resolve(response)
+                        end,
+                    })
+                end,
+            },
+        },
     },
     {
         "CopilotC-Nvim/CopilotChat.nvim",

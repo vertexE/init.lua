@@ -85,8 +85,8 @@ return {
                         HackedPortalEdgeNC = { fg = colors.blue },
                         HackedPortalEdge = { fg = colors.green },
                         -- -- statusbar
-                        Statusbar = { fg = colors.surface1, bg = colors.red, bold = true },
-                        StatusbarEdge = { fg = colors.red },
+                        Statusbar = { fg = colors.surface1, bg = colors.blue },
+                        StatusbarEdge = { fg = colors.blue },
                         -- -- plugins
                         NamuFilter = { fg = colors.red },
                     }

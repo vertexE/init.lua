@@ -16,17 +16,17 @@ local valid = {
 --- @field charging string
 
 local battery_levels = {
-    { condition = 95, discharging = "󰁹", charging = "󰁹" },
-    { condition = 90, discharging = "󰂂", charging = "󰂋" },
-    { condition = 80, discharging = "󰂁", charging = "󰂊" },
-    { condition = 70, discharging = "󰂀", charging = "󰢞" },
-    { condition = 60, discharging = "󰁿", charging = "󰂉" },
-    { condition = 50, discharging = "󰁾", charging = "󰢝" },
-    { condition = 40, discharging = "󰁽", charging = "󰂈" },
-    { condition = 30, discharging = "󰁼", charging = "󰂇" },
-    { condition = 20, discharging = "󰁻", charging = "󰂆" },
-    { condition = 10, discharging = "󰁺", charging = "󰢜" },
-    { condition = 0, discharging = "󰂎", charging = "󰢟" },
+    { condition = 95, discharging = " ", charging = " 󱐋" },
+    { condition = 90, discharging = " ", charging = " 󱐋" },
+    { condition = 80, discharging = " ", charging = " 󱐋" },
+    { condition = 70, discharging = " ", charging = " 󱐋" },
+    { condition = 60, discharging = " ", charging = " 󱐋" },
+    { condition = 50, discharging = " ", charging = " 󱐋" },
+    { condition = 40, discharging = " ", charging = " 󱐋" },
+    { condition = 30, discharging = " ", charging = " 󱐋" },
+    { condition = 20, discharging = " ", charging = " 󱐋" },
+    { condition = 10, discharging = " ", charging = " 󱐋" },
+    { condition = 0, discharging = " ", charging = " 󱐋" },
 }
 
 --- @return string

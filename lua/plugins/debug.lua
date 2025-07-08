@@ -145,7 +145,8 @@ return {
                     },
                 },
             })
-            require("nvim-dap-virtual-text").setup({
+            local dapvt = require("nvim-dap-virtual-text")
+            dapvt.setup({
                 display_callback = function(variable, buf, stackframe, node, options)
                     if #variable.value > 10 then
                         return " <...> "
@@ -251,10 +252,12 @@ return {
             end, { noremap = true })
 
             keymap("n", "<leader>q", function()
+                dapvt.disable()
                 dap.terminate()
             end, { desc = "DAP: end session" })
 
             keymap("n", "<leader>n", function()
+                dapvt.enable()
                 dap.continue()
             end, { desc = "DAP: continue" })
 
