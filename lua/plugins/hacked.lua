@@ -34,9 +34,10 @@ return {
                 require("hacked.git").status()
             end)
 
-            vim.keymap.set({ "n" }, "<leader>M", function()
-                require("hacked.buffers").open()
-            end)
+            -- vim.keymap.set({ "n" }, "<leader>M", function()
+            --     -- TODO: wouldn't this make more sense as a floating win with shortcuts?
+            --     require("hacked.buffers").open()
+            -- end)
 
             vim.keymap.set({ "n", "x" }, "<leader>ba", function()
                 require("hacked.portal").save()
