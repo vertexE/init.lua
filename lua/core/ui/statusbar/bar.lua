@@ -37,7 +37,7 @@ end
 --- @return statusbar.DrawRequest
 local get_drawable_wins = function()
     local wins = vim.api.nvim_list_wins()
-    local current = vim.api.nvim_get_current_win()
+    local tab = vim.api.nvim_get_current_tabpage()
 
     --- @type statusbar.DrawRequest
     local request = {
@@ -45,20 +45,31 @@ local get_drawable_wins = function()
         main = -1,
     }
 
+    local top_right_col = -1
     for _, winr in ipairs(wins) do
         local buf = vim.api.nvim_win_get_buf(winr)
         local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
         local can_draw = not vim.api.nvim_win_get_config(winr).zindex -- no floating
+            and tab == vim.api.nvim_win_get_tabpage(winr) -- no need to draw if it's no in the current tab
             and vim.bo[buf].buftype == "" -- normal buffer
             -- and not vim.tbl_contains(EXCLUDE_FT, vim.bo[buf].filetype)
             and not vim.tbl_contains(EXCLUDE_FNAME, name)
             and not vim.wo[winr].diff -- not in diff mode
 
-        if can_draw and winr == current then
-            request["main"] = winr
-        elseif can_draw and winr ~= current then
-            table.insert(request["simple"], winr)
-        end -- else we ignore that window and draw nothing
+        local pos = vim.api.nvim_win_get_position(winr)
+        local row, col = pos[1], pos[2]
+
+        if can_draw and row == 0 and col > top_right_col then -- found a new winr that is the largest
+            top_right_col = col
+            if request.main >= 0 then
+                table.insert(request.simple, request.main)
+                request.main = winr
+            else
+                request.main = winr
+            end
+        elseif can_draw then -- default case, these are simple windows
+            table.insert(request.simple, winr)
+        end
     end
 
     return request

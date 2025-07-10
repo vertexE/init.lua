@@ -23,7 +23,7 @@ local file_path = function()
     local file = vim.fn.fnamemodify(path, ":t")
     local ext = vim.bo[bufnr].filetype
     if #file == 0 then
-        return "󰏫 "
+        return ""
     end
     return (icons[ext] or "") .. file .. (vim.bo.modified and "  " or "")
 end
@@ -33,10 +33,12 @@ M.setup = function()
         name = "filepath",
         split = false,
         focused = function()
-            return { { "", "StatusbarEdge" }, { file_path, "Statusbar" }, { "", "StatusbarEdge" } }
+            local file = file_path()
+            return { { #file > 0 and "│ " or "", "Comment" }, { file, "@text" }, { "", "Comment" } }
         end,
         default = function()
-            return { { "", "StatusbarEdge" }, { file_path, "Statusbar" }, { "", "StatusbarEdge" } }
+            local file = file_path()
+            return { { #file > 0 and "│ " or "", "Comment" }, { file, "@text" }, { "", "Comment" } }
         end,
     })
 end

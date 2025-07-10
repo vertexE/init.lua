@@ -16,7 +16,7 @@ local content = function()
         if i == active_tabpage then
             table.insert(lines, { " ", "MiniIconsOrange" })
         else
-            table.insert(lines, { " ", "Comment" })
+            table.insert(lines, { " ", "MiniIconsOrange" })
         end
 
         table.insert(lines, { " ", "Comment" })
