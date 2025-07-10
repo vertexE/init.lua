@@ -84,8 +84,6 @@ M.setup = function()
             if vim.bo[args.buf].buftype ~= "" then
                 return -- no need to recalculate for wins that aren't normal buffers
             end
-
-            vim.o.showtabline = 0
             local to_draw = get_drawable_wins()
 
             if vim.api.nvim_win_is_valid(to_draw.main) then

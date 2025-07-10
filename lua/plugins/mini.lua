@@ -64,12 +64,6 @@ return {
             end
             vim.keymap.set("n", "<leader>N", mini_open)
 
-            require("mini.tabline").setup({
-                format = function()
-                    return ""
-                end,
-            })
-
             require("mini.bracketed").setup({
                 buffer = { suffix = "b", options = {} },
                 comment = { suffix = "", options = {} },

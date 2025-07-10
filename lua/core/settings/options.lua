@@ -65,6 +65,8 @@ M.setup = function()
     -- vim.opt.list = true
     -- vim.opt.listchars = { space = '⋅', trail = '⋅', tab = '>-' }
 
+    vim.o.showtabline = 0
+
     -- Folding.
     vim.o.foldcolumn = "0" -- set to display fold symbols
     vim.o.foldlevelstart = 99
