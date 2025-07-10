@@ -7,6 +7,10 @@ return {
                 require("multibuffer").lsp_diagnostics()
             end)
 
+            vim.keymap.set("n", "<leader>fm", function()
+                require("multibuffer").marks()
+            end)
+
             vim.keymap.set("n", "<leader>gr", function()
                 require("multibuffer").lsp_references()
             end)
