@@ -28,6 +28,7 @@ return {
                         headless = true,
                         callback = function(response)
                             resolve(response)
+                            return ""
                         end,
                     })
                 end,
