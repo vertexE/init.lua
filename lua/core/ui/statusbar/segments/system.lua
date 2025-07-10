@@ -27,7 +27,7 @@ local battery_levels = {
     { condition = 30, discharging = " ", charging = " 󱐋", hl = "DiagnosticOk" },
     { condition = 20, discharging = " ", charging = " 󱐋", hl = "MiniIconsOrange" },
     { condition = 10, discharging = " ", charging = " 󱐋", hl = "MiniIconsOrange" },
-    { condition = 0, discharging = "󱚡 ", charging = " 󱐋", hl = "MiniIconsRed" },
+    { condition = 0, discharging = " ", charging = " 󱐋", hl = "MiniIconsRed" },
 }
 
 --- @return string,string
