@@ -1,5 +1,8 @@
 return {
     {
+        "jbyuki/venn.nvim",
+    },
+    {
         "bassamsdata/namu.nvim",
         config = function()
             require("namu").setup({
