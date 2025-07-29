@@ -74,11 +74,13 @@ local custom = function()
     set({ "n" }, "<leader>cp", function()
         local path = vim.fn.expand("%:.")
         vim.fn.setreg("*", path)
+        vim.notify("copied relative filepath!", vim.log.levels.INFO, {})
     end, { desc = "copy current buffer's relative file path" })
 
     set({ "n" }, "<leader>cpa", function()
         local path = vim.fn.expand("%:p")
         vim.fn.setreg("*", path)
+        vim.notify("copied absolute filepath!", vim.log.levels.INFO, {})
     end, { desc = "copy current buffer's absolute file path" })
 
     -- simple zen mode

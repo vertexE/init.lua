@@ -1,6 +1,6 @@
 local M = {}
 
-local FOLD_WINDOW = 3 -- show 3 lines above and below diagnostic
+local FOLD_WINDOW = 4 -- show 4 lines above and below diagnostic
 
 --- @param positions table<integer>
 --- @return table<table<integer>>

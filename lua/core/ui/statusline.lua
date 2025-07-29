@@ -12,9 +12,9 @@ local valid = {
 
 --- @type table<line.ChangeType, string>
 local to_change_symbol = {
-    file = "",
-    ins = "",
-    del = "",
+    file = "f",
+    ins = "+",
+    del = "-",
 }
 
 --- @alias line.ChangeType "file"|"ins"|"del"
@@ -48,9 +48,11 @@ local stat = function()
                     local amount = string.match(change, "%d+")
                     total = total + tonumber(vim.trim(amount))
                     local symbol, hg = change_symbol(change)
-                    table.insert(content, { " ", "Comment" })
-                    table.insert(content, { amount, "Comment" })
-                    table.insert(content, { symbol, hg })
+                    if symbol == "f" then
+                        table.insert(content, { amount .. symbol, hg })
+                    else
+                        table.insert(content, { symbol .. amount, hg })
+                    end
                 end
                 if total > 0 then
                     cache.stat = content

@@ -108,11 +108,21 @@ M.diagnostics = function()
     end
 
     vim.keymap.set("n", "<tab>", function()
-        vim.diagnostic.goto_next({ float = false })
+        local diagnostic = vim.diagnostic.get_next()
+        if diagnostic ~= nil then
+            vim.api.nvim_win_set_cursor(0, { diagnostic.lnum, diagnostic.col })
+        else
+            vim.notify("no more diagnostics", vim.log.levels.INFO, {})
+        end
     end, { desc = "go to next diagnostic" })
 
     vim.keymap.set("n", "<s-tab>", function()
-        vim.diagnostic.goto_prev({ float = false })
+        local diagnostic = vim.diagnostic.get_prev()
+        if diagnostic ~= nil then
+            vim.api.nvim_win_set_cursor(0, { diagnostic.lnum, diagnostic.col })
+        else
+            vim.notify("no more diagnostics", vim.log.levels.INFO, {})
+        end
     end, { desc = "go to previous diagnostic" })
 
     local diagnostics = find.find_diagnostics()

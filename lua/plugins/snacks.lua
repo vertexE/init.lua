@@ -21,7 +21,7 @@ return {
             })
 
             vim.keymap.set("n", "<leader>ff", function()
-                snacks.picker.smart()
+                snacks.picker.files({ hidden = true })
             end, { desc = "snacks: find files" })
 
             vim.keymap.set("n", "<leader>fp", function()
@@ -33,7 +33,7 @@ return {
             end)
 
             vim.keymap.set("n", "<leader>fg", function()
-                snacks.picker.grep({ layout = { preset = "sidebar" } })
+                snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
             end, { desc = "snacks: find text" })
 
             vim.keymap.set("n", "<leader>fw", function()
@@ -56,9 +56,9 @@ return {
                 snacks.picker.keymaps({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: find keymap" })
 
-            vim.keymap.set("n", "<leader>cc", function()
-                snacks.picker.colorschemes({ layout = { preset = "vscode" } })
-            end, { desc = "snacks: colorscheme" })
+            -- vim.keymap.set("n", "<leader>cc", function()
+            --     snacks.picker.colorschemes({ layout = { preset = "vscode" } })
+            -- end, { desc = "snacks: colorscheme" })
 
             vim.keymap.set("n", "<leader>fh", function()
                 snacks.picker.help()

@@ -33,14 +33,25 @@ return {
                 end,
             })
 
-            require("core.extensions.folds").load("mini")
-
             local mini_git = require("mini.git")
             mini_git.setup()
 
             vim.keymap.set("n", "<leader>gc", function()
                 vim.cmd("Git commit")
             end, { desc = "mini.git: commit" })
+
+            local mini_diff = require("mini.diff")
+            mini_diff.setup({
+                mappings = {
+                    apply = "",
+                    reset = "",
+                },
+            })
+            require("core.extensions.folds").load("mini")
+
+            vim.keymap.set("n", "<leader>gd", function()
+                mini_diff.toggle_overlay(0)
+            end)
 
             -- vim.keymap.set({ "n", "v" }, "<leader>gi", function()
             --     mini_git.show_at_cursor()

@@ -30,9 +30,9 @@ return {
                 },
             })
 
-            vim.keymap.set("n", "<leader>gg", function()
-                require("hacked.git").status()
-            end)
+            -- vim.keymap.set("n", "<leader>gg", function()
+            --     require("hacked.git").status()
+            -- end)
 
             -- vim.keymap.set({ "n" }, "<leader>M", function()
             --     -- TODO: wouldn't this make more sense as a floating win with shortcuts?

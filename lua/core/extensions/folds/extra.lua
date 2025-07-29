@@ -3,12 +3,14 @@ local M = {}
 local editor = require("core.extensions.folds.editor")
 local generate = require("core.extensions.folds.generate")
 
+local OFFSET = 4
+
 local find_diff_ranges = function()
     local diffs = require("mini.diff").export("qf", { scope = "current" })
 
     local ranges = {}
     for _, diff in pairs(diffs) do
-        table.insert(ranges, { math.max(1, diff.lnum - 1), diff.end_lnum + 1 })
+        table.insert(ranges, { math.max(1, diff.lnum - OFFSET), diff.end_lnum + OFFSET })
     end
 
     return ranges
@@ -37,7 +39,6 @@ M.focus_diff = function()
         vim.cmd(string.format("%d,%dfold", fold[1], fold[2]))
     end
 
-    vim.notify("focused diffs", vim.log.levels.INFO, {})
     vim.g.custom_focus_mode = true
 end
 

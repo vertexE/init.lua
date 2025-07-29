@@ -1,5 +1,19 @@
 return {
     {
+        "NeogitOrg/neogit",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "folke/snacks.nvim",
+        },
+        config = function()
+            local neogit = require("neogit")
+
+            vim.keymap.set("n", "<leader>gg", function()
+                neogit.open()
+            end, { desc = "neogit: open status window" })
+        end,
+    },
+    {
         "jbyuki/venn.nvim",
     },
     {
@@ -61,9 +75,9 @@ return {
                 end
             end, { desc = "gitsigns: reset hunk" })
 
-            vim.keymap.set("n", "<leader>gd", function()
-                gitsigns.diffthis()
-            end)
+            -- vim.keymap.set("n", "<leader>gd", function()
+            --     gitsigns.diffthis()
+            -- end)
 
             vim.keymap.set("n", "<leader>gD", function()
                 vim.ui.input({ prompt = "git revision" }, function(input)
