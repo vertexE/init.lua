@@ -13,7 +13,7 @@ return {
                     vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
                     vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
                 end,
-                open_automatic = true,
+                open_automatic = false,
                 layout = {
                     default_direction = "left",
                 },
