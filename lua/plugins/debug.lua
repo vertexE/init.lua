@@ -277,9 +277,9 @@ return {
                 dap.run_to_cursor()
             end, { desc = "DAP: run to cursor" })
 
-            keymap("n", "<leader>o", function()
-                dap.step_out()
-            end, { desc = "DAP: step out" })
+            -- keymap("n", "<leader>o", function()
+            --     dap.step_out()
+            -- end, { desc = "DAP: step out" })
 
             keymap("n", "<Leader>b", function()
                 dap.toggle_breakpoint()
