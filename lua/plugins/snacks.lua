@@ -8,6 +8,25 @@ return {
                 statuscolumn = {},
                 picker = {
                     ui_select = true,
+                    win = {
+                        input = {
+                            keys = {
+                                ["<c-g>"] = { "grep_selection", mode = { "i", "n" } },
+                            },
+                        },
+                    },
+                    actions = {
+                        grep_selection = function(pick)
+                            local picked = pick:selected({ fallback = false })
+                            local items = #picked > 0 and picked or pick:items()
+                            local glob = vim.iter(items)
+                                :map(function(item)
+                                    return item.file
+                                end)
+                                :totable()
+                            snacks.picker.grep({ glob = glob })
+                        end,
+                    },
                 },
                 input = {},
                 image = {},
@@ -36,7 +55,7 @@ return {
                 snacks.picker.git_stash({ layout = { preset = "sidebar" } })
             end)
 
-            vim.keymap.set("n", "<leader>fw", function()
+            vim.keymap.set("n", "<leader>fg", function()
                 snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
             end, { desc = "snacks: find text" })
 
@@ -55,20 +74,6 @@ return {
             vim.keymap.set("n", "<leader>hk", function()
                 snacks.picker.keymaps({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: find keymap" })
-
-            vim.keymap.set("n", "<leader>fg", function()
-                snacks.picker.git_files({
-                    confirm = function(pick)
-                        local items = pick:selected({ fallback = true })
-                        local glob = vim.iter(items)
-                            :map(function(item)
-                                return item.file
-                            end)
-                            :totable()
-                        snacks.picker.grep({ glob = glob })
-                    end,
-                })
-            end)
 
             vim.keymap.set("n", "<leader>fh", function()
                 snacks.picker.help()
