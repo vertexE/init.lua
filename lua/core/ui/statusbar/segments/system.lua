@@ -81,11 +81,11 @@ M.setup = function()
         split = false,
         focused = function()
             local icon, hl = battery()
-            return { { hours_minutes, "Comment" }, { " ", "Comment" }, { icon, hl } }
+            return { { hours_minutes, "@text" }, { " ", "Comment" }, { icon, hl } }
         end,
         default = function()
             local icon, hl = battery()
-            return { { hours_minutes, "Comment" }, { " ", "Comment" }, { icon, hl } }
+            return { { hours_minutes, "@text" }, { " ", "Comment" }, { icon, hl } }
         end,
     })
 

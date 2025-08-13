@@ -10,8 +10,8 @@ return {
                 -- optionally use on_attach to set keymaps when aerial has attached to a buffer
                 on_attach = function(bufnr)
                     -- Jump forwards/backwards with '{' and '}'
-                    vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
-                    vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
+                    vim.keymap.set("n", "[s", "<cmd>AerialPrev<CR>", { buffer = bufnr })
+                    vim.keymap.set("n", "]s", "<cmd>AerialNext<CR>", { buffer = bufnr })
                 end,
                 open_automatic = false,
                 layout = {
@@ -60,6 +60,7 @@ return {
         "lewis6991/gitsigns.nvim",
         lazy = true,
         event = "VeryLazy",
+        enabled = false,
         config = function()
             local gitsigns = require("gitsigns")
             local buffer = require("core.editor.buffer")

@@ -42,6 +42,9 @@ return {
 
             local mini_diff = require("mini.diff")
             mini_diff.setup({
+                view = {
+                    priority = 1,
+                },
                 mappings = {
                     apply = "",
                     reset = "",

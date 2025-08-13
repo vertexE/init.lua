@@ -18,6 +18,7 @@ return {
         opts = {
             -- Define your formatters
             formatters_by_ft = {
+                zig = { "zigfmt" },
                 go = { "gofmt" },
                 lua = { "stylua" },
                 python = { "isort", "black" }, -- maybe can use ruff instead!
