@@ -60,14 +60,11 @@ return {
                 snacks.picker.git_files({
                     confirm = function(pick)
                         local items = pick:selected({ fallback = true })
-                        local glob = vim.fn.join(
-                            vim.iter(items)
-                                :map(function(item)
-                                    return item.file
-                                end)
-                                :totable(),
-                            ","
-                        )
+                        local glob = vim.iter(items)
+                            :map(function(item)
+                                return item.file
+                            end)
+                            :totable()
                         snacks.picker.grep({ glob = glob })
                     end,
                 })
