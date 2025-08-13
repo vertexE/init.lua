@@ -29,15 +29,15 @@ return {
             end)
 
             vim.keymap.set("n", "<leader>fs", function()
+                snacks.picker.lsp_workspace_symbols()
+            end)
+
+            vim.keymap.set("n", "<leader>gs", function()
                 snacks.picker.git_stash({ layout = { preset = "sidebar" } })
             end)
 
-            vim.keymap.set("n", "<leader>fg", function()
-                snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
-            end, { desc = "snacks: find text" })
-
             vim.keymap.set("n", "<leader>fw", function()
-                snacks.picker.grep_word({ layout = { preset = "sidebar" } })
+                snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
             end, { desc = "snacks: find text" })
 
             vim.keymap.set("n", "<leader>fb", function()
@@ -56,9 +56,22 @@ return {
                 snacks.picker.keymaps({ layout = { preset = "sidebar" } })
             end, { desc = "snacks: find keymap" })
 
-            -- vim.keymap.set("n", "<leader>cc", function()
-            --     snacks.picker.colorschemes({ layout = { preset = "vscode" } })
-            -- end, { desc = "snacks: colorscheme" })
+            vim.keymap.set("n", "<leader>fg", function()
+                snacks.picker.git_files({
+                    confirm = function(pick)
+                        local items = pick:selected({ fallback = true })
+                        local glob = vim.fn.join(
+                            vim.iter(items)
+                                :map(function(item)
+                                    return item.file
+                                end)
+                                :totable(),
+                            ","
+                        )
+                        snacks.picker.grep({ glob = glob })
+                    end,
+                })
+            end)
 
             vim.keymap.set("n", "<leader>fh", function()
                 snacks.picker.help()
