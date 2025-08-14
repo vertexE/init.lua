@@ -73,7 +73,7 @@ return {
                     return {
                         Pmenu = { fg = colors.subtext1, bg = colors.base },
                         Visual = { bg = "#905050" },
-                        HighlightYank = { bg = colors.yellow },
+                        HighlightYank = { bg = colors.red },
                         Comment = { fg = "#494c5e" },
                         Folded = { fg = colors.peach, bg = "" },
                         -- -- copilot
