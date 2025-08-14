@@ -11,11 +11,13 @@ return {
                     light = "latte",
                     dark = "mocha",
                 },
-                transparent_background = false, -- disables setting the background color.
+                float = { solid = true, transparent = true },
+                transparent = true,
+                transparent_background = true, -- disables setting the background color.
                 show_end_of_buffer = false, -- shows the '~' characters after the end of buffers
                 term_colors = false, -- sets terminal colors (e.g. `g:terminal_color_0`)
                 dim_inactive = {
-                    enabled = true, -- dims the background color of inactive window
+                    enabled = false, -- dims the background color of inactive window
                     shade = "dark",
                     percentage = 0.15, -- percentage of the shade to apply to the inactive window
                 },
@@ -70,8 +72,8 @@ return {
                 custom_highlights = function(colors)
                     return {
                         Pmenu = { fg = colors.subtext1, bg = colors.base },
-                        Visual = { bg = "#2a2345" },
-                        HighlightYank = { bg = colors.mauve },
+                        Visual = { bg = "#905050" },
+                        HighlightYank = { bg = colors.yellow },
                         Comment = { fg = "#494c5e" },
                         Folded = { fg = colors.peach, bg = "" },
                         -- -- copilot
