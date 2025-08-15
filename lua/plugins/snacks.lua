@@ -40,7 +40,7 @@ return {
             })
 
             vim.keymap.set("n", "<leader>ff", function()
-                snacks.picker.files({ hidden = true })
+                snacks.picker.files({ hidden = true, layout = { preset = "vscode" } })
             end, { desc = "snacks: find files" })
 
             vim.keymap.set("n", "<leader>fp", function()
@@ -51,7 +51,7 @@ return {
                 snacks.picker.lsp_workspace_symbols()
             end)
 
-            vim.keymap.set("n", "<leader>gs", function()
+            vim.keymap.set("n", "<leader>gS", function()
                 snacks.picker.git_stash({ layout = { preset = "sidebar" } })
             end)
 
@@ -88,14 +88,18 @@ return {
             end, { desc = "snacks: file history" })
 
             vim.keymap.set("n", "gr", function()
-                snacks.picker.lsp_references({ layout = { preset = "sidebar" } })
+                snacks.picker.lsp_references({ layout = { preset = "ivy" } })
             end, { desc = "snacks: references" })
+
+            vim.keymap.set("n", "<leader>gs", function()
+                snacks.picker.git_status({ layout = { preset = "vscode" } })
+            end, { desc = "snacks: git status" })
 
             vim.keymap.set("n", "gd", function()
                 --- @type table<string,table<integer,boolean>>
                 local item_ln_set = {}
                 snacks.picker.lsp_definitions({
-                    layout = { preset = "sidebar" },
+                    layout = { preset = "ivy" },
                     filter = {
                         filter = function(item, filter)
                             if

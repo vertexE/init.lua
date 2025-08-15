@@ -26,9 +26,8 @@ return {
                 callback = function(prompt, resolve)
                     require("CopilotChat").ask(prompt, {
                         headless = true,
-                        callback = function(response)
-                            resolve(response)
-                            return ""
+                        callback = function(msg)
+                            resolve(msg.content)
                         end,
                     })
                 end,
@@ -73,6 +72,7 @@ return {
         opts = {
             debug = false, -- Enable debugging
             -- See Configuration section for rest
+            model = "gpt-4o",
             show_help = true,
             window = {
                 layout = "float",
