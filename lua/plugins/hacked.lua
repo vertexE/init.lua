@@ -11,6 +11,15 @@ return {
             require("hacked.portal").setup()
             require("hacked.buffers").setup()
             require("hacked.clipboard").setup()
+            require("hacked.goto").setup()
+
+            vim.keymap.set("n", "<c-f>", function()
+                require("hacked.goto").menu()
+            end)
+
+            vim.keymap.set("n", "<leader>fa", function()
+                require("hacked.goto").add()
+            end)
 
             require("hacked.git").setup({
                 actions = {

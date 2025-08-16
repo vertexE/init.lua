@@ -16,6 +16,7 @@ return {
                 open_automatic = false,
                 layout = {
                     default_direction = "left",
+                    min_width = 0.23,
                 },
             })
             -- You probably also want to set a keymap to toggle aerial

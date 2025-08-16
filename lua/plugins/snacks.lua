@@ -24,7 +24,7 @@ return {
                                     return item.file
                                 end)
                                 :totable()
-                            snacks.picker.grep({ glob = glob })
+                            snacks.picker.grep({ glob = glob, layout = { preset = "sidebar" } })
                         end,
                     },
                 },
