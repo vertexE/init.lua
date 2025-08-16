@@ -21,6 +21,7 @@ return {
         opts = {
             ui = {
                 layout = "split",
+                split = "left",
             },
             agent = {
                 callback = function(prompt, resolve)
