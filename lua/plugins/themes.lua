@@ -1,9 +1,31 @@
 return {
     {
+        -- TODO: I should just work on creating my own custom nvim/lua theme...
+        "kyza0d/xeno.nvim",
+        lazy = false,
+        enabled = true,
+        priority = 1000, -- Load colorscheme early
+        config = function()
+            require("xeno").config({
+                -- Appearance adjustments
+                contrast = 0, -- Adjust contrast (-1 to 1, 0 is default)
+                variation = 0, -- Adjust color variation strength (-1 to 1, 0 is default)
+                transparent = false, -- Enable transparent background
+            })
+            require("xeno").new_theme("custom", {
+                base = "#0f0c0e",
+                accent = "#D19EBC",
+                contrast = 0.05,
+                variation = 0.1,
+            })
+            vim.cmd("colorscheme custom")
+        end,
+    },
+    {
         "catppuccin/nvim",
         name = "catppuccin",
         priority = 1000,
-        enabled = true,
+        enabled = false,
         config = function()
             require("catppuccin").setup({
                 flavour = "auto", -- latte, frappe, macchiato, mocha

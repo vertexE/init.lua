@@ -36,27 +36,27 @@ return {
                 },
             })
             -- generalized test debugging keymaps
-            vim.keymap.set("n", "<leader>nt", function()
-                require("neotest").run.run()
-            end, { desc = "Neotest: run test" })
+            -- vim.keymap.set("n", "<leader>nt", function()
+            --     require("neotest").run.run()
+            -- end, { desc = "Neotest: run test" })
 
-            vim.keymap.set("n", "<leader>nf", function()
-                require("neotest").run.run(vim.fn.expand("%"))
-            end, { desc = "Neotest: run file" })
+            -- vim.keymap.set("n", "<leader>nf", function()
+            --     require("neotest").run.run(vim.fn.expand("%"))
+            -- end, { desc = "Neotest: run file" })
 
-            vim.keymap.set("n", "<leader>dt", function()
-                require("neotest").run.run({ strategy = "dap" })
-            end, { desc = "Neotest: debug test" })
+            -- vim.keymap.set("n", "<leader>dt", function()
+            --     require("neotest").run.run({ strategy = "dap" })
+            -- end, { desc = "Neotest: debug test" })
 
             vim.keymap.set("n", "<leader>df", function()
                 require("neotest").run.run({ vim.fn.expand("%"), strategy = "dap" })
             end, { desc = "Neotest: debug file" })
 
-            vim.keymap.set("n", "<leader>ne", function()
+            vim.keymap.set("n", "<leader>dE", function()
                 require("neotest").output.open({ enter = true, auto_close = true })
             end, { desc = "Neotest: show test outcome" })
 
-            vim.keymap.set("n", "<leader>no", function()
+            vim.keymap.set("n", "<leader>do", function()
                 require("neotest").summary.toggle()
             end, { desc = "Neotest: show test summary panel" })
 
@@ -256,7 +256,7 @@ return {
                 dap.terminate()
             end, { desc = "DAP: end session" })
 
-            keymap("n", "<leader>n", function()
+            keymap("n", "<leader>d", function()
                 dapvt.enable()
                 dap.continue()
             end, { desc = "DAP: continue" })
