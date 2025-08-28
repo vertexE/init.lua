@@ -12,6 +12,7 @@ return {
             require("hacked.buffers").setup()
             require("hacked.clipboard").setup()
             require("hacked.goto").setup()
+            require("hacked.todo").setup()
 
             vim.keymap.set("n", "<c-f>", function()
                 require("hacked.goto").menu()
@@ -19,6 +20,18 @@ return {
 
             vim.keymap.set("n", "<leader>fa", function()
                 require("hacked.goto").add()
+            end)
+
+            vim.keymap.set("n", "<c-1>", function()
+                require("hacked.goto").quick_open(1)
+            end)
+
+            vim.keymap.set("n", "<c-2>", function()
+                require("hacked.goto").quick_open(2)
+            end)
+
+            vim.keymap.set("n", "<c-3>", function()
+                require("hacked.goto").quick_open(3)
             end)
 
             require("hacked.git").setup({

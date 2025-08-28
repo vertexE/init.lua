@@ -140,7 +140,7 @@ M.tools = function()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local client_symbols = vim.iter(clients)
         :map(function(client)
-            return "%#MiniIconsBlue#" .. symbols.lsp_servers(client.name)
+            return "%#MiniIconsGreen#" .. symbols.lsp_servers(client.name)
         end)
         :join(" ")
     local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsRed#" .. " "
