@@ -14,6 +14,14 @@ return {
             require("hacked.goto").setup()
             require("hacked.todo").setup()
 
+            vim.keymap.set("n", "<leader>to", function()
+                vim.cmd("e .nvim_todo.md")
+            end)
+
+            vim.keymap.set("n", "<leader>tO", function()
+                vim.cmd("e " .. vim.fn.expand("~/.nvim_todo.md"))
+            end)
+
             vim.keymap.set("n", "<c-f>", function()
                 require("hacked.goto").menu()
             end)
