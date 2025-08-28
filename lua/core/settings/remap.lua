@@ -53,7 +53,7 @@ end
 
 local shortcuts = function()
     set("n", "<leader>mD", "delm ! | delm A-Z0-9", { desc = "clear all marks" })
-    set({ "n", "x" }, ";", ":")
+    -- set({ "n", "x" }, ";", ":")
     set("n", "<leader>w", "<cmd>update<cr>", { desc = "save buffer" })
 end
 

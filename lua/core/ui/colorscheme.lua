@@ -108,7 +108,7 @@ M.setup = function()
 
     -- nvim
     vim.api.nvim_set_hl(0, "Normal", { bg = surface:hex(), fg = base200:hex() })
-    vim.api.nvim_set_hl(0, "Visual", { bg = base800:saturate():hex() })
+    vim.api.nvim_set_hl(0, "Visual", { bg = base400:darken(50):hex() })
     vim.api.nvim_set_hl(0, "HighlightYank", { bg = accent300:hex() })
     vim.api.nvim_set_hl(0, "StatusLine", { bg = surface:hex() })
     vim.api.nvim_set_hl(0, "StatusLineNC", { bg = surface:hex() })
@@ -163,7 +163,7 @@ M.setup = function()
 
     -- git
     vim.api.nvim_set_hl(0, "Changed", { fg = yellow:darken(15):hex() })
-    vim.api.nvim_set_hl(0, "Removed", { fg = red0:saturate(5):darken(45):hex() })
+    vim.api.nvim_set_hl(0, "Removed", { fg = red0:saturate(5):hex() })
     vim.api.nvim_set_hl(0, "Added", { fg = green:saturate(35):darken(30):hex() })
     vim.api.nvim_set_hl(0, "DiffChange", { fg = yellow:fade(70):hex(), bg = yellow:darken(45):hex() })
     vim.api.nvim_set_hl(0, "DiffText", { fg = yellow:fade(70):hex(), bg = yellow:darken(45):hex() })

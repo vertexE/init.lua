@@ -25,7 +25,7 @@ local file_path = function()
     if #file == 0 then
         return ""
     end
-    return (icons[ext] or "") .. file .. (vim.bo.modified and "  " or "")
+    return (icons[ext] or "") .. file .. (vim.bo.modified and " ● " or "")
 end
 
 M.setup = function()
