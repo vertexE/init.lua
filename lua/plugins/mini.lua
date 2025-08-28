@@ -100,7 +100,6 @@ return {
                 highlighters = {
                     -- Highlight hex color strings (`#rrggbb`) using that color
                     hex_color = hipatterns.gen_highlighter.hex_color(),
-                    fixme = { pattern = "%f[%w]()FIXME()%f[%W]", group = "MiniHipatternsFixme" },
                 },
             })
 

@@ -2,48 +2,15 @@ local M = {}
 
 local Color = require("core.ui.color")
 
--- Folded = { fg = colors.peach, bg = "" },
--- -- -- copilot
--- AIActionsHeader = { fg = colors.lavender, style = { "bold" } },
--- AIActionsAction = { fg = colors.mauve },
--- AIActionsInActiveContext = { link = "Comment" },
--- AIActionsActiveContext = { fg = colors.teal, style = { "bold" } },
--- -- -- hacked
 -- HackedPortalNC = { fg = colors.surface0, bg = colors.blue },
 -- HackedPortal = { fg = colors.surface0, bg = colors.green },
 -- HackedPortalEdgeNC = { fg = colors.blue },
 -- HackedPortalEdge = { fg = colors.green },
--- -- -- statusbar
--- Statusbar = { fg = colors.surface1, bg = colors.blue, style = { "bold" } },
--- StatusbarEdge = { fg = colors.blue },
--- -- -- plugins
--- NamuFilter = { fg = colors.red },
-
--- rosewater = "#ea6962",
--- flamingo = "#ea6962",
--- red = "#ea6962",
--- maroon = "#ea6962",
--- pink = "#d3869b",
--- mauve = "#d3869b",
--- peach = "#e78a4e",
--- yellow = "#d8a657",
--- green = "#a9b66b",
--- teal = "#89b482",
--- sky = "#89b482",
--- sapphire = "#89b482",
--- blue = "#7daea3",
--- lavender = "#7daea3",
--- text = "#ebdbb2",
--- subtext1 = "#d5c4a1",
--- subtext0 = "#dbae93",
--- overlay2 = "#a89984",
--- overlay1 = "#928374",
 
 M.setup = function()
     vim.cmd.colorscheme("default")
 
     local accent = Color:from_hex("#BD3685"):complement()
-    -- local accent = Color:from_hex("#FF6C11"):complement()
     local step = 11
     local accent500 = accent
     local accent400 = accent500:lighten(step)
@@ -92,13 +59,6 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@accent900", { fg = accent900:hex() })
 
     vim.api.nvim_set_hl(0, "@none", { fg = "", bg = "" })
-
-    -- #8CBE8C
-    -- #ffafcc
-    -- #edafb8
-    -- #b0c4b1
-    -- #da627d
-
     -- core colors
     local green = Color:from_hex("#a9b66b")
     local red0 = Color:from_hex("#eb6f92")
@@ -183,9 +143,24 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "NeogitDiffDeleteCursor", { link = "DiffDelete" })
     vim.api.nvim_set_hl(0, "NeogitDiffAddCursor", { link = "DiffAdd" })
 
-    -- plugins  TODO: test
+    --  TODO: test
+    --  FIXME: test
+    --  BUG: test
+    --  INFO: test
+    --  HACK: test
+    --  PERF: test
+    -- plugins
     vim.api.nvim_set_hl(0, "TodoBgTODO", { fg = base900:hex(), bg = green:saturate(15):hex(), bold = true })
     vim.api.nvim_set_hl(0, "TodoFgTODO", { fg = green:hex() })
+    vim.api.nvim_set_hl(0, "TodoSignTODO", { fg = green:hex() })
+    vim.api.nvim_set_hl(0, "AIActionsHeader", { link = "@text" })
+    vim.api.nvim_set_hl(0, "AIActionsInActiveContext", { link = "@comment" })
+    vim.api.nvim_set_hl(0, "AIActionsActiveContext", { fg = orange:hex() })
+
+    vim.api.nvim_set_hl(0, "HackedPortalNC", { fg = base700:hex(), bg = base800:hex() })
+    vim.api.nvim_set_hl(0, "HackedPortal", { fg = base800:hex(), bg = orange:hex() })
+    vim.api.nvim_set_hl(0, "HackedPortalEdgeNC", { fg = base800:hex() })
+    vim.api.nvim_set_hl(0, "HackedPortalEdge", { fg = orange:hex() })
 end
 
 M.setup()
