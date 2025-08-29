@@ -10,6 +10,7 @@ local Color = require("core.ui.color")
 M.setup = function()
     vim.cmd.colorscheme("default")
 
+    local transparent = true
     local accent = Color:from_hex("#BD3685"):complement()
     local step = 11
     local accent500 = accent
@@ -65,21 +66,30 @@ M.setup = function()
     local red1 = Color:from_hex("#da627d")
     local yellow = Color:from_hex("#FAD327")
     local orange = Color:from_hex("#f77a4e")
+    local blue = Color:from_hex("#548de2")
+
+    -- blue options?
+    -- #0d6cfb
+    -- #2070e8
+    -- #99b9ea
+    -- #548de2
 
     -- nvim
-    vim.api.nvim_set_hl(0, "Normal", { bg = surface:hex(), fg = base200:hex() })
+    -- ctermbg
+    vim.api.nvim_set_hl(0, "Normal", { bg = transparent and "" or surface:hex(), fg = base200:hex() })
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = transparent and "" or surface:hex(), fg = base200:hex() })
     vim.api.nvim_set_hl(0, "Visual", { bg = base400:darken(50):hex() })
     vim.api.nvim_set_hl(0, "HighlightYank", { bg = accent300:hex() })
-    vim.api.nvim_set_hl(0, "StatusLine", { bg = surface:hex() })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { bg = surface:hex() })
-    vim.api.nvim_set_hl(0, "Pmenu", { bg = surface:hex(), fg = base700:hex() })
+    vim.api.nvim_set_hl(0, "StatusLine", { bg = transparent and "" or surface:hex() })
+    vim.api.nvim_set_hl(0, "StatusLineNC", { bg = transparent and "" or surface:hex() })
+    vim.api.nvim_set_hl(0, "WinBar", { bg = transparent and "" or surface:lighten(1):hex() })
+    vim.api.nvim_set_hl(0, "WinBarNC", { link = "WinBar" })
+    vim.api.nvim_set_hl(0, "Pmenu", { bg = transparent and "" or surface:hex(), fg = base700:hex() })
     vim.api.nvim_set_hl(0, "PmenuThumb", { fg = base700:hex() })
     vim.api.nvim_set_hl(0, "FloatBorder", { fg = base700:hex() })
     vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { fg = base700:hex() })
     vim.api.nvim_set_hl(0, "MiniIndentscopeSymbol", { fg = base800:hex() })
     vim.api.nvim_set_hl(0, "WinSeparator", { fg = base800:hex() })
-    vim.api.nvim_set_hl(0, "WinBar", { bg = surface:lighten(1):hex() })
-    vim.api.nvim_set_hl(0, "WinBarNC", { link = "WinBar" })
     vim.api.nvim_set_hl(0, "Folded", { fg = base800:hex() })
 
     -- lsp links
@@ -161,6 +171,14 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "HackedPortal", { fg = base800:hex(), bg = orange:hex() })
     vim.api.nvim_set_hl(0, "HackedPortalEdgeNC", { fg = base800:hex() })
     vim.api.nvim_set_hl(0, "HackedPortalEdge", { fg = orange:hex() })
+
+    vim.api.nvim_set_hl(0, "SnacksBackdrop", { bg = transparent and "" or surface:hex() })
+
+    vim.api.nvim_set_hl(0, "MiniStatuslineModeNormal", { fg = accent800:hex(), bg = base500:hex(), bold = true })
+    vim.api.nvim_set_hl(0, "MiniStatuslineModeReplace", { fg = accent800:hex(), bg = red1:hex(), bold = true })
+    vim.api.nvim_set_hl(0, "MiniStatuslineModeVisual", { fg = accent800:hex(), bg = blue:hex(), bold = true })
+    vim.api.nvim_set_hl(0, "MiniStatuslineModeInsert", { fg = accent800:hex(), bg = green:hex(), bold = true })
+    vim.api.nvim_set_hl(0, "MiniStatuslineModeCommand", { fg = accent800:hex(), bg = orange:hex(), bold = true })
 end
 
 M.setup()
