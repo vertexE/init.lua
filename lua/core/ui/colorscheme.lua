@@ -8,10 +8,21 @@ local Color = require("core.ui.color")
 -- HackedPortalEdge = { fg = colors.green },
 
 M.setup = function()
-    vim.cmd.colorscheme("default")
+    -- vim.cmd.colorscheme("default") ?? do I need this?
 
     local transparent = true
-    local accent = Color:from_hex("#BD3685"):complement()
+    -- #c17c74
+    -- #eaac8b
+    -- #BD3685
+    -- #d7bea8
+    -- #f29559
+    -- #2E3440
+    -- vim.print(Color:from_hex("#304363"):saturate(10):hex()) -- #566175, #274066
+    -- local accent = Color:from_hex("#5E81AC"):saturate(30):darken(15)
+    -- local accent = Color:from_hex("#f29559"):darken(25)
+    -- local accent = Color:from_hex("#BD3685") -- :complement()
+    local accent = Color:from_hex("#88C0D0"):saturate(18):darken(25)
+
     local step = 11
     local accent500 = accent
     local accent400 = accent500:lighten(step)
@@ -64,7 +75,7 @@ M.setup = function()
     local green = Color:from_hex("#a9b66b")
     local red0 = Color:from_hex("#eb6f92")
     local red1 = Color:from_hex("#da627d")
-    local yellow = Color:from_hex("#FAD327")
+    local yellow = Color:from_hex("#EBCB8B")
     local orange = Color:from_hex("#f77a4e")
     local blue = Color:from_hex("#548de2")
 
@@ -96,7 +107,8 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "Constant", { fg = base500:hex() })
     vim.api.nvim_set_hl(0, "Identifier", { fg = base500:hex() })
     vim.api.nvim_set_hl(0, "Special", { fg = accent400:hex() })
-    vim.api.nvim_set_hl(0, "String", { fg = base500:saturate():hex() })
+    vim.api.nvim_set_hl(0, "Type", { fg = yellow:darken():hex() })
+    vim.api.nvim_set_hl(0, "String", { fg = green:saturate():hex() })
     vim.api.nvim_set_hl(0, "Function", { fg = accent500:hex() })
     vim.api.nvim_set_hl(0, "Statement", { fg = base600:hex() })
     vim.api.nvim_set_hl(0, "Comment", { italic = true, fg = base700:hex() })
@@ -113,8 +125,8 @@ M.setup = function()
 
     -- lsp semantics
     vim.api.nvim_set_hl(0, "@text", { fg = base300:hex() })
-    vim.api.nvim_set_hl(0, "@variable", { fg = base400:hex() })
-    vim.api.nvim_set_hl(0, "@function", { fg = base300:hex() })
+    vim.api.nvim_set_hl(0, "@variable", { fg = base200:hex() })
+    vim.api.nvim_set_hl(0, "@function", { fg = base500:hex() })
     vim.api.nvim_set_hl(0, "@property", { fg = base200:hex() })
 
     -- lua

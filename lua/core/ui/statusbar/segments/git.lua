@@ -71,7 +71,7 @@ end
 M.setup = function()
     store.register_segment({
         name = "git",
-        split = true,
+        split = false,
         focused = function()
             return { { branch, "Comment" }, { drift, "Comment" } }
         end,

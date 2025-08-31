@@ -31,7 +31,7 @@ end
 M.setup = function()
     store.register_segment({
         name = "filepath",
-        split = false,
+        split = true,
         focused = function()
             local file = file_path()
             return { { #file > 0 and "│ " or "", "Comment" }, { file, "@text" }, { "", "Comment" } }
