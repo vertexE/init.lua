@@ -83,7 +83,7 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "StatusLineNC", { bg = transparent and "" or surface:hex() })
     vim.api.nvim_set_hl(0, "WinBar", { bg = transparent and "" or surface:lighten(1):hex() })
     vim.api.nvim_set_hl(0, "WinBarNC", { link = "WinBar" })
-    vim.api.nvim_set_hl(0, "Pmenu", { bg = transparent and "" or surface:hex(), fg = frost_300:darken(15):hex() })
+    vim.api.nvim_set_hl(0, "Pmenu", { bg = transparent and "" or surface:hex(), fg = base_500:hex() })
     vim.api.nvim_set_hl(0, "PmenuThumb", {})
     vim.api.nvim_set_hl(0, "FloatBorder", { fg = base_700:hex() })
     vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { fg = base_600:hex() })
@@ -184,6 +184,6 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "MiniStatuslineModeCommand", { fg = base_900:hex(), bg = orange:hex(), bold = true })
 end
 
-M.setup()
+-- M.setup()
 
 return M
