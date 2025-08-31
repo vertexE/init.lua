@@ -3,8 +3,8 @@ local M = {}
 local Color = require("core.ui.color")
 
 M.setup = function()
-    local transparent = true
-    local accent = Color:from_hex("#88C0D0"):saturate(18):darken(25)
+    local transparent = false
+    -- nord inspired palette https://www.nordtheme.com/docs/colors-and-palettes
 
     -- core palette
     local frost_100 = Color:from_hex("#88c0d0")
@@ -15,6 +15,8 @@ M.setup = function()
     local text_300 = Color:from_hex("#d8dee9"):darken(25)
     local text_200 = Color:from_hex("#e5e9f0"):darken(15)
     local text_100 = Color:from_hex("#eceff4")
+
+    local surface = Color:from_hex("#2e3440"):darken(12)
 
     local base_900 = Color:from_hex("#203040")
     local base_800 = Color:from_hex("#2e3440")
@@ -54,19 +56,29 @@ M.setup = function()
     vim.api.nvim_set_hl(0, "@0orange", { fg = orange:hex() })
     vim.api.nvim_set_hl(0, "@0purple", { fg = purple:hex() })
 
+    vim.api.nvim_set_hl(0, "MiniIconsGrey", { fg = base_300:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsAzure", { fg = frost_200:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsPurple", { fg = purple:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsCyan", { fg = frost_300:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsRed", { fg = red:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsGreen", { fg = green:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsOrange", { fg = orange:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsYellow", { fg = yellow:hex() })
+    vim.api.nvim_set_hl(0, "MiniIconsBlue", { fg = blue:hex() })
+
     vim.api.nvim_set_hl(0, "@none", { fg = "", bg = "" })
 
     -- nvim
     -- ctermbg
-    vim.api.nvim_set_hl(0, "Normal", { bg = transparent and "" or base_800:hex(), fg = text_200:hex() })
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = transparent and "" or base_800:hex(), fg = text_200:hex() })
+    vim.api.nvim_set_hl(0, "Normal", { bg = transparent and "" or surface:hex(), fg = text_200:hex() })
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = transparent and "" or surface:hex(), fg = text_200:hex() })
     vim.api.nvim_set_hl(0, "Visual", { bg = base_700:darken(15):hex() })
     vim.api.nvim_set_hl(0, "HighlightYank", { bg = base_700:hex() })
-    vim.api.nvim_set_hl(0, "StatusLine", { bg = transparent and "" or base_800:hex() })
-    vim.api.nvim_set_hl(0, "StatusLineNC", { bg = transparent and "" or base_800:hex() })
-    vim.api.nvim_set_hl(0, "WinBar", { bg = transparent and "" or base_800:lighten(1):hex() })
+    vim.api.nvim_set_hl(0, "StatusLine", { bg = transparent and "" or surface:hex() })
+    vim.api.nvim_set_hl(0, "StatusLineNC", { bg = transparent and "" or surface:hex() })
+    vim.api.nvim_set_hl(0, "WinBar", { bg = transparent and "" or surface:lighten(1):hex() })
     vim.api.nvim_set_hl(0, "WinBarNC", { link = "WinBar" })
-    vim.api.nvim_set_hl(0, "Pmenu", { bg = transparent and "" or base_800:hex(), fg = frost_300:darken(15):hex() })
+    vim.api.nvim_set_hl(0, "Pmenu", { bg = transparent and "" or surface:hex(), fg = frost_300:darken(15):hex() })
     vim.api.nvim_set_hl(0, "PmenuThumb", {})
     vim.api.nvim_set_hl(0, "FloatBorder", { fg = base_700:hex() })
     vim.api.nvim_set_hl(0, "BlinkCmpDocBorder", { fg = base_600:hex() })
