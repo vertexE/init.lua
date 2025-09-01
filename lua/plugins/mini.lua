@@ -50,7 +50,6 @@ return {
                     reset = "",
                 },
             })
-            require("core.extensions.folds").load("mini")
 
             vim.keymap.set("n", "<leader>gd", function()
                 mini_diff.toggle_overlay(0)
