@@ -76,7 +76,7 @@ M.setup = function()
 
     -- TODO: eventually this should be changed to nvim's builtin LSP
     -- see https://github.com/neovim/neovim/pull/31311
-    vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    -- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
     -- UI characters.
     vim.opt.fillchars = ui.fold_chars()

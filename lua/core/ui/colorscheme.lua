@@ -21,7 +21,7 @@ M.setup = function()
     local text_200 = Color:from_hex("#e5e9f0"):darken(15)
     local text_100 = Color:from_hex("#eceff4")
 
-    local surface = Color:from_hex("#2e3440"):darken(12)
+    local surface = Color:from_hex("#2e3440"):darken(14)
 
     local base_900 = Color:from_hex("#203040")
     local base_800 = Color:from_hex("#2e3440")
@@ -121,6 +121,7 @@ M.setup = function()
 
     -- lua
     vim.api.nvim_set_hl(0, "@lsp.type.method.lua", {})
+    vim.api.nvim_set_hl(0, "@lsp.type.method.lua", { fg = frost_200:hex() })
 
     -- tsx
     vim.api.nvim_set_hl(0, "@tag", { link = "@variable" })
