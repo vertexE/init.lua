@@ -1,5 +1,62 @@
 return {
     {
+        "vertexE/fold.nvim",
+        dependencies = {
+            "mini.nvim",
+        },
+        keys = {
+            {
+                "<leader>fi",
+                function()
+                    if require("fold").focused() then
+                        require("fold").text({})
+                        return
+                    end
+
+                    vim.ui.input({
+                        prompt = "Focus on buffer text",
+                    }, function(input)
+                        require("fold").text({ input })
+                    end)
+                end,
+                mode = { "n" },
+                desc = "focus on text in buffer",
+            },
+            {
+                "<leader>E",
+                function()
+                    require("fold").diagnostics()
+                end,
+                mode = { "n" },
+                desc = "focus on diagnostics",
+            },
+            {
+                "<leader>M",
+                function()
+                    require("fold").marks()
+                end,
+                mode = { "n" },
+                desc = "focus on marks",
+            },
+            {
+                "<leader>zz",
+                function()
+                    require("fold").zen()
+                end,
+                mode = { "n", "x" },
+                desc = "focus on visual selection",
+            },
+            {
+                "<leader>D",
+                function()
+                    require("fold").diff()
+                end,
+                mode = { "n" },
+                desc = "focus on changes",
+            },
+        },
+    },
+    {
         "jake-stewart/multicursor.nvim",
         branch = "1.0",
         config = function()
