@@ -1,5 +1,23 @@
 return {
     {
+        "vertexE/synth.nvim",
+        priority = 1000,
+        enabled = true,
+        config = function()
+            require("synth").setup()
+            vim.cmd.colorscheme("synth")
+        end,
+    },
+    {
+        "vertexE/pastel.nvim",
+        priority = 1000,
+        enabled = false,
+        config = function()
+            require("pastel").setup()
+            vim.cmd.colorscheme("pastel")
+        end,
+    },
+    {
         "stevearc/aerial.nvim",
         dependencies = {
             "nvim-treesitter/nvim-treesitter",
@@ -168,6 +186,15 @@ return {
         },
         config = function()
             require("noice").setup({
+                routes = {
+                    {
+                        filter = {
+                            event = "notify",
+                            find = "No information available",
+                        },
+                        opts = { skip = true },
+                    },
+                },
                 lsp = {
                     -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
                     override = {

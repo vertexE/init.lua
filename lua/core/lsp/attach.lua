@@ -13,6 +13,9 @@ local function lsp_keymaps(bufnr)
     -- actions
     keymap("n", "<leader>rn", vim.lsp.buf.rename, buf_opts)
     keymap("n", "<leader>ra", vim.lsp.buf.code_action, buf_opts)
+    keymap("n", "K", function()
+        vim.lsp.buf.hover({ silent = true })
+    end)
 end
 
 local function inlay_hints(bufnr)

@@ -131,6 +131,11 @@ function Color:darken(step)
     return Color:from_hsl(self.h, self.s, l)
 end
 
+function Color:rotate(step)
+    local h = math.max(0, math.min(self.h + (step or 5), 360))
+    return Color:from_hsl(h, self.s, self.l)
+end
+
 --- @return Color
 function Color:negative()
     local h = (self.h + 180) % 360

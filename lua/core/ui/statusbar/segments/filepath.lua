@@ -16,6 +16,8 @@ local icons = {
     javascript = " ",
 }
 
+-- NOTE: I could improve this by also rendering number of lsp errors / etc. in the file?? OR I do that on statusline
+
 --- @return string
 local file_path = function()
     local bufnr = vim.api.nvim_get_current_buf()
