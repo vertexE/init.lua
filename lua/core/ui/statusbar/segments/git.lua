@@ -73,10 +73,10 @@ M.setup = function()
         name = "git",
         split = false,
         focused = function()
-            return { { branch, "Comment" }, { drift, "Comment" } }
+            return { { branch, "MiniIconsPurple" }, { drift, "Comment" } }
         end,
         default = function()
-            return { { branch, "Comment" }, { drift, "Comment" } }
+            return { { branch, "MiniIconsPurple" }, { drift, "Comment" } }
         end,
     })
 

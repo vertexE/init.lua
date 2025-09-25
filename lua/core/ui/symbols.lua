@@ -2,7 +2,7 @@ local M = {}
 
 M.lsp_signs = function()
     -- NOTE: err was 
-    return { Error = "✘", Warn = "", Hint = "", Info = "" }
+    return { Error = "✘", Warn = "", Hint = "", Info = "󰭺" }
 end
 
 --- return a symbol representing the LSP server
@@ -19,6 +19,12 @@ M.lsp_servers = function(name)
     end
     if name:match("ts_ls") then
         return " "
+    end
+    if name:match("rust_analyzer") then
+        return "󱘗 "
+    end
+    if name:match("tailwindcss") then
+        return " "
     end
     if name:match("gopls") then
         return " "

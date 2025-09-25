@@ -2,6 +2,63 @@ local M = {}
 
 local symbols = require("core.ui.symbols")
 
+local diagnostic_severity_priority = {
+    vim.diagnostic.severity.ERROR,
+    vim.diagnostic.severity.WARN,
+    vim.diagnostic.severity.INFO,
+    vim.diagnostic.severity.HINT,
+}
+
+local diagnostic_icon = {
+    [vim.diagnostic.severity.ERROR] = "✘",
+    [vim.diagnostic.severity.WARN] = "",
+    [vim.diagnostic.severity.INFO] = "󰭺",
+    [vim.diagnostic.severity.HINT] = "",
+}
+
+local diagnostic_hl = {
+    [vim.diagnostic.severity.ERROR] = "DiagnosticError",
+    [vim.diagnostic.severity.WARN] = "DiagnosticWarn",
+    [vim.diagnostic.severity.INFO] = "DiagnosticInfo",
+    [vim.diagnostic.severity.HINT] = "DiagnosticHint",
+}
+
+--- @param t table
+--- @param selector fun(a: any):string|number
+--- @return table<string|number,table<any>>
+local group_by_selector = function(t, selector)
+    local groups = {}
+    for _, v in ipairs(t) do
+        local sel_value = selector(v)
+        local group = groups[sel_value] or {}
+        table.insert(group, sel_value)
+        groups[sel_value] = group
+    end
+
+    return groups
+end
+
+--- @return string
+M.diagnostics = function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local diagnostics = vim.diagnostic.get(bufnr)
+    local diagnostics_by_severity = group_by_selector(diagnostics, function(a)
+        return a.severity
+    end)
+
+    local display = ""
+    for _, severity in ipairs(diagnostic_severity_priority) do
+        local diagnostics_for_severity = diagnostics_by_severity[severity]
+        if diagnostics_for_severity ~= nil then
+            local total = #diagnostics_for_severity
+            display = display
+                .. string.format("%%#%s#%s %d ", diagnostic_hl[severity], diagnostic_icon[severity], total)
+        end
+    end
+
+    return display
+end
+
 local cache = {
     stat = {},
 }
@@ -138,13 +195,16 @@ end
 
 M.tools = function()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
-    local client_symbols = vim.iter(clients)
-        :map(function(client)
-            return "%#MiniIconsGreen#" .. symbols.lsp_servers(client.name)
-        end)
-        :join(" ")
-    local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsRed#" .. " "
-    return dap .. " " .. client_symbols
+    local display = ""
+    for _, client in ipairs(clients) do
+        local symbol = symbols.lsp_servers(client.name)
+        if symbol ~= "" then
+            display = display .. " %#MiniIconsGreen#" .. symbols.lsp_servers(client.name)
+        end
+    end
+    display = display .. "%#Comment# │"
+    local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsYellow#" .. " "
+    return dap .. display
 end
 
 M.git = function()
@@ -163,6 +223,7 @@ M.active = function()
         "%{%v:lua.require'core.ui.statusline'.mode()%}",
         "%#StatusLine#",
         "%{%v:lua.require'core.ui.statusline'.tools()%}",
+        "%{%v:lua.require'core.ui.statusline'.diagnostics()%}",
         "%=",
         "%{%v:lua.require'core.ui.statusline'.active_macro_register()%}",
         "%{%v:lua.require'core.ui.statusline'.git()%}",

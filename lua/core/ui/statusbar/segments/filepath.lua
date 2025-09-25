@@ -16,8 +16,6 @@ local icons = {
     javascript = " ",
 }
 
--- NOTE: I could improve this by also rendering number of lsp errors / etc. in the file?? OR I do that on statusline
-
 --- @return string
 local file_path = function()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -27,7 +25,7 @@ local file_path = function()
     if #file == 0 then
         return ""
     end
-    return (icons[ext] or "") .. file .. (vim.bo.modified and " ● " or "")
+    return (icons[ext] or "") .. file .. (vim.bo.modified and " ● " or "   ")
 end
 
 M.setup = function()
@@ -36,11 +34,19 @@ M.setup = function()
         split = true,
         focused = function()
             local file = file_path()
-            return { { #file > 0 and "│ " or "", "Comment" }, { file, "@text" }, { "", "Comment" } }
+            return {
+                { #file > 0 and "│ " or "", "Comment" },
+                { file, "@text" },
+                { "", "Comment" },
+            }
         end,
         default = function()
             local file = file_path()
-            return { { #file > 0 and "│ " or "", "Comment" }, { file, "@text" }, { "", "Comment" } }
+            return {
+                { #file > 0 and "│ " or "", "Comment" },
+                { file, "@text" },
+                { "", "Comment" },
+            }
         end,
     })
 end
