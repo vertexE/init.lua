@@ -18,12 +18,19 @@ local function lsp_keymaps(bufnr)
     end)
 end
 
-local function inlay_hints(bufnr)
+local function code_hints()
     local function toggle_inlay_hints()
-        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
     end
 
     vim.keymap.set("n", "<leader>ih", toggle_inlay_hints)
+
+    vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
+        group = vim.api.nvim_create_augroup("user.lsp.codelens", { clear = true }),
+        callback = function()
+            vim.lsp.codelens.refresh({ bufnr = 0 })
+        end,
+    })
 end
 
 local function auto_commands(bufnr)
@@ -45,7 +52,7 @@ end
 
 local on_attach = function(bufnr)
     auto_commands(bufnr)
-    inlay_hints(bufnr)
+    code_hints()
     lsp_keymaps(bufnr)
 end
 

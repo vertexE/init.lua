@@ -4,6 +4,9 @@ M.lua_ls = {
     Lua = {
         workspace = { checkThirdParty = false },
         telemetry = { enable = false },
+        hint = {
+            enable = true,
+        },
     },
 }
 
@@ -34,28 +37,29 @@ M.yamlls = {
 }
 
 M.ts_ls = {
-    complete_function_calls = true,
-    vtsls = {
-        enableMoveToFileCodeAction = true,
-        autoUseWorkspaceTsdk = true,
-        experimental = {
-            completion = {
-                enableServerSideFuzzyMatch = true,
-            },
-        },
-    },
+    -- vtsls = {
+    --     enableMoveToFileCodeAction = true,
+    --     autoUseWorkspaceTsdk = true,
+    --     experimental = {
+    --         completion = {
+    --             enableServerSideFuzzyMatch = true,
+    --         },
+    --     },
+    -- },
     typescript = {
-        updateImportsOnFileMove = { enabled = "always" },
-        suggest = {
+        completions = {
             completeFunctionCalls = true,
         },
+        referencesCodeLens = { enabled = true, showOnAllFunctions = false },
         inlayHints = {
-            enumMemberValues = { enabled = true },
-            functionLikeReturnTypes = { enabled = true },
-            parameterNames = { enabled = "literals" },
-            parameterTypes = { enabled = true },
-            propertyDeclarationTypes = { enabled = true },
-            variableTypes = { enabled = false },
+            includeInlayParameterNameHints = "all",
+            includeInlayParameterNameHintsWhenArgumentMatchesName = true,
+            includeInlayFunctionParameterTypeHints = true,
+            includeInlayVariableTypeHints = true,
+            includeInlayVariableTypeHintsWhenTypeMatchesName = true,
+            includeInlayPropertyDeclarationTypeHints = true,
+            includeInlayFunctionLikeReturnTypeHints = true,
+            includeInlayEnumMemberValueHints = true,
         },
     },
 }

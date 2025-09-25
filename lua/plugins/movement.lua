@@ -58,7 +58,9 @@ return {
     },
     {
         "jake-stewart/multicursor.nvim",
+        enabled = false,
         branch = "1.0",
+        event = "VeryLazy",
         config = function()
             local mc = require("multicursor-nvim")
             mc.setup()
@@ -84,9 +86,9 @@ return {
             vim.keymap.set({ "n", "x" }, "<leader>s", function()
                 mc.matchSkipCursor(1)
             end)
-            vim.keymap.set({ "n", "x" }, "<leader>N", function()
-                mc.matchAddCursor(-1)
-            end)
+            -- vim.keymap.set({ "n", "x" }, "<leader>N", function()
+            --     mc.matchAddCursor(-1)
+            -- end)
             vim.keymap.set({ "n", "x" }, "<leader>S", function()
                 mc.matchSkipCursor(-1)
             end)

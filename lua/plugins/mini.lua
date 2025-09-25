@@ -70,7 +70,11 @@ return {
             -- end, { desc = "git blame selection" })
 
             local mini_files = require("mini.files")
-            mini_files.setup()
+            mini_files.setup({
+                windows = {
+                    width_focus = 80,
+                },
+            })
 
             local mini_open = function()
                 mini_files.open(vim.api.nvim_buf_get_name(0))
