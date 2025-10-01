@@ -1,18 +1,41 @@
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
+vim.g.mapleader = " "
+vim.g.maplocalleader = ","
+vim.g.hidden = true -- TODO: do I still need this?
 
-require("install")
+local dependencies = {
+    "nvim-treesitter/nvim-treesitter",
+    "nvim-mini/mini.nvim",
+    "neovim/nvim-lspconfig",
+    "williamboman/mason.nvim",
+    "mason-org/mason-lspconfig.nvim",
+    "folke/lazydev.nvim",
+    "folke/snacks.nvim",
+    "vertexE/synth.nvim",
+    "stevearc/conform.nvim",
+    "folke/noice.nvim",
+    "MunifTanjim/nui.nvim",
+    -- "folke/sidekick.nvim"
+    -- "dap.nvim"
+    -- "fold.nvim",
+    -- "multibuffer"
+    -- hacked.nvim temp, we pull this in slowly
+}
 
-require("core.settings")
-require("core.extensions")
-require("core.ui")
+local spec = {}
+for _, dependency in ipairs(dependencies) do
+    table.insert(spec, string.format("https://github.com/%s", dependency))
+end
 
-require("lazy").setup({
-    spec = {
-        -- import your plugins
-        { import = "plugins" },
-    },
-    rocks = {
-        enabled = false,
-    },
-})
+vim.pack.add(spec)
+
+vim.cmd.colorscheme("synth")
+
+require("settings")
+require("keymaps")
+require("auto")
+require("lsp")
+
+require("ui.statusline").setup()
+
+-- load external
+require("plugins")
