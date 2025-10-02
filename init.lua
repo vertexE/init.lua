@@ -36,6 +36,7 @@ require("auto")
 require("lsp")
 
 require("ui.statusline").setup()
+require("ui.statusbar").setup()
 
 -- load external
 require("plugins")

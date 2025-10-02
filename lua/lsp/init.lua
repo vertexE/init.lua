@@ -28,25 +28,30 @@ local on_attach = function(bufnr)
         end,
     })
 
+    -- manuallly trigger the completion menu
     vim.keymap.set("i", "<c-i>", function()
-        -- <c-n> will grab completion by keywords if I don't see / know
-        -- there will be nothing useful
+        -- <c-n> will grab completion by words in open buffers if I don't see anything
+        -- or I know there will be nothing useful
         vim.lsp.completion.get()
     end)
 end
 
 require("lsp.diagnostics").setup()
 require("mason").setup()
-local servers = require("lsp.servers")
+local servers = require("lsp.lsp_settings")
 
 vim.api.nvim_create_autocmd({ "LspAttach" }, {
     group = vim.api.nvim_create_augroup("user.lsp.attach", { clear = true }),
     desc = "setup lsp specific keymaps",
     callback = function(ev)
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
-        if client and client:supports_method("textDocument/completion") then
-            vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
-        end
+        -- this is handled by mini.completion
+        -- if client and client:supports_method("textDocument/completion") then
+        --     vim.lsp.completion.enable(true, client.id, ev.buf, {
+        --         autotrigger = true,
+        --         -- convert = function(item) end, instead of this, can use noice
+        --     })
+        -- end
 
         on_attach(ev.buf)
     end,
@@ -77,5 +82,44 @@ require("conform").setup({
 vim.keymap.set({ "n", "v" }, "<leader>rr", function()
     require("conform").format({ async = true, lsp_fallback = "fallback", stop_after_first = false })
 end)
+
+-- Debounce timer to avoid spamming LSP requests
+-- local hover_timer = nil
+-- vim.api.nvim_create_autocmd("CompleteChanged", {
+--     callback = function()
+--         if hover_timer then
+--             hover_timer:stop()
+--             hover_timer:close()
+--             hover_timer = nil
+--         end
+--
+--         hover_timer = vim.loop.new_timer()
+--         if hover_timer then
+--             hover_timer:start(
+--                 120,
+--                 0,
+--                 vim.schedule_wrap(function()
+--                     local params = vim.lsp.util.make_position_params(0, "utf-16") -- this should actually inherit from the lsp client
+--                     vim.lsp.buf_request(0, "textDocument/hover", params, function(_, result, _, _)
+--                         if not (result and result.contents) then
+--                             return
+--                         end
+--                         local markdown_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
+--                         if vim.tbl_isempty(markdown_lines) then
+--                             return
+--                         end
+--                         -- for now I can do, alternatively I can feed all of this content into a split win
+--                         vim.lsp.util.open_floating_preview(markdown_lines, "markdown", {
+--                             focusable = false,
+--                             offset_x = 51,
+--                             max_width = 50,
+--                             border = "rounded",
+--                         })
+--                     end)
+--                 end)
+--             )
+--         end
+--     end,
+-- })
 
 return M
