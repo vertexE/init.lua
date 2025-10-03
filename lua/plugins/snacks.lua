@@ -1,156 +1,185 @@
+local clipboard = function()
+    local snacks = require("snacks")
+    local hacked = require("hacked.clipboard")
+
+    local custom_finder = function(opts)
+        return vim.iter(hacked.list())
+            :map(function(yank)
+                local header = vim.split(yank.content, "\n")[1]
+                return {
+                    text = header,
+                    value = yank.content,
+                    preview = { text = yank.content, ft = yank.ft },
+                }
+            end)
+            :totable()
+    end
+
+    local custom_picker_config = {
+        layout = "telescope",
+        finder = custom_finder,
+        format = function(item)
+            return { { item.text, "Title" } }
+        end,
+        preview = "preview", -- Use the default preview function
+        actions = {},
+        confirm = function(picker, item)
+            picker:close()
+            if item then
+                vim.fn.setreg('"', item.value)
+            end
+        end,
+    }
+
+    snacks.picker.pick("custom_picker", custom_picker_config)
+end
+
 return {
-    {
-        "folke/snacks.nvim",
-        config = function()
-            local snacks = require("snacks")
-            snacks.setup({
-                notifier = {},
-                statuscolumn = {},
-                picker = {
-                    ui_select = true,
-                    win = {
-                        input = {
-                            keys = {
-                                ["<c-g>"] = { "grep_selection", mode = { "i", "n" } },
-                            },
+    config = function()
+        local snacks = require("snacks")
+        snacks.setup({
+            notifier = {},
+            statuscolumn = {},
+            picker = {
+                ui_select = true,
+                win = {
+                    input = {
+                        keys = {
+                            ["<c-g>"] = { "grep_selection", mode = { "i", "n" } },
                         },
                     },
-                    actions = {
-                        grep_selection = function(pick)
-                            local picked = pick:selected({ fallback = false })
-                            local items = #picked > 0 and picked or pick:items()
-                            local glob = vim.iter(items)
-                                :map(function(item)
-                                    return item.file
-                                end)
-                                :totable()
-                            snacks.picker.grep({ glob = glob, layout = { preset = "sidebar" } })
-                        end,
-                    },
                 },
-                input = {},
-                image = {},
+                actions = {
+                    grep_selection = function(pick)
+                        local picked = pick:selected({ fallback = false })
+                        local items = #picked > 0 and picked or pick:items()
+                        local glob = vim.iter(items)
+                            :map(function(item)
+                                return item.file
+                            end)
+                            :totable()
+                        snacks.picker.grep({ glob = glob, layout = { preset = "sidebar" } })
+                    end,
+                },
+            },
+            input = {},
+            image = {},
+        })
+
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "MiniFilesActionRename",
+            callback = function(event)
+                Snacks.rename.on_rename_file(event.data.from, event.data.to)
+            end,
+        })
+
+        vim.keymap.set("n", "<leader>ff", function()
+            snacks.picker.files({ hidden = true, layout = { preset = "vscode" } })
+        end, { desc = "snacks: find files" })
+
+        vim.keymap.set("n", "<leader>fp", function()
+            snacks.picker.projects()
+        end)
+
+        vim.keymap.set("n", "<leader>fs", function()
+            snacks.picker.lsp_workspace_symbols()
+        end)
+
+        vim.keymap.set("n", "<leader>gS", function()
+            snacks.picker.git_stash({ layout = { preset = "sidebar" } })
+        end)
+
+        vim.keymap.set("n", "<leader>fg", function()
+            snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
+        end, { desc = "snacks: find text" })
+
+        vim.keymap.set("n", "<leader>fb", function()
+            snacks.picker.buffers()
+        end, { desc = "snacks: find buffer" })
+
+        vim.keymap.set("n", "<leader>fn", function()
+            snacks.picker.icons()
+        end, { desc = "snacks: find icon" })
+
+        vim.keymap.set("n", "<leader>fN", function()
+            snacks.picker.notifications()
+        end, { desc = "snacks: notification history" })
+
+        vim.keymap.set("n", "<leader>hk", function()
+            snacks.picker.keymaps({ layout = { preset = "sidebar" } })
+        end, { desc = "snacks: find keymap" })
+
+        vim.keymap.set("n", "<leader>fh", function()
+            snacks.picker.help()
+        end, { desc = "snacks: help" })
+
+        vim.keymap.set("n", "<localleader>ss", function()
+            snacks.picker.spelling()
+        end, { desc = "snacks: spelling" })
+
+        vim.keymap.set("n", "<leader>gi", function()
+            snacks.picker.git_log_file({ layout = { preset = "sidebar" } })
+        end, { desc = "snacks: file history" })
+
+        vim.keymap.set("n", "gr", function()
+            snacks.picker.lsp_references({ layout = { preset = "ivy" } })
+        end, { desc = "snacks: references" })
+
+        vim.keymap.set("n", "<leader>gs", function()
+            snacks.picker.git_status({ layout = { preset = "vscode" } })
+        end, { desc = "snacks: git status" })
+
+        vim.keymap.set("n", "gd", function()
+            --- @type table<string,table<integer,boolean>>
+            local item_ln_set = {}
+            snacks.picker.lsp_definitions({
+                layout = { preset = "ivy" },
+                filter = {
+                    filter = function(item, filter)
+                        if item_ln_set[item.file] ~= nil and #item.pos > 0 and item_ln_set[item.file][item.pos[1]] then
+                            return false
+                        elseif item_ln_set[item.file] ~= nil and #item.pos > 0 then
+                            item_ln_set[item.file][item.pos[1]] = true
+                        else
+                            item_ln_set[item.file] = { [item.pos[1]] = true }
+                        end
+
+                        if string.match(item.file, "react/index.d.ts") ~= nil then
+                            return false
+                        end
+
+                        return filter(item)
+                    end,
+                },
             })
+        end, { desc = "snacks: definitions" })
 
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "MiniFilesActionRename",
-                callback = function(event)
-                    Snacks.rename.on_rename_file(event.data.from, event.data.to)
-                end,
-            })
+        vim.keymap.set("n", "gD", function()
+            snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })
+        end, { desc = "snacks: declarations" })
 
-            vim.keymap.set("n", "<leader>ff", function()
-                snacks.picker.files({ hidden = true, layout = { preset = "vscode" } })
-            end, { desc = "snacks: find files" })
+        vim.keymap.set("n", "<leader>gI", function()
+            snacks.picker.lsp_implementations({ layout = { preset = "sidebar" } })
+        end, { desc = "snacks: implementation" })
 
-            vim.keymap.set("n", "<leader>fp", function()
-                snacks.picker.projects()
-            end)
+        vim.keymap.set("n", "<leader>gl", function()
+            snacks.picker.git_log({ layout = { preset = "vscode" } })
+        end, { desc = "snacks: git log" })
 
-            vim.keymap.set("n", "<leader>fs", function()
-                snacks.picker.lsp_workspace_symbols()
-            end)
+        vim.keymap.set("n", "<leader>gb", function()
+            snacks.picker.git_branches({ layout = { preset = "vscode" } })
+        end, { desc = "snacks: git branches" })
 
-            vim.keymap.set("n", "<leader>gS", function()
-                snacks.picker.git_stash({ layout = { preset = "sidebar" } })
-            end)
+        vim.keymap.set("n", "<leader>fH", function()
+            snacks.picker.highlights()
+        end)
 
-            vim.keymap.set("n", "<leader>fg", function()
-                snacks.picker.grep({ layout = { preset = "sidebar" }, hidden = true })
-            end, { desc = "snacks: find text" })
+        vim.keymap.set("n", "<leader>u", function()
+            snacks.picker.undo({ layout = { preset = "sidebar" } })
+        end)
 
-            vim.keymap.set("n", "<leader>fb", function()
-                snacks.picker.buffers()
-            end, { desc = "snacks: find buffer" })
-
-            vim.keymap.set("n", "<leader>fn", function()
-                snacks.picker.icons()
-            end, { desc = "snacks: find icon" })
-
-            vim.keymap.set("n", "<leader>fN", function()
-                snacks.picker.notifications()
-            end, { desc = "snacks: notification history" })
-
-            vim.keymap.set("n", "<leader>hk", function()
-                snacks.picker.keymaps({ layout = { preset = "sidebar" } })
-            end, { desc = "snacks: find keymap" })
-
-            vim.keymap.set("n", "<leader>fh", function()
-                snacks.picker.help()
-            end, { desc = "snacks: help" })
-
-            vim.keymap.set("n", "<localleader>ss", function()
-                snacks.picker.spelling()
-            end, { desc = "snacks: spelling" })
-
-            vim.keymap.set("n", "<leader>gi", function()
-                snacks.picker.git_log_file({ layout = { preset = "sidebar" } })
-            end, { desc = "snacks: file history" })
-
-            vim.keymap.set("n", "gr", function()
-                snacks.picker.lsp_references({ layout = { preset = "ivy" } })
-            end, { desc = "snacks: references" })
-
-            vim.keymap.set("n", "<leader>gs", function()
-                snacks.picker.git_status({ layout = { preset = "vscode" } })
-            end, { desc = "snacks: git status" })
-
-            vim.keymap.set("n", "gd", function()
-                --- @type table<string,table<integer,boolean>>
-                local item_ln_set = {}
-                snacks.picker.lsp_definitions({
-                    layout = { preset = "ivy" },
-                    filter = {
-                        filter = function(item, filter)
-                            if
-                                item_ln_set[item.file] ~= nil
-                                and #item.pos > 0
-                                and item_ln_set[item.file][item.pos[1]]
-                            then
-                                return false
-                            elseif item_ln_set[item.file] ~= nil and #item.pos > 0 then
-                                item_ln_set[item.file][item.pos[1]] = true
-                            else
-                                item_ln_set[item.file] = { [item.pos[1]] = true }
-                            end
-
-                            if string.match(item.file, "react/index.d.ts") ~= nil then
-                                return false
-                            end
-
-                            return filter(item)
-                        end,
-                    },
-                })
-            end, { desc = "snacks: definitions" })
-
-            vim.keymap.set("n", "gD", function()
-                snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })
-            end, { desc = "snacks: declarations" })
-
-            vim.keymap.set("n", "<leader>gI", function()
-                snacks.picker.lsp_implementations({ layout = { preset = "sidebar" } })
-            end, { desc = "snacks: implementation" })
-
-            vim.keymap.set("n", "<leader>gl", function()
-                snacks.picker.git_log({ layout = { preset = "vscode" } })
-            end, { desc = "snacks: git log" })
-
-            vim.keymap.set("n", "<leader>gb", function()
-                snacks.picker.git_branches({ layout = { preset = "vscode" } })
-            end, { desc = "snacks: git branches" })
-
-            vim.keymap.set("n", "<leader>fH", function()
-                snacks.picker.highlights()
-            end)
-
-            vim.keymap.set("n", "<leader>u", function()
-                snacks.picker.undo({ layout = { preset = "sidebar" } })
-            end)
-
-            vim.keymap.set("n", "<leader>fy", function()
-                require("core.extensions.picker").clipboard()
-            end)
-        end,
-    },
+        vim.keymap.set("n", "<leader>fy", function()
+            clipboard()
+        end)
+    end,
 }
