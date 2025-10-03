@@ -19,6 +19,7 @@ local dependencies = {
     -- debugger
     "rcarriga/nvim-dap-ui",
     "mfussenegger/nvim-dap",
+    "mfussenegger/nvim-dap-python",
     "jbyuki/one-small-step-for-vimkind",
     "nvim-neotest/nvim-nio",
     -- other developer tools

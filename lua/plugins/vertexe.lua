@@ -122,7 +122,7 @@ return {
             require("fold").marks()
         end, { desc = "narrow focus on buffer local marks" })
 
-        vim.keymap.set("n", "<leader>zz", function()
+        vim.keymap.set("x", "zz", function()
             require("fold").zen()
         end, { desc = "narrow focus onto selected region" })
 

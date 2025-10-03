@@ -64,6 +64,7 @@ return {
             },
         })
 
+        require("dap-python").setup()
         local js_debug_path = vim.fn.expand("$MASON/packages/js-debug-adapter/js-debug/src/dapDebugServer.js")
 
         dap.adapters["pwa-node"] = {
