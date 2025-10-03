@@ -494,17 +494,6 @@ M.status_tray = function()
             end
         end)
     )
-
-    -- WARN: investigate this isn't a performance bottleneck
-    vim.api.nvim_create_autocmd({ "User" }, {
-        group = vim.api.nvim_create_augroup("user.git.tray.refresh", { clear = true }),
-        pattern = "MiniGitCommandDone",
-        callback = function()
-            if state.bufnr ~= nil and state.winr ~= nil then
-                M.status_tray()
-            end
-        end,
-    })
 end
 
 return M
