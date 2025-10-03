@@ -136,12 +136,20 @@ return {
                     {
                         type = "pwa-node",
                         request = "launch",
+                        runtimeArgs = {
+                            "--inspect-brk",
+                        },
                         name = "Debug Jest Test",
                         program = "${workspaceFolder}/node_modules/.bin/jest", -- Path to Jest executable
-                        args = { "${file}" }, -- Run the current file as a test, use .only for specific tests
+                        args = {
+                            "--runInBand",
+                            "--no-cache",
+                            "${file}",
+                        },
                         cwd = "${workspaceFolder}",
                         runtimeExecutable = "node",
                         console = "integratedTerminal",
+                        internalConsoleOptions = "neverOpen",
                     },
                 }
             end
