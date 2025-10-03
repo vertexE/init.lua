@@ -1,7 +1,5 @@
 local M = {}
 
--- TODO: enhancement idea, add diff stats
-
 local splits = require("ui.splits")
 local confirm = require("ui.confirm")
 local floats = require("ui.floats")
@@ -47,6 +45,12 @@ local state = {
     last_cl = -1, -- last cursor position
 }
 
+local quick_close = function(bufnr)
+    vim.keymap.set("n", "q", function()
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+    end, { desc = "close the buffer", buffer = bufnr })
+end
+
 local to_normal_modes = function()
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end
@@ -72,8 +76,9 @@ local git_reset = function(path)
     vim.fn.system({ "git", "checkout", "HEAD", "--", path })
 end
 
-local git_diff = function(file, staged)
-    return vim.fn.system(staged and { "git", "diff", "--staged", file } or { "git", "diff", file })
+local git_diff = function(file, is_staged)
+    vim.fn.jobstart(is_staged and { "git", "diff", "--staged", file } or { "git", "diff", file }, { term = true })
+    vim.cmd("startinsert")
 end
 
 local head_branch_name = function()
@@ -167,7 +172,10 @@ local draw_tray = function(bufnr, winr, changes)
     })
     table.insert(v_lines, {
         { "Hint: ", "Comment" },
-        { "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit", "@constant" },
+        {
+            "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull",
+            "@constant",
+        },
     })
     table.insert(v_lines, {}) -- blank line
     table.insert(v_lines, {
@@ -386,16 +394,38 @@ M.status_tray = function()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "cc", function()
-                    -- use mini.git for handling commits
-                    vim.cmd("Git commit")
-                    vim.api.nvim_create_autocmd({ "User" }, {
-                        pattern = "MiniGitCommandDone",
-                        group = vim.api.nvim_create_augroup("user.git.refresh_tray", { clear = true }),
+                    local bufnr = floats.center({ height = 0.80, width = 0.88 })
+                    vim.fn.jobstart("git commit", { term = true })
+                    vim.cmd("startinsert")
+                    vim.api.nvim_create_autocmd("TermClose", {
                         once = true,
                         callback = function()
                             M.status_tray()
+                            vim.api.nvim_buf_delete(bufnr, { force = true })
                         end,
                     })
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "PP", function()
+                    vim.cmd(string.format("Git push -u origin %s", head_branch_name()))
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "pp", function()
+                    vim.cmd(string.format("Git pull origin %s", head_branch_name()))
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "Pp", function()
+                    vim.cmd(string.format("Git push origin %s", head_branch_name()))
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "ll", function()
+                    vim.cmd("Git log --pretty=oneline")
+                    local bufnr = vim.api.nvim_get_current_buf()
+                    vim.keymap.set("n", "<enter>", function()
+                        require("mini.git").show_at_cursor()
+                        quick_close(vim.api.nvim_get_current_buf())
+                    end, { desc = "", buffer = bufnr })
+                    quick_close(bufnr)
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "x", function()
@@ -420,12 +450,23 @@ M.status_tray = function()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "<tab>", function()
-                    -- FIXME: enahncement >> diffs need to use --staged option depending on where we are in the buffer
+                    local open_term = vim.loop.hrtime()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())
                     if file_paths ~= nil and #file_paths > 0 then
-                        local diff = git_diff(file_paths[1], in_staged(state.bufnr))
-                        local bufnr = floats.center({ height = 0.80, width = 0.55, bo = { filetype = "diff" } })
-                        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(diff, "\n"))
+                        local is_staged = in_staged(state.bufnr)
+                        local bufnr = floats.center({ height = 0.80, width = 0.88 })
+                        git_diff(file_paths[1], is_staged)
+
+                        vim.api.nvim_create_autocmd("TermClose", {
+                            once = true,
+                            callback = function()
+                                local close_term = vim.loop.hrtime()
+                                local diff = math.floor((close_term - open_term) / 1e6)
+                                if diff > 250 then
+                                    vim.api.nvim_buf_delete(bufnr, { force = true })
+                                end
+                            end,
+                        })
                     end
                 end, { desc = "", buffer = state.bufnr })
             elseif state.last_cl > 0 then

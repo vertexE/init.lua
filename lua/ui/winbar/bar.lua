@@ -6,7 +6,7 @@ local ui = require("ui.winbar.draw")
 
 --- which filetypes to never draw statusbar in
 --- @type string[]
-local EXCLUDE_FNAME = { "dbui" }
+local EXCLUDE_FNAME = { "dbui", "COMMIT_EDITMSG" }
 
 M.draw_all = function()
     store.tick()

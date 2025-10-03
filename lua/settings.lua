@@ -74,9 +74,11 @@ vim.opt.infercase = true -- Infer letter cases for a richer built-in keyword com
 vim.opt.smartcase = true -- Don't ignore case when searching if pattern has upper case
 vim.opt.smartindent = true -- Make indenting smart
 
-vim.opt.completeopt = "menuone,popup,noselect,noinsert" -- Customize completions -- and maybe noinsert?
+vim.opt.completeopt = "menuone,popup,noselect,noinsert,fuzzy" -- Customize completions -- and maybe noinsert?
 vim.opt.pummaxwidth = 50
 
 vim.opt.virtualedit = "block" -- Allow going past the end of line in visual block mode
 vim.opt.formatoptions = "qjl1" -- Don't autoformat comments
 vim.opt.splitkeep = "screen"
+
+vim.go.shell = "/bin/bash"
