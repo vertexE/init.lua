@@ -9,7 +9,8 @@ require("plugins.noice").config()
 require("plugins.dap").config()
 require("plugins.kulala").config()
 require("plugins.react").config()
-require("plugins.vertexe").config()
 require("plugins.ai").config()
+require("plugins.treesitter").config()
+require("plugins.vertexe").config()
 
 return M

@@ -11,8 +11,9 @@ local dependencies = {
     "williamboman/mason.nvim",
     "mason-org/mason-lspconfig.nvim",
     "folke/lazydev.nvim",
-    -- appearance
+    -- syntax & appearance
     "nvim-treesitter/nvim-treesitter",
+    "nvim-treesitter/nvim-treesitter-textobjects",
     "vertexE/synth.nvim",
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
