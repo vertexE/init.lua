@@ -14,6 +14,7 @@ local on_attach = function(bufnr)
         vim.lsp.inline_completion.enable(not vim.lsp.inline_completion.is_enabled())
         vim.cmd("redrawstatus")
     end, { desc = "enable inline completion" })
+
     vim.keymap.set("i", "<tab>", vim.lsp.inline_completion.get, { desc = "enable inline completion" })
 
     vim.keymap.set("n", "<leader>ih", function()
