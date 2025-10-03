@@ -1,3 +1,13 @@
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "COMMIT_EDITMSG",
+    callback = function(ev)
+        vim.keymap.set("n", "<enter>", function()
+            vim.cmd("normal! ZZ")
+        end, { buffer = ev.buf })
+    end,
+    desc = "save & close git commit",
+})
+
 vim.api.nvim_create_autocmd("RecordingEnter", {
     pattern = "*",
     callback = function()

@@ -56,24 +56,24 @@ local to_normal_modes = function()
 end
 
 local git_stage = function(paths)
-    vim.fn.system({
+    vim.system({
         "git",
         "add",
         unpack(paths),
-    })
+    }):wait()
 end
 
 local git_restore = function(paths)
-    vim.fn.system({
+    vim.system({
         "git",
         "restore",
         "--staged",
         unpack(paths),
-    })
+    }):wait()
 end
 
 local git_reset = function(path)
-    vim.fn.system({ "git", "checkout", "HEAD", "--", path })
+    vim.system({ "git", "checkout", "HEAD", "--", path }):wait()
 end
 
 local git_diff = function(file, is_staged)
@@ -82,7 +82,8 @@ local git_diff = function(file, is_staged)
 end
 
 local head_branch_name = function()
-    local branch = vim.fn.system("git branch --show-current 2> /dev/null | tr -d '\n'")
+    local result = vim.system({ "git", "branch", "--show-current" }, { text = true }):wait()
+    local branch = (result.stdout or ""):gsub("%s", "")
     if branch ~= "" then
         return branch
     else
@@ -91,7 +92,9 @@ local head_branch_name = function()
 end
 
 local remote_branch_name = function()
-    local remote = vim.fn.system("git rev-parse --abbrev-ref --symbolic-full-name @{u} 2> /dev/null | tr -d '\n'")
+    local result = vim.system({ "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", " @{u}" }, { text = true })
+        :wait()
+    local remote = (result.stdout or ""):gsub("%s", "")
     if remote ~= "" then
         return remote
     else
@@ -99,19 +102,32 @@ local remote_branch_name = function()
     end
 end
 
+local open_remote = function()
+    local remote = remote_branch_name()
+    if remote == "no upstream" then
+        vim.notify("no upstream set for this branch", vim.log.levels.WARN, {})
+        return
+    end
+
+    local remote_branch = remote:gsub("origin/", "")
+    vim.system({ "gh", "browse", "--branch", remote_branch }):wait()
+end
+
 local head_commit = function()
-    -- will show HEAD on a repo with no commits
-    return vim.fn.system("git rev-parse HEAD 2> /dev/null | tr -d '\n'")
+    local result = vim.system({ "git", "rev-parse", "HEAD" }, { text = true }):wait()
+    return (result.stdout or ""):gsub("%s", "")
 end
 
 local remote_commit = function()
-    return vim.fn.system("git rev-parse @{u} 2> /dev/null | tr -d '\n'") or "no upstream"
+    local result = vim.system({ "git", "rev-parse", "@{u}" }, { text = true }):wait()
+    return (result.stdout or ""):gsub("%s", "")
 end
 
 ---@param commit_sha string
 ---@return string
 local commit_msg = function(commit_sha)
-    return vim.fn.system(string.format("git log -1 --pretty=%%s %s 2> /dev/null | tr -d '\n'", commit_sha))
+    local result = vim.system({ "git", "log", "-1", "--pretty=%s", commit_sha }, { text = true }):wait()
+    return (result.stdout or ""):gsub("%s+$", "")
 end
 
 ---@param type git.ChangeType
@@ -173,7 +189,7 @@ local draw_tray = function(bufnr, winr, changes)
     table.insert(v_lines, {
         { "Hint: ", "Comment" },
         {
-            "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull",
+            "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull",
             "@constant",
         },
     })
@@ -361,7 +377,6 @@ M.status_tray = function()
                 vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
                     buffer = bufnr,
                     callback = function()
-                        -- open a new win
                         state.bufnr = nil
                         state.winr = nil
                     end,
@@ -441,6 +456,10 @@ M.status_tray = function()
                     end
                 end, { desc = "", buffer = state.bufnr })
 
+                vim.keymap.set("n", "o", function()
+                    open_remote()
+                end, { desc = "", buffer = state.bufnr })
+
                 vim.keymap.set("n", "<enter>", function()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())
                     if file_paths ~= nil and #file_paths > 0 then
@@ -475,6 +494,17 @@ M.status_tray = function()
             end
         end)
     )
+
+    -- WARN: investigate this isn't a performance bottleneck
+    vim.api.nvim_create_autocmd({ "User" }, {
+        group = vim.api.nvim_create_augroup("user.git.tray.refresh", { clear = true }),
+        pattern = "MiniGitCommandDone",
+        callback = function()
+            if state.bufnr ~= nil and state.winr ~= nil then
+                M.status_tray()
+            end
+        end,
+    })
 end
 
 return M

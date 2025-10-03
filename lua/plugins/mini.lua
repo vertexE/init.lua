@@ -1,3 +1,23 @@
+local function in_comment(marker)
+    local comment_tbl = {
+        python = "#",
+        lua = "--",
+        c = "//",
+        rust = "//",
+        javascript = "//",
+        typescript = "//",
+    }
+
+    return function(bufnr)
+        local comment = comment_tbl[vim.bo[bufnr].filetype]
+        if comment == nil then
+            return nil
+        end
+
+        return comment .. " ()" .. marker .. "()%f[%W]"
+    end
+end
+
 return {
     config = function()
         require("mini.completion").setup({
@@ -94,10 +114,13 @@ return {
         hipatterns.setup({
             highlighters = {
                 -- Highlight hex color strings (`#rrggbb`) using that color
-                fixme = { pattern = "FIXME", group = "MiniHipatternsFixme" },
-                hack = { pattern = "HACK", group = "MiniHipatternsHack" },
-                todo = { pattern = "TODO", group = "MiniHipatternsTodo" },
-                note = { pattern = "NOTE", group = "MiniHipatternsNote" },
+                bug = { pattern = in_comment("BUG"), group = "MiniIconsRed" },
+                fixme = { pattern = in_comment("FIXME"), group = "MiniIconsRed" },
+                hack = { pattern = in_comment("HACK"), group = "MiniIconsYellow" },
+                warn = { pattern = in_comment("WARN"), group = "MiniIconsOrange" },
+                todo = { pattern = in_comment("TODO"), group = "MiniIconsGreen" },
+                perf = { pattern = in_comment("PERF"), group = "MiniIconsBlue" },
+                note = { pattern = in_comment("NOTE"), group = "MiniIconsYellow" },
 
                 hex_color = hipatterns.gen_highlighter.hex_color(),
             },
