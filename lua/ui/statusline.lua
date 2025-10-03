@@ -1,5 +1,6 @@
 local M = {}
 
+local tbl = require("tbl")
 local symbols = require("symbols")
 
 local diagnostic_severity_priority = {
@@ -23,26 +24,11 @@ local diagnostic_hl = {
     [vim.diagnostic.severity.HINT] = "DiagnosticHint",
 }
 
---- @param t table
---- @param selector fun(a: any):string|number
---- @return table<string|number,table<any>>
-local group_by_selector = function(t, selector)
-    local groups = {}
-    for _, v in ipairs(t) do
-        local sel_value = selector(v)
-        local group = groups[sel_value] or {}
-        table.insert(group, v)
-        groups[sel_value] = group
-    end
-
-    return groups
-end
-
 --- @return string
 M.diagnostics = function()
     local bufnr = vim.api.nvim_get_current_buf()
     local diagnostics = vim.diagnostic.get(bufnr)
-    local diagnostics_by_severity = group_by_selector(diagnostics, function(a)
+    local diagnostics_by_severity = tbl.group_by_selector(diagnostics, function(a)
         return a.severity
     end)
 
@@ -56,7 +42,7 @@ M.diagnostics = function()
         end
     end
 
-    return #display > 0 and display:sub(1, #display - 1) or "%#MiniIconsGreen# " .. "%#Comment# │"
+    return (#display > 0 and display:sub(1, #display - 1) or "%#MiniIconsGreen# ") .. "%#Comment# │"
 end
 
 local cache = {

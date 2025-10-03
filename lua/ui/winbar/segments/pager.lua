@@ -1,6 +1,6 @@
 local M = {}
 
-local store = require("ui.statusbar.store")
+local store = require("ui.winbar.store")
 
 --- @return table<table<string>>
 local content = function()

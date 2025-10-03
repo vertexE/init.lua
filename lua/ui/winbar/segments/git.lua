@@ -1,6 +1,6 @@
 local M = {}
 
-local store = require("ui.statusbar.store")
+local store = require("ui.winbar.store")
 --- we only update drift every 30 seconds
 local DRIFT_CACHE_UPDATE_TIME = 30000
 local cache = {
@@ -80,7 +80,7 @@ M.setup = function()
         end,
     })
 
-    local group = vim.api.nvim_create_augroup("hacked.git.refresh", { clear = true })
+    local group = vim.api.nvim_create_augroup("winbar.git.refresh", { clear = true })
 
     vim.api.nvim_create_autocmd({ "VimEnter" }, {
         group = group,

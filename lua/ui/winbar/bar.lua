@@ -1,8 +1,8 @@
 local M = {}
 
-local segments = require("ui.statusbar.segments")
-local store = require("ui.statusbar.store")
-local ui = require("ui.statusbar.draw")
+local segments = require("ui.winbar.segments")
+local store = require("ui.winbar.store")
+local ui = require("ui.winbar.draw")
 
 --- which filetypes to never draw statusbar in
 --- @type string[]
@@ -78,7 +78,7 @@ end
 M.setup = function()
     segments.setup()
     vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter", "WinEnter" }, {
-        group = vim.api.nvim_create_augroup("user/statusbar/winbar", { clear = true }),
+        group = vim.api.nvim_create_augroup("user.winbar", { clear = true }),
         desc = "Attach winbar",
         callback = function(args)
             if vim.bo[args.buf].buftype ~= "" then
@@ -87,11 +87,11 @@ M.setup = function()
             local to_draw = get_drawable_wins()
 
             if vim.api.nvim_win_is_valid(to_draw.main) then
-                vim.wo[to_draw.main].winbar = "%{%v:lua.require'ui.statusbar.bar'.draw_all()%}"
+                vim.wo[to_draw.main].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_all()%}"
             end
 
             for _, simple_win in ipairs(to_draw.simple) do
-                vim.wo[simple_win].winbar = "%{%v:lua.require'ui.statusbar.bar'.draw_simple()%}"
+                vim.wo[simple_win].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_simple()%}"
             end
         end,
     })

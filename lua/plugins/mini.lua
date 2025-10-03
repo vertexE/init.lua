@@ -1,6 +1,16 @@
 return {
     config = function()
-        require("mini.completion").setup()
+        require("mini.completion").setup({
+            matching = require("mini.fuzzy").match,
+        })
+        vim.api.nvim_create_autocmd("FileType", {
+            pattern = { "snacks_picker_input", "snacks_picker_list" },
+            callback = function()
+                vim.b.minicompletion_disable = true
+            end,
+            desc = "Disable mini.completion in snacks.nvim picker buffers",
+        })
+
         require("mini.icons").setup()
         require("mini.notify").setup()
         require("mini.cursorword").setup({ delay = 500 })
@@ -30,7 +40,7 @@ return {
         })
 
         local mini_git = require("mini.git")
-        mini_git.setup()
+        mini_git.setup({})
 
         vim.keymap.set("n", "<leader>gc", function()
             vim.cmd("Git commit")

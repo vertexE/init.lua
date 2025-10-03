@@ -3,22 +3,35 @@ vim.g.maplocalleader = ","
 vim.g.hidden = true -- TODO: do I still need this?
 
 local dependencies = {
-    "nvim-treesitter/nvim-treesitter",
+    -- common
     "nvim-mini/mini.nvim",
+    "folke/snacks.nvim",
+    -- lsp config, server install
     "neovim/nvim-lspconfig",
     "williamboman/mason.nvim",
     "mason-org/mason-lspconfig.nvim",
     "folke/lazydev.nvim",
-    "folke/snacks.nvim",
+    -- appearance
+    "nvim-treesitter/nvim-treesitter",
     "vertexE/synth.nvim",
-    "stevearc/conform.nvim",
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
-    -- "folke/sidekick.nvim"
-    -- "dap.nvim"
-    -- "fold.nvim",
-    -- "multibuffer"
-    -- hacked.nvim temp, we pull this in slowly
+    -- debugger
+    "rcarriga/nvim-dap-ui",
+    "mfussenegger/nvim-dap",
+    "jbyuki/one-small-step-for-vimkind",
+    "nvim-neotest/nvim-nio",
+    -- other developer tools
+    "stevearc/conform.nvim",
+    "mistweaverco/kulala.nvim",
+    -- react support
+    "windwp/nvim-ts-autotag",
+    -- AI
+    "folke/sidekick.nvim",
+    -- personal plugins
+    "vertexE/fold.nvim",
+    "vertexE/multibuffer.nvim",
+    "vertexE/hacked.nvim",
 }
 
 local spec = {}
@@ -36,7 +49,7 @@ require("auto")
 require("lsp")
 
 require("ui.statusline").setup()
-require("ui.statusbar").setup()
+require("ui.winbar").setup()
 
 -- load external
 require("plugins")

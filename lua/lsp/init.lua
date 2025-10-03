@@ -28,12 +28,8 @@ local on_attach = function(bufnr)
         end,
     })
 
-    -- manuallly trigger the completion menu
-    vim.keymap.set("i", "<c-i>", function()
-        -- <c-n> will grab completion by words in open buffers if I don't see anything
-        -- or I know there will be nothing useful
-        vim.lsp.completion.get()
-    end)
+    -- fallback when no trigger character has been used
+    vim.keymap.set("i", "<c-i>", "<c-x><c-o>", { desc = "trigger completion menu" })
 end
 
 require("lsp.diagnostics").setup()

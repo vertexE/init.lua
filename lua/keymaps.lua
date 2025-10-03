@@ -1,3 +1,5 @@
+local git = require("vcs.git_status")
+
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })
 vim.keymap.set("n", "<c-e>", "<c-e><c-e><c-e>", { desc = "scroll down" })
@@ -51,3 +53,8 @@ end, { desc = "copy current buffer's absolute file path" })
 
 vim.keymap.set("v", "gx", "<CMD>silent execute '!open ' .. shellescape(expand('<cfile>'), v:true)<CR>")
 vim.keymap.set("t", "<c-/>", "<c-\\><c-n>")
+
+-- git
+vim.keymap.set("n", "<leader>gg", function()
+    git.status_tray()
+end)
