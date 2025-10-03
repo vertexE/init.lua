@@ -32,7 +32,6 @@ return {
         })
 
         require("mini.icons").setup()
-        require("mini.notify").setup()
         require("mini.cursorword").setup({ delay = 500 })
         require("mini.ai").setup()
         require("mini.pairs").setup()

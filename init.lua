@@ -4,6 +4,7 @@ vim.g.hidden = true -- TODO: do I still need this?
 
 local dependencies = {
     -- common
+    "nvim-lua/plenary.nvim",
     "nvim-mini/mini.nvim",
     "folke/snacks.nvim",
     -- lsp config, server install
@@ -30,6 +31,7 @@ local dependencies = {
     "windwp/nvim-ts-autotag",
     -- AI
     "folke/sidekick.nvim",
+    "CopilotC-Nvim/CopilotChat.nvim",
     -- personal plugins
     "vertexE/fold.nvim",
     "vertexE/multibuffer.nvim",
