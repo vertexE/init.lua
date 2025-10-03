@@ -331,77 +331,88 @@ M.status_tray = function()
         { "git", "status", "--short" },
         { text = true },
         vim.schedule_wrap(function(res)
-            local redraw = true
-            if #res.stdout > 0 then
-                local changes = parse_git_status(res.stdout)
-                state.changes = changes
-                if state.bufnr == nil and state.winr == nil then
-                    local bufnr, winr = splits.horizontal(nil, { enter = true, height = 0.66, wo = { number = false } })
-                    state.bufnr = bufnr
-                    state.winr = winr
-                    redraw = false
+            if #res.stderr > 0 then
+                vim.notify(res.stderr, vim.log.levels.ERROR, {})
+                return
+            end
 
-                    vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
-                        buffer = bufnr,
+            local redraw = true
+            local changes = #res.stdout > 0 and parse_git_status(res.stdout) or {}
+            state.changes = changes
+            if state.bufnr == nil and state.winr == nil then
+                local bufnr, winr = splits.horizontal(nil, { enter = true, height = 0.66, wo = { number = false } })
+                state.bufnr = bufnr
+                state.winr = winr
+                redraw = false
+
+                vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
+                    buffer = bufnr,
+                    callback = function()
+                        -- open a new win
+                        state.bufnr = nil
+                        state.winr = nil
+                    end,
+                })
+            end
+
+            draw_tray(state.bufnr, state.winr, changes)
+            vim.b.minicursorword_disable = true
+            if not redraw then
+                vim.api.nvim_win_set_cursor(state.winr, { 6, 0 })
+
+                vim.keymap.set({ "n", "x" }, "s", function()
+                    local file_paths = last_words_of_lines(buf.active_selection_lines())
+                    if file_paths ~= nil and #file_paths > 0 then
+                        git_stage(file_paths)
+                        M.status_tray()
+                        to_normal_modes()
+                        state.last_cl = vim.fn.getpos(".")[2]
+                    end
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set({ "n", "x" }, "u", function()
+                    local file_paths = last_words_of_lines(buf.active_selection_lines())
+                    if file_paths ~= nil and #file_paths > 0 then
+                        git_restore(file_paths)
+                        M.status_tray()
+                        to_normal_modes()
+                        state.last_cl = vim.fn.getpos(".")[2]
+                    end
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "cc", function()
+                    -- use mini.git for handling commits
+                    vim.cmd("Git commit")
+                    vim.api.nvim_create_autocmd({ "User" }, {
+                        pattern = "MiniGitCommandDone",
+                        group = vim.api.nvim_create_augroup("user.git.refresh_tray", { clear = true }),
+                        once = true,
                         callback = function()
-                            -- open a new win
-                            state.bufnr = nil
-                            state.winr = nil
+                            M.status_tray()
                         end,
                     })
-                end
+                end)
 
-                draw_tray(state.bufnr, state.winr, changes)
-                vim.b.minicursorword_disable = true
-                if not redraw then
-                    vim.api.nvim_win_set_cursor(state.winr, { 6, 0 })
+                vim.keymap.set("n", "<enter>", function()
+                    local file_paths = last_words_of_lines(buf.active_selection_lines())
+                    if file_paths ~= nil and #file_paths > 0 then
+                        vim.api.nvim_buf_delete(state.bufnr, { force = true })
+                        vim.cmd(string.format("edit %s", file_paths[1]))
+                    end
+                end, { desc = "", buffer = state.bufnr })
 
-                    vim.keymap.set({ "n", "x" }, "s", function()
-                        local file_paths = last_words_of_lines(buf.active_selection_lines())
-                        if file_paths ~= nil and #file_paths > 0 then
-                            git_stage(file_paths)
-                            M.status_tray()
-                            to_normal_modes()
-                            state.last_cl = vim.fn.getpos(".")[2]
-                        end
-                    end, { desc = "", buffer = state.bufnr })
-
-                    vim.keymap.set({ "n", "x" }, "u", function()
-                        local file_paths = last_words_of_lines(buf.active_selection_lines())
-                        if file_paths ~= nil and #file_paths > 0 then
-                            git_restore(file_paths)
-                            M.status_tray()
-                            to_normal_modes()
-                            state.last_cl = vim.fn.getpos(".")[2]
-                        end
-                    end, { desc = "", buffer = state.bufnr })
-
-                    vim.keymap.set("n", "cc", function()
-                        -- use mini.git for handling commits
-                        vim.cmd("Git commit")
-                    end)
-
-                    vim.keymap.set("n", "<enter>", function()
-                        local file_paths = last_words_of_lines(buf.active_selection_lines())
-                        if file_paths ~= nil and #file_paths > 0 then
-                            vim.api.nvim_buf_delete(state.bufnr, { force = true })
-                            vim.cmd(string.format("edit %s", file_paths[1]))
-                        end
-                    end, { desc = "", buffer = state.bufnr })
-
-                    vim.keymap.set("n", "<tab>", function()
-                        -- FIXME: enahncement >> diffs need to use --staged option depending on where we are in the buffer
-                        local file_paths = last_words_of_lines(buf.active_selection_lines())
-                        if file_paths ~= nil and #file_paths > 0 then
-                            local diff = git_diff(file_paths[1], in_staged(state.bufnr))
-                            local bufnr = floats.center({ height = 0.80, width = 0.55, bo = { filetype = "diff" } })
-                            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(diff, "\n"))
-                        end
-                    end)
-                elseif state.last_cl > 0 then
-                    local max = #vim.api.nvim_buf_get_lines(state.bufnr, 0, -1, false)
-                    vim.api.nvim_win_set_cursor(state.winr, { math.min(state.last_cl, max), 0 })
-                end
+                vim.keymap.set("n", "<tab>", function()
+                    -- FIXME: enahncement >> diffs need to use --staged option depending on where we are in the buffer
+                    local file_paths = last_words_of_lines(buf.active_selection_lines())
+                    if file_paths ~= nil and #file_paths > 0 then
+                        local diff = git_diff(file_paths[1], in_staged(state.bufnr))
+                        local bufnr = floats.center({ height = 0.80, width = 0.55, bo = { filetype = "diff" } })
+                        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(diff, "\n"))
+                    end
+                end)
+            elseif state.last_cl > 0 then
+                local max = #vim.api.nvim_buf_get_lines(state.bufnr, 0, -1, false)
+                vim.api.nvim_win_set_cursor(state.winr, { math.min(state.last_cl, max), 0 })
             end
         end)
     )
