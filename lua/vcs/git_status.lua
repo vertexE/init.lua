@@ -45,6 +45,19 @@ local state = {
     last_cl = -1, -- last cursor position
 }
 
+local refresh_tray_on_mini_cmd = function()
+    vim.api.nvim_create_autocmd({ "User" }, {
+        group = vim.api.nvim_create_augroup("user.git.tray.refresh", { clear = true }),
+        pattern = "MiniGitCommandDone",
+        once = true,
+        callback = function()
+            if state.bufnr ~= nil and state.winr ~= nil then
+                M.status_tray()
+            end
+        end,
+    })
+end
+
 local quick_close = function(bufnr)
     vim.keymap.set("n", "q", function()
         vim.api.nvim_buf_delete(bufnr, { force = true })
@@ -423,14 +436,17 @@ M.status_tray = function()
 
                 vim.keymap.set("n", "PP", function()
                     vim.cmd(string.format("Git push -u origin %s", head_branch_name()))
+                    refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "pp", function()
                     vim.cmd(string.format("Git pull origin %s", head_branch_name()))
+                    refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "Pp", function()
                     vim.cmd(string.format("Git push origin %s", head_branch_name()))
+                    refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "ll", function()
