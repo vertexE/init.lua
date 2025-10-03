@@ -92,7 +92,7 @@ local head_branch_name = function()
 end
 
 local remote_branch_name = function()
-    local result = vim.system({ "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", " @{u}" }, { text = true })
+    local result = vim.system({ "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}" }, { text = true })
         :wait()
     local remote = (result.stdout or ""):gsub("%s", "")
     if remote ~= "" then
