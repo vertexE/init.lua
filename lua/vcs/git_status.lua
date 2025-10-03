@@ -3,6 +3,7 @@ local M = {}
 -- TODO: enhancement idea, add diff stats
 
 local splits = require("ui.splits")
+local confirm = require("ui.confirm")
 local floats = require("ui.floats")
 local tbl = require("tbl")
 local buf = require("buf")
@@ -65,6 +66,10 @@ local git_restore = function(paths)
         "--staged",
         unpack(paths),
     })
+end
+
+local git_reset = function(path)
+    vim.fn.system({ "git", "checkout", "HEAD", "--", path })
 end
 
 local git_diff = function(file, staged)
@@ -162,7 +167,7 @@ local draw_tray = function(bufnr, winr, changes)
     })
     table.insert(v_lines, {
         { "Hint: ", "Comment" },
-        { "s stage 󰿟 u unstage", "@constant" },
+        { "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit", "@constant" },
     })
     table.insert(v_lines, {}) -- blank line
     table.insert(v_lines, {
@@ -391,7 +396,20 @@ M.status_tray = function()
                             M.status_tray()
                         end,
                     })
-                end)
+                end, { desc = "", buffer = state.bufnr })
+
+                vim.keymap.set("n", "x", function()
+                    local file_paths = last_words_of_lines(buf.active_selection_lines())
+                    if file_paths ~= nil and #file_paths > 0 then
+                        local file = file_paths[1]
+                        confirm.open("Are you sure you want to reset " .. file .. "?", function(accepted)
+                            if accepted then
+                                git_reset(file)
+                                M.status_tray()
+                            end
+                        end)
+                    end
+                end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "<enter>", function()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())
@@ -409,7 +427,7 @@ M.status_tray = function()
                         local bufnr = floats.center({ height = 0.80, width = 0.55, bo = { filetype = "diff" } })
                         vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(diff, "\n"))
                     end
-                end)
+                end, { desc = "", buffer = state.bufnr })
             elseif state.last_cl > 0 then
                 local max = #vim.api.nvim_buf_get_lines(state.bufnr, 0, -1, false)
                 vim.api.nvim_win_set_cursor(state.winr, { math.min(state.last_cl, max), 0 })
