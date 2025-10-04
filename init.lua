@@ -32,6 +32,7 @@ local dependencies = {
     -- AI
     "folke/sidekick.nvim",
     "CopilotC-Nvim/CopilotChat.nvim",
+    "vertexE/chat-context-ui.nvim",
     -- personal plugins
     "vertexE/fold.nvim",
     "vertexE/multibuffer.nvim",
