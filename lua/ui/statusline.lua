@@ -42,7 +42,7 @@ M.diagnostics = function()
         end
     end
 
-    return (#display > 0 and display:sub(1, #display - 1) or "%#MiniIconsGreen# ") .. "%#Comment# │"
+    return (#display > 0 and display:sub(1, #display - 1) or "%#MiniIconsGreen# ") .. "%#Comment# "
 end
 
 local cache = {
@@ -188,7 +188,7 @@ M.tools = function()
             display = display .. " %#MiniIconsGreen#" .. symbols.lsp_servers(client.name)
         end
     end
-    display = display .. "%#Comment# │"
+    display = display .. "%#Comment# "
     -- local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsYellow#" .. " "
     -- dap ..
     return display

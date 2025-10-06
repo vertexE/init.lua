@@ -20,9 +20,9 @@ end
 
 return {
     config = function()
-        require("mini.completion").setup({
-            matching = require("mini.fuzzy").match,
-        })
+        -- require("mini.completion").setup({
+        --     matching = require("mini.fuzzy").match,
+        -- })
         vim.api.nvim_create_autocmd("FileType", {
             pattern = { "snacks_picker_input", "snacks_picker_list" },
             callback = function()

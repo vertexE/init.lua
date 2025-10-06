@@ -1,7 +1,7 @@
 return {
     config = function()
         require("sidekick").setup()
-        vim.keymap.set("n", "ga", function()
+        vim.keymap.set("n", "<enter>", function()
             require("sidekick").nes_jump_or_apply()
         end)
 
@@ -18,25 +18,8 @@ return {
             },
         })
 
-        require("chat-context-ui").setup({
-            ui = {
-                layout = "split",
-                split = "left",
-            },
-            agent = {
-                callback = function(prompt, resolve)
-                    require("CopilotChat").ask(prompt, {
-                        headless = true,
-                        callback = function(msg)
-                            resolve(msg.content)
-                        end,
-                    })
-                end,
-            },
-        })
-
-        vim.keymap.set("n", "<localleader>ai", function()
-            require("chat-context-ui").open()
-        end, { desc = "open ai chat context ui" })
+        vim.keymap.set("n", "<localleader>c", function()
+            require("CopilotChat").open()
+        end)
     end,
 }

@@ -121,38 +121,9 @@ return {
             snacks.picker.git_log_file({ layout = { preset = "sidebar" } })
         end, { desc = "snacks: file history" })
 
-        vim.keymap.set("n", "gr", function()
-            snacks.picker.lsp_references({ layout = { preset = "ivy" } })
-        end, { desc = "snacks: references" })
-
         vim.keymap.set("n", "<leader>gs", function()
             snacks.picker.git_status({ layout = { preset = "vscode" } })
         end, { desc = "snacks: git status" })
-
-        vim.keymap.set("n", "gd", function()
-            --- @type table<string,table<integer,boolean>>
-            local item_ln_set = {}
-            snacks.picker.lsp_definitions({
-                layout = { preset = "ivy" },
-                filter = {
-                    filter = function(item, filter)
-                        if item_ln_set[item.file] ~= nil and #item.pos > 0 and item_ln_set[item.file][item.pos[1]] then
-                            return false
-                        elseif item_ln_set[item.file] ~= nil and #item.pos > 0 then
-                            item_ln_set[item.file][item.pos[1]] = true
-                        else
-                            item_ln_set[item.file] = { [item.pos[1]] = true }
-                        end
-
-                        if string.match(item.file, "react/index.d.ts") ~= nil then
-                            return false
-                        end
-
-                        return filter(item)
-                    end,
-                },
-            })
-        end, { desc = "snacks: definitions" })
 
         vim.keymap.set("n", "gD", function()
             snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })

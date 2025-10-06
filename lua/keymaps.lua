@@ -1,4 +1,6 @@
-local git = require("vcs.git_status")
+local git_tray = require("vcs.git_status")
+local git_blame = require("vcs.git_blame")
+local git_open = require("vcs.git_open")
 
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })
@@ -56,5 +58,46 @@ vim.keymap.set("t", "<c-/>", "<c-\\><c-n>")
 
 -- git
 vim.keymap.set("n", "<leader>gg", function()
-    git.status_tray()
+    git_tray.status_tray()
 end)
+
+vim.keymap.set("n", "gb", function()
+    git_blame.line()
+end, { desc = "git blame current line" })
+
+vim.keymap.set("v", "gb", function()
+    git_blame.selection()
+end, { desc = "git blame lines" })
+
+vim.keymap.set("n", "<leader>go", function()
+    git_blame.browse_blame_commit()
+end, { desc = "open the current commit in the browser" })
+
+vim.keymap.set("n", "<leader>gof", function()
+    git_open.file()
+end, { desc = "open the current file in the browser" })
+
+-- navigation
+vim.keymap.set("n", "<c-f>", function()
+    require("navigation.goto").menu()
+end, { desc = "open quick goto menu" })
+
+vim.keymap.set("n", "<leader>fa", function()
+    require("navigation.goto").add()
+end, { desc = "add file to quick goto menu" })
+
+vim.keymap.set("n", "<c-1>", function()
+    require("navigation.goto").quick_open(1)
+end, { desc = "quick goto file 1" })
+
+vim.keymap.set("n", "<c-2>", function()
+    require("navigation.goto").quick_open(2)
+end, { desc = "quick goto file 2" })
+
+vim.keymap.set("n", "<c-3>", function()
+    require("navigation.goto").quick_open(3)
+end, { desc = "quick goto file 3" })
+
+vim.keymap.set({ "n", "x" }, "<localleader>g", function()
+    require("assistant.copilot").generate()
+end, { desc = "list all quick goto files" })

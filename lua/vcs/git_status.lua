@@ -6,6 +6,9 @@ local floats = require("ui.floats")
 local tbl = require("tbl")
 local buf = require("buf")
 
+local common = require("vcs.git_common")
+local open = require("vcs.git_open")
+
 local default_opts = {
     hl = {
         icon = "MiniIconsPurple",
@@ -94,55 +97,6 @@ local git_diff = function(file, is_staged)
     vim.cmd("startinsert")
 end
 
-local head_branch_name = function()
-    local result = vim.system({ "git", "branch", "--show-current" }, { text = true }):wait()
-    local branch = (result.stdout or ""):gsub("%s", "")
-    if branch ~= "" then
-        return branch
-    else
-        return ""
-    end
-end
-
-local remote_branch_name = function()
-    local result = vim.system({ "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}" }, { text = true })
-        :wait()
-    local remote = (result.stdout or ""):gsub("%s", "")
-    if remote ~= "" then
-        return remote
-    else
-        return "no upstream"
-    end
-end
-
-local open_remote = function()
-    local remote = remote_branch_name()
-    if remote == "no upstream" then
-        vim.notify("no upstream set for this branch", vim.log.levels.WARN, {})
-        return
-    end
-
-    local remote_branch = remote:gsub("origin/", "")
-    vim.system({ "gh", "browse", "--branch", remote_branch }):wait()
-end
-
-local head_commit = function()
-    local result = vim.system({ "git", "rev-parse", "HEAD" }, { text = true }):wait()
-    return (result.stdout or ""):gsub("%s", "")
-end
-
-local remote_commit = function()
-    local result = vim.system({ "git", "rev-parse", "@{u}" }, { text = true }):wait()
-    return (result.stdout or ""):gsub("%s", "")
-end
-
----@param commit_sha string
----@return string
-local commit_msg = function(commit_sha)
-    local result = vim.system({ "git", "log", "-1", "--pretty=%s", commit_sha }, { text = true }):wait()
-    return (result.stdout or ""):gsub("%s+$", "")
-end
-
 ---@param type git.ChangeType
 ---@return table<string>
 local change_type_virtual = function(type)
@@ -183,12 +137,12 @@ local draw_tray = function(bufnr, winr, changes)
         return change.stage
     end)
 
-    local head_sha = head_commit()
+    local head_sha = common.head_commit()
     if #head_sha > 0 then
         head_sha = head_sha:sub(1, 7)
     end
 
-    local remote_sha = remote_commit()
+    local remote_sha = common.remote_commit()
     if #remote_sha > 0 then
         remote_sha = remote_sha:sub(1, 7)
     end
@@ -211,17 +165,17 @@ local draw_tray = function(bufnr, winr, changes)
         { "  ", default_opts.hl.icon },
         { head_sha, default_opts.hl.commit_sha },
         { " ", "Comment" },
-        { head_branch_name(), default_opts.hl.branch },
+        { common.head_branch_name(), default_opts.hl.branch },
         { " ", "Comment" },
-        { #head_sha > 0 and commit_msg(head_sha) or "", default_opts.hl.commit_msg },
+        { #head_sha > 0 and common.commit_msg(head_sha) or "", default_opts.hl.commit_msg },
     })
     table.insert(v_lines, {
         { "  ", "MiniIconsPurple" },
         { remote_sha, "Comment" },
         { " ", "Comment" },
-        { remote_branch_name(), default_opts.hl.branch },
+        { common.remote_branch_name(), default_opts.hl.branch },
         { " ", "Comment" },
-        { #remote_sha > 0 and commit_msg(remote_sha) or "", "@text" },
+        { #remote_sha > 0 and common.commit_msg(remote_sha) or "", "@text" },
     })
     table.insert(v_lines, {}) -- blank line
 
@@ -435,17 +389,17 @@ M.status_tray = function()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "PP", function()
-                    vim.cmd(string.format("Git push -u origin %s", head_branch_name()))
+                    vim.cmd(string.format("Git push -u origin %s", common.head_branch_name()))
                     refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "pp", function()
-                    vim.cmd(string.format("Git pull origin %s", head_branch_name()))
+                    vim.cmd(string.format("Git pull origin %s", common.head_branch_name()))
                     refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "Pp", function()
-                    vim.cmd(string.format("Git push origin %s", head_branch_name()))
+                    vim.cmd(string.format("Git push origin %s", common.head_branch_name()))
                     refresh_tray_on_mini_cmd()
                 end, { desc = "", buffer = state.bufnr })
 
@@ -473,7 +427,7 @@ M.status_tray = function()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "o", function()
-                    open_remote()
+                    open.remote_branch()
                 end, { desc = "", buffer = state.bufnr })
 
                 vim.keymap.set("n", "<enter>", function()

@@ -12,6 +12,8 @@ local dependencies = {
     "williamboman/mason.nvim",
     "mason-org/mason-lspconfig.nvim",
     "folke/lazydev.nvim",
+    { src = "saghen/blink.cmp", version = vim.version.range("1.*") },
+    "rafamadriz/friendly-snippets",
     -- syntax & appearance
     "nvim-treesitter/nvim-treesitter",
     "nvim-treesitter/nvim-treesitter-textobjects",
@@ -41,13 +43,17 @@ local dependencies = {
 
 local spec = {}
 for _, dependency in ipairs(dependencies) do
-    table.insert(spec, string.format("https://github.com/%s", dependency))
+    if type(dependency) == "table" then
+        dependency.src = string.format("https://github.com/%s", dependency.src)
+        table.insert(spec, dependency)
+    else
+        table.insert(spec, string.format("https://github.com/%s", dependency))
+    end
 end
-
 vim.pack.add(spec)
 
 vim.cmd.colorscheme("synth")
-
+require("boot")
 require("settings")
 require("keymaps")
 require("auto")
