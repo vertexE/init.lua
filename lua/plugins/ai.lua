@@ -17,9 +17,5 @@ return {
                 },
             },
         })
-
-        vim.keymap.set("n", "<localleader>c", function()
-            require("CopilotChat").open()
-        end)
     end,
 }

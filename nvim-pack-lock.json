@@ -1,7 +1,7 @@
 {
   "plugins": {
     "CopilotChat.nvim": {
-      "rev": "1e06be9",
+      "rev": "92f2699",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
     },
     "blink.cmp": {
@@ -38,7 +38,7 @@
       "src": "https://github.com/folke/lazydev.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "155eac5",
+      "rev": "6bdb14f",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -46,10 +46,11 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "61a5d44",
+      "rev": "9a2798a",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
+      "rev": "236e0cb",
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
     "noice.nvim": {
@@ -61,7 +62,7 @@
       "src": "https://github.com/MunifTanjim/nui.nvim"
     },
     "nvim-dap": {
-      "rev": "48570d8",
+      "rev": "881f7dc",
       "src": "https://github.com/mfussenegger/nvim-dap"
     },
     "nvim-dap-python": {

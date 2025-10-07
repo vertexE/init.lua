@@ -70,9 +70,10 @@ return {
             view = {
                 priority = 1,
             },
-            mappings = {
-                apply = "",
-                reset = "",
+            mappings = { -- usage, gHgh resets textobject (hunk)
+                apply = "gh",
+                reset = "gH",
+                textobject = "gh",
             },
         })
 

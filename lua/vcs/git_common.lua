@@ -36,4 +36,11 @@ M.commit_msg = function(commit_sha)
     return (result.stdout or ""):gsub("%s+$", "")
 end
 
+M.git_root = function()
+    local result = vim.system({ "git", "rev-parse", "--show-toplevel" }, { text = true }):wait()
+    local git_root = result.stdout:gsub("\n", "")
+    local root_name = vim.fn.fnamemodify(git_root, ":t")
+    return root_name
+end
+
 return M

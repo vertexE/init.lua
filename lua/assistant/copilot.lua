@@ -5,6 +5,7 @@ local resources = require("assistant.resources")
 local textarea = require("ui.textarea")
 local loader = require("ui.loader")
 local parsers = require("assistant.parsers")
+local splits = require("ui.splits")
 
 local CMD_PREFIX = "<command>"
 local CMD_POSTFIX = "</command>"
@@ -62,6 +63,59 @@ M.generate = function()
                 vim.api.nvim_buf_set_lines(requesting_bufnr, _start, _start, false, lines)
             end
         end)
+    end)
+end
+
+local ask_state = {
+    history = "",
+    winr = -1,
+    bufnr = -1,
+}
+
+M.ask = function()
+    local knowledge = resources.active()
+    local pre = [[
+<rules>
+- answer the following question
+- keep it short, to the point, and use markdown standards.
+- if there is a previous question, then this question builds on that one
+- chat history is ordered by most recent
+</rules>
+        ]]
+
+    textarea.open({ prompt = "  Ask" }, function(input)
+        if input == nil or #input == 0 then
+            return
+        end
+        prompt_agent(
+            pre .. "<question>" .. vim.fn.join(input, "\n") .. "</question>" .. knowledge .. ask_state.history,
+            function(response)
+                if not vim.api.nvim_win_is_valid(ask_state.winr) then
+                    local bufnr, winr = splits.horizontal(response, {
+                        enter = true,
+                        height = 0.22,
+                        wo = { number = false, wrap = true },
+                        split = "below",
+                        bo = { filetype = "markdown" },
+                    })
+                    ask_state.winr = winr
+                    ask_state.bufnr = bufnr
+
+                    vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+                        group = vim.api.nvim_create_augroup("user.copilot.ask", { clear = true }),
+                        buffer = bufnr,
+                        once = true,
+                        callback = function()
+                            ask_state.history = ""
+                        end,
+                        desc = "clear history on buf delete",
+                    })
+                else
+                    vim.api.nvim_buf_set_lines(ask_state.bufnr, 0, -1, false, vim.split(response, "\n"))
+                end
+                ask_state.history = "<chat-history>" .. response .. "</chat-history>" .. ask_state.history
+            end
+        )
     end)
 end
 

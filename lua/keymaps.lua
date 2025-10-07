@@ -2,6 +2,8 @@ local git_tray = require("vcs.git_status")
 local git_blame = require("vcs.git_blame")
 local git_open = require("vcs.git_open")
 
+local status = require("ui.status")
+
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })
 vim.keymap.set("n", "<c-e>", "<c-e><c-e><c-e>", { desc = "scroll down" })
@@ -100,4 +102,32 @@ end, { desc = "quick goto file 3" })
 
 vim.keymap.set({ "n", "x" }, "<localleader>g", function()
     require("assistant.copilot").generate()
-end, { desc = "list all quick goto files" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader><localleader>s", function()
+    require("assistant.resources").toggle("selection")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader><localleader>l", function()
+    require("assistant.resources").toggle("lsp_diagnostics")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader><localleader>g", function()
+    require("assistant.resources").toggle("git_diff")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader><localleader>b", function()
+    require("assistant.resources").toggle("buffers_listed")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set({ "n", "x" }, "<localleader>c", function()
+    require("assistant.copilot").ask()
+end, { desc = "" })
+
+vim.keymap.set("n", "<leader>o", function()
+    status.open()
+end)

@@ -75,6 +75,10 @@ end
 M.slice = function(t, i, j)
     local _t = {}
     for k = i, j do
+        if k > #t then
+            return _t
+        end
+
         table.insert(_t, t[k])
     end
     return _t
