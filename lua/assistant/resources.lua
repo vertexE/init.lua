@@ -2,15 +2,28 @@ local M = {}
 
 local buf = require("buf")
 
+local diagnostics = function(bufnr)
+    local buf_name = vim.api.nvim_buf_get_name(bufnr or 0)
+    local file_name = vim.fn.fnamemodify(buf_name, ":t")
+    local diagnostics = vim.diagnostic.get(bufnr or 0)
+    return vim.fn.join(
+        vim.iter(diagnostics)
+            :map(function(diagnostic)
+                return string.format("%s:%d %s", file_name, diagnostic.lnum, diagnostic.message)
+            end)
+            :totable(),
+        "\n"
+    )
+end
+
 --- this really is only to track which resources are on/off, that's it!
 
 --- @type table<resourceType,boolean>
 local resources = {
+    blocks = false,
     selection = false,
     git_diff = false,
     lsp_diagnostics = false,
-    current_buf = false,
-    buffers_listed = false,
 }
 
 M.status = function()
@@ -28,8 +41,8 @@ M.status = function()
         { " - git diff (unstaged)", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.buffers_listed and "MiniIconsOrange" or "Comment" },
-        { " - listed buffers", "Comment" },
+        { " ", resources.blocks and "MiniIconsOrange" or "Comment" },
+        { " - blocks", "Comment" },
     })
     return v_lines
 end
@@ -41,17 +54,22 @@ local selection = function()
     return string.format("<active-selection filetype='%s'>", ft) .. table.concat(lines, "\n") .. "</active-selection>"
 end
 
---- @alias resourceType "selection"|"lsp_diagnostics"|"git_diff"|"buffers_listed"|"current_buf"
+--- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"
 
 ---@param rt resourceType
 M.toggle = function(rt)
     resources[rt] = not resources[rt]
-    vim.print(resources)
 end
 
+local resource_state = {
+    --- @type table<string>
+    blocks = {},
+}
+
 --- all active resources
+--- @param bufnr ?integer
 --- @return string
-M.active = function()
+M.active = function(bufnr)
     local knowledge = ""
     if resources.selection then
         knowledge = knowledge .. selection()
@@ -60,12 +78,26 @@ M.active = function()
         knowledge = knowledge .. " #gitdiff:unstaged "
     end
     if resources.lsp_diagnostics then
-        knowledge = knowledge .. " #diagnostics:current "
+        knowledge = knowledge .. "<diagnostics>" .. diagnostics(bufnr) .. "</diagnostics>"
     end
-    if resources.buffers_listed then
-        knowledge = knowledge .. " #buffers:listed "
+    if resources.blocks then
+        knowledge = knowledge .. "<code-segments>" .. vim.fn.join(resource_state.blocks, "\n") .. "</code-segments>"
     end
     return knowledge
+end
+
+M.add_block = function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local buf_name = vim.api.nvim_buf_get_name(bufnr)
+    local file_name = vim.fn.fnamemodify(buf_name, ":t")
+    local content = buf.active_selection_lines()
+    table.insert(resource_state.blocks, string.format("<%s>\n%s\n</%s>", file_name, content, file_name))
+    vim.notify("added block!", vim.log.levels.INFO, {})
+end
+
+M.clear_blocks = function()
+    resource_state.blocks = {}
+    vim.notify("clear blocks!", vim.log.levels.INFO, {})
 end
 
 return M

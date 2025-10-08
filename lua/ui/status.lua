@@ -1,6 +1,5 @@
 local M = {}
 
-local extmarks = require("ui.extmarks")
 local splits = require("ui.splits")
 local tbl = require("tbl")
 local git_common = require("vcs.git_common")
@@ -81,7 +80,13 @@ local draw = function()
         table.insert(v_lines, v_line)
     end
 
-    extmarks.write_vlines_as_content(state.bufnr, ns, v_lines)
+    local v_line = v_lines[1]
+    local remaining = { unpack(v_lines, 2) }
+    vim.api.nvim_buf_set_extmark(state.bufnr, ns, 0, 0, {
+        virt_text = v_line,
+        virt_lines = remaining,
+        virt_text_pos = "overlay",
+    })
 end
 
 M.open = function()

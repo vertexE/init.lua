@@ -120,7 +120,17 @@ vim.keymap.set("n", "<localleader><localleader>g", function()
 end, { desc = "" })
 
 vim.keymap.set("n", "<localleader><localleader>b", function()
-    require("assistant.resources").toggle("buffers_listed")
+    require("assistant.resources").toggle("blocks")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader>s", function()
+    require("assistant.resources").add_block()
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set("n", "<localleader>z", function()
+    require("assistant.resources").clear_blocks()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 end, { desc = "" })
 
