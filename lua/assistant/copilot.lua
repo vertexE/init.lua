@@ -72,6 +72,11 @@ local ask_state = {
     bufnr = -1,
 }
 
+M.clear_qa_history = function()
+    ask_state.history = ""
+    vim.notify("cleared copilot chat history", vim.log.levels.INFO, {})
+end
+
 M.ask = function()
     local knowledge = resources.active()
     local pre = [[
@@ -87,8 +92,9 @@ M.ask = function()
         if input == nil or #input == 0 then
             return
         end
+        local prompt = vim.fn.join(input, "\n")
         prompt_agent(
-            pre .. "<question>" .. vim.fn.join(input, "\n") .. "</question>" .. knowledge .. ask_state.history,
+            pre .. "<question>" .. prompt .. "</question>" .. knowledge .. ask_state.history,
             function(response)
                 if not vim.api.nvim_win_is_valid(ask_state.winr) then
                     local bufnr, winr = splits.horizontal(response, {
@@ -113,7 +119,13 @@ M.ask = function()
                 else
                     vim.api.nvim_buf_set_lines(ask_state.bufnr, 0, -1, false, vim.split(response, "\n"))
                 end
-                ask_state.history = "<chat-history>" .. response .. "</chat-history>" .. ask_state.history
+                ask_state.history = "<previous-question>"
+                    .. prompt
+                    .. "</previous-question>"
+                    .. "<copilot-response>"
+                    .. response
+                    .. "</copilot-response>"
+                    .. ask_state.history
             end
         )
     end)

@@ -124,8 +124,9 @@ vim.keymap.set("n", "<localleader><localleader>b", function()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 end, { desc = "" })
 
-vim.keymap.set("n", "<localleader>s", function()
+vim.keymap.set("x", "<localleader>b", function()
     require("assistant.resources").add_block()
+    vim.api.nvim_command('normal! "+y')
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 end, { desc = "" })
 

@@ -26,6 +26,11 @@ local resources = {
     lsp_diagnostics = false,
 }
 
+local resource_state = {
+    --- @type table<string>
+    blocks = {},
+}
+
 M.status = function()
     local v_lines = {}
     table.insert(v_lines, {
@@ -42,7 +47,7 @@ M.status = function()
     })
     table.insert(v_lines, {
         { " ", resources.blocks and "MiniIconsOrange" or "Comment" },
-        { " - blocks", "Comment" },
+        { string.format(" - blocks %d", #resource_state.blocks), "Comment" },
     })
     return v_lines
 end
@@ -60,11 +65,6 @@ end
 M.toggle = function(rt)
     resources[rt] = not resources[rt]
 end
-
-local resource_state = {
-    --- @type table<string>
-    blocks = {},
-}
 
 --- all active resources
 --- @param bufnr ?integer
