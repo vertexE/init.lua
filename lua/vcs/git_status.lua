@@ -178,6 +178,16 @@ local draw_tray = function(bufnr, winr, changes)
         { " ", "Comment" },
         { #remote_sha > 0 and common.commit_msg(remote_sha) or "", "@text" },
     })
+    -- TODO: can combine these stats at some point
+    local unstaged_stats = common.git_stats()
+    local staged_stats = common.git_stats(true)
+    table.insert(v_lines, {
+        { #unstaged_stats > 0 and "(unstaged) " or "", "Comment" },
+        { #unstaged_stats > 0 and unstaged_stats or "", "MiniIconsOrange" },
+        { " ", "Comment" },
+        { #staged_stats > 0 and "(staged) " or "", "Comment" },
+        { #staged_stats > 0 and staged_stats or "", "MiniIconsGreen" },
+    })
     table.insert(v_lines, {}) -- blank line
 
     local untracked = changes_by_stage["untracked"] or {}
@@ -327,7 +337,7 @@ M.status_tray = function()
             draw_tray(state.bufnr, state.winr, changes)
             vim.b.minicursorword_disable = true
             if not redraw then
-                vim.api.nvim_win_set_cursor(state.winr, { 6, 0 })
+                vim.api.nvim_win_set_cursor(state.winr, { 7, 0 })
 
                 vim.keymap.set({ "n", "x" }, "s", function()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())

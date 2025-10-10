@@ -9,7 +9,7 @@ return {
             "DapBreakpointCondition",
             { text = "", texthl = "MiniIconsCyan", linehl = "", numhl = "" }
         )
-        vim.fn.sign_define("DapStopped", { text = "", texthl = "MiniIconsGreen", linehl = "Visual", numhl = "" })
+        vim.fn.sign_define("DapStopped", { text = "", texthl = "MiniIconsOrange", linehl = "Visual", numhl = "" })
         vim.fn.sign_define(
             "DapBreakpointRejected",
             { text = "", texthl = "MiniIconsPurple", linehl = "", numhl = "" }

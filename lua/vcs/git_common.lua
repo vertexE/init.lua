@@ -1,5 +1,14 @@
 local M = {}
 
+---@param staged ?boolean whether to look at the staged diff instead
+M.git_stats = function(staged)
+    local result =
+        vim.system(staged and { "git", "diff", "--stat", "--staged" } or { "git", "diff", "--stat" }, { text = true })
+            :wait()
+    local lines = vim.split(result.stdout or "", "\n", { trimempty = true })
+    return (lines[#lines] or ""):gsub("^%s*(.-)%s*$", "%1")
+end
+
 M.head_branch_name = function()
     local result = vim.system({ "git", "branch", "--show-current" }, { text = true }):wait()
     local branch = (result.stdout or ""):gsub("%s", "")
