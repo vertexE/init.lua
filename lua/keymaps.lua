@@ -135,6 +135,16 @@ vim.keymap.set("n", "<localleader>z", function()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 end, { desc = "" })
 
+vim.keymap.set("n", "<localleader><localleader>f", function()
+    require("assistant.resources").toggle("buffers")
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
+vim.keymap.set({ "n", "x" }, "<localleader>o", function()
+    require("assistant.resources").select_buffers()
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "" })
+
 vim.keymap.set({ "n", "x" }, "<localleader>c", function()
     require("assistant.copilot").ask()
 end, { desc = "" })

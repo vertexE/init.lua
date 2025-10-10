@@ -2,8 +2,8 @@ local M = {}
 
 --- @class CenterOpts
 --- @field title string
---- @field height ?number
---- @field width ?number
+--- @field height ?number percent of editor
+--- @field width ?number percent of editor
 --- @field close_on_q ?boolean
 --- @field bo ?table<string, any>
 --- @field wo ?table<string, any>

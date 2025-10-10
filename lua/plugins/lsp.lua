@@ -14,7 +14,7 @@ return {
             appearance = {
                 nerd_font_variant = "mono",
             },
-            completion = { documentation = { auto_show = false } },
+            completion = { documentation = { auto_show = true } },
             signature = { enabled = true, window = { show_documentation = false } },
             sources = {
                 default = { "lsp", "path", "snippets", "buffer" },

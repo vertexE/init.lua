@@ -1,6 +1,8 @@
 local M = {}
 
 local buf = require("buf")
+local tbl = require("tbl")
+local floats = require("ui.floats")
 
 local diagnostics = function(bufnr)
     local buf_name = vim.api.nvim_buf_get_name(bufnr or 0)
@@ -24,12 +26,30 @@ local resources = {
     selection = false,
     git_diff = false,
     lsp_diagnostics = false,
+    buffers = false,
 }
 
 local resource_state = {
     --- @type table<string>
     blocks = {},
+    --- @type table<integer,boolean>
+    active_bufs = {},
 }
+
+local active_bufs_summary = function()
+    local count = 0
+    local first = ""
+    for _buf, is_active in pairs(resource_state.active_bufs) do
+        if is_active then
+            count = count + 1
+        end
+        if #first == 0 then
+            local buf_name = vim.api.nvim_buf_get_name(_buf)
+            first = vim.fn.fnamemodify(buf_name, ":t")
+        end
+    end
+    return count == 1 and first or string.format("%s..+%d", first, count - 1)
+end
 
 M.status = function()
     local v_lines = {}
@@ -49,6 +69,10 @@ M.status = function()
         { " ", resources.blocks and "MiniIconsOrange" or "Comment" },
         { string.format(" - blocks %d", #resource_state.blocks), "Comment" },
     })
+    table.insert(v_lines, {
+        { " ", resources.buffers and "MiniIconsOrange" or "Comment" },
+        { string.format(" - %s", active_bufs_summary()), "Comment" },
+    })
     return v_lines
 end
 
@@ -59,7 +83,7 @@ local selection = function()
     return string.format("<active-selection filetype='%s'>", ft) .. table.concat(lines, "\n") .. "</active-selection>"
 end
 
---- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"
+--- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"|"buffers"
 
 ---@param rt resourceType
 M.toggle = function(rt)
@@ -83,6 +107,11 @@ M.active = function(bufnr)
     if resources.blocks then
         knowledge = knowledge .. "<code-segments>" .. vim.fn.join(resource_state.blocks, "\n") .. "</code-segments>"
     end
+    if resources.buffers then
+        for _bufnr, _ in pairs(resource_state.active_bufs) do
+            knowledge = knowledge .. string.format("\n#buffer:%d ", _bufnr)
+        end
+    end
     return knowledge
 end
 
@@ -98,6 +127,53 @@ end
 M.clear_blocks = function()
     resource_state.blocks = {}
     vim.notify("clear blocks!", vim.log.levels.INFO, {})
+end
+
+--- @type table<integer,integer> 1 based index map
+local line_to_bufnr = {}
+local MAX_LINES = 100
+
+local draw = function(bufnr)
+    local ns = vim.api.nvim_create_namespace("user.assistant.select_buffers")
+    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, tbl.rep({}, " ", MAX_LINES))
+
+    local line = 1
+    for _, _buf in ipairs(vim.api.nvim_list_bufs()) do
+        local name = vim.api.nvim_buf_get_name(_buf)
+        local display_name = name ~= "" and vim.fn.fnamemodify(name, ":t") or ""
+        if
+            vim.api.nvim_buf_is_loaded(_buf)
+            and vim.api.nvim_get_option_value("buflisted", { buf = _buf })
+            and #display_name > 0
+        then
+            local toggled_on = resource_state.active_bufs[_buf]
+            vim.api.nvim_buf_set_extmark(bufnr, ns, line - 1, 0, {
+                virt_text = {
+                    toggled_on and { "  ", "MiniIconsOrange" } or { "  ", "@constant" },
+                    { display_name, "@constant" },
+                },
+            })
+            line_to_bufnr[line] = _buf
+            line = line + 1
+        end
+    end
+end
+
+M.select_buffers = function()
+    local bufnr = floats.center({ height = 0.25, width = 0.8, title = "Select buffers" })
+    draw(bufnr)
+
+    vim.keymap.set("n", "<enter>", function()
+        local cursor_ln = vim.fn.getpos(".")[2]
+        local _buf = line_to_bufnr[cursor_ln]
+        if resource_state.active_bufs[_buf] == nil then
+            resource_state.active_bufs[_buf] = true
+        else
+            resource_state.active_bufs[_buf] = not resource_state.active_bufs[_buf]
+        end
+        draw(bufnr)
+    end, { buffer = bufnr })
 end
 
 return M
