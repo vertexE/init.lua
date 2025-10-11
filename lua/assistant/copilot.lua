@@ -2,7 +2,7 @@ local M = {}
 
 local buf = require("buf")
 local resources = require("assistant.resources")
-local textarea = require("ui.textarea")
+local inline = require("ui.inline")
 local loader = require("ui.loader")
 local parsers = require("assistant.parsers")
 local splits = require("ui.splits")
@@ -48,7 +48,7 @@ M.generate = function()
         _start, _end = row, row
     end
 
-    textarea.open({ prompt = "  Generate" }, function(input)
+    inline.cursor({ title = { "  Generate", "MiniIconsPurple" } }, function(input)
         if input == nil or #input == 0 then
             return
         end
@@ -88,7 +88,7 @@ M.ask = function()
 </rules>
         ]]
 
-    textarea.open({ prompt = "  Ask" }, function(input)
+    inline.cursor({ title = { "  Ask", "MiniIconsPurple" } }, function(input)
         if input == nil or #input == 0 then
             return
         end
