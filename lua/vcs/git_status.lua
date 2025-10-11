@@ -150,8 +150,8 @@ local draw_tray = function(bufnr, winr, changes)
 
     local v_lines = {} -- we will instead write the lines to the buffer and apply and hl_group on each word
     table.insert(v_lines, {
-        { "", "Comment" },
-        { " git status ", "@text" },
+        { " ", "Comment" },
+        { "   GIT ", "MiniStatuslineModeNormal" },
         -- { "", "Comment" },
     })
     table.insert(v_lines, {
