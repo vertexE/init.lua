@@ -48,7 +48,7 @@ local active_bufs_summary = function()
             first = vim.fn.fnamemodify(buf_name, ":t")
         end
     end
-    return count == 1 and first or string.format("%s..+%d", first, count - 1)
+    return count == 1 and first or (count > 1 and string.format("%s..+%d", first, count - 1) or "..")
 end
 
 M.status = function()
@@ -63,7 +63,7 @@ M.status = function()
     })
     table.insert(v_lines, {
         { " ", resources.git_diff and "MiniIconsOrange" or "Comment" },
-        { " - git diff (unstaged)", "Comment" },
+        { " - git diff", "Comment" },
     })
     table.insert(v_lines, {
         { " ", resources.blocks and "MiniIconsOrange" or "Comment" },
@@ -99,7 +99,7 @@ M.active = function(bufnr)
         knowledge = knowledge .. selection()
     end
     if resources.git_diff then
-        knowledge = knowledge .. " #gitdiff:unstaged "
+        knowledge = knowledge .. " #gitdiff:unstaged #gitdiff:staged"
     end
     if resources.lsp_diagnostics then
         knowledge = knowledge .. "<diagnostics>" .. diagnostics(bufnr) .. "</diagnostics>"
