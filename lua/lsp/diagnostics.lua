@@ -19,7 +19,7 @@ M.setup = function()
         },
         virtual_text = {
             spacing = 4,
-            severity = {}, -- vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN -- temporarily turn of virtual text
+            severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN },
             source = "if_many",
             -- current_line = true,
             --- @param diagnostic vim.Diagnostic

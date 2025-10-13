@@ -11,6 +11,18 @@ return {
             vim.cmd("e " .. vim.fn.expand("~/.nvim_todo.md"))
         end, { desc = "open root todo" })
 
+        vim.keymap.set("n", "<leader>fg", function()
+            require("multibuffer").grep()
+        end, { desc = "show the quickfix menu" })
+
+        vim.keymap.set("n", "<leader>fG", function()
+            require("multibuffer").grep(true)
+        end, { desc = "show the quickfix menu" })
+
+        vim.keymap.set("n", "<leader>fq", function()
+            require("multibuffer").quickfix()
+        end, { desc = "show the quickfix menu" })
+
         vim.keymap.set("n", "<leader>fe", function()
             require("multibuffer").lsp_diagnostics(0)
         end, { desc = "show lsp diagnostics in multibuffer" })

@@ -28,6 +28,7 @@ return {
             desc = "Disable mini.completion in snacks.nvim picker buffers",
         })
 
+        require("mini.notify").setup()
         require("mini.icons").setup()
         require("mini.cursorword").setup({ delay = 500 })
         require("mini.ai").setup()
@@ -122,5 +123,39 @@ return {
                 hex_color = hipatterns.gen_highlighter.hex_color(),
             },
         })
+
+        require("mini.pick").setup()
+
+        vim.keymap.set("n", "<leader>ff", function()
+            require("mini.pick").builtin.files()
+        end)
+
+        vim.keymap.set("n", "<leader>fo", function()
+            require("mini.extra").pickers.treesitter()
+        end)
+
+        vim.keymap.set("n", "<leader>fH", function()
+            require("mini.extra").pickers.hl_groups()
+        end)
+
+        vim.keymap.set("n", "<leader>gb", function()
+            require("mini.extra").pickers.git_branches()
+        end)
+
+        vim.keymap.set("n", "<leader>hk", function()
+            require("mini.extra").pickers.keymaps()
+        end)
+
+        vim.keymap.set("n", "<localleader>ss", function()
+            require("mini.extra").pickers.spellsuggest()
+        end)
+
+        vim.keymap.set("n", "<leader>fh", function()
+            require("mini.pick").builtin.help()
+        end)
+
+        vim.keymap.set("n", "<leader>fb", function()
+            require("mini.pick").builtin.buffers()
+        end)
     end,
 }

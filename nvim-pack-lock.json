@@ -1,7 +1,7 @@
 {
   "plugins": {
     "CopilotChat.nvim": {
-      "rev": "92f2699",
+      "rev": "f68deee",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
     },
     "blink.cmp": {
@@ -14,7 +14,7 @@
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
     },
     "conform.nvim": {
-      "rev": "9d859cb",
+      "rev": "fbcb4fa",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "fold.nvim": {
@@ -34,7 +34,7 @@
       "src": "https://github.com/mistweaverco/kulala.nvim"
     },
     "lazydev.nvim": {
-      "rev": "258d2a5",
+      "rev": "e28ce52",
       "src": "https://github.com/folke/lazydev.nvim"
     },
     "mason-lspconfig.nvim": {
@@ -46,15 +46,15 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "9a2798a",
+      "rev": "6a224dd",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
-      "rev": "236e0cb",
+      "rev": "24e40e2",
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
     "noice.nvim": {
-      "rev": "0427460",
+      "rev": "38c702b",
       "src": "https://github.com/folke/noice.nvim"
     },
     "nui.nvim": {
@@ -74,7 +74,7 @@
       "src": "https://github.com/rcarriga/nvim-dap-ui"
     },
     "nvim-lspconfig": {
-      "rev": "e688b48",
+      "rev": "ac98db2",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-nio": {
@@ -94,7 +94,7 @@
       "src": "https://github.com/windwp/nvim-ts-autotag"
     },
     "one-small-step-for-vimkind": {
-      "rev": "99c22f1",
+      "rev": "c7c7aa7",
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "plenary.nvim": {
@@ -102,15 +102,15 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "sidekick.nvim": {
-      "rev": "e869205",
+      "rev": "b7085d7",
       "src": "https://github.com/folke/sidekick.nvim"
     },
     "snacks.nvim": {
-      "rev": "bfe8c26",
+      "rev": "b8d838d",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "synth.nvim": {
-      "rev": "c1158b7",
+      "rev": "8acbcb3",
       "src": "https://github.com/vertexE/synth.nvim"
     }
   }

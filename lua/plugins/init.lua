@@ -1,12 +1,13 @@
 local M = {}
 
-vim.api.nvim_create_autocmd("User", {
-    pattern = "VeryLazy",
+vim.api.nvim_create_autocmd("VimEnter", {
+    group = vim.api.nvim_create_augroup("user.lazy.load", { clear = true }),
     callback = function()
-        require("plugins.snacks").config()
-        require("plugins.dap").config()
-        require("plugins.vertexe").config()
-        require("plugins.ai").config()
+        vim.defer_fn(function()
+            require("plugins.snacks").config()
+            require("plugins.dap").config()
+            require("plugins.ai").config()
+        end, 50)
     end,
 })
 
@@ -26,11 +27,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 require("plugins.mini").config()
 require("plugins.lsp").config()
+require("plugins.vertexe").config()
 require("plugins.noice").config()
 require("plugins.treesitter").config()
-
-vim.defer_fn(function()
-    vim.cmd("doautocmd User VeryLazy")
-end, 50)
 
 return M
