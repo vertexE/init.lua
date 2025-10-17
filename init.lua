@@ -18,6 +18,7 @@ local dependencies = {
     "nvim-treesitter/nvim-treesitter",
     "nvim-treesitter/nvim-treesitter-textobjects",
     "vertexE/synth.nvim",
+    "sainnhe/gruvbox-material",
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
     -- debugger
@@ -52,7 +53,11 @@ for _, dependency in ipairs(dependencies) do
 end
 vim.pack.add(spec)
 
-vim.cmd.colorscheme("synth")
+vim.g.gruvbox_material_enable_italic = true
+vim.g.gruvbox_material_background = "hard"
+vim.o.background = "dark"
+vim.cmd.colorscheme("gruvbox-material")
+
 require("boot")
 require("settings")
 require("keymaps")

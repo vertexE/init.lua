@@ -25,6 +25,10 @@
       "rev": "572f566",
       "src": "https://github.com/rafamadriz/friendly-snippets"
     },
+    "gruvbox-material": {
+      "rev": "834dbf2",
+      "src": "https://github.com/sainnhe/gruvbox-material"
+    },
     "hacked.nvim": {
       "rev": "821b1f9",
       "src": "https://github.com/vertexE/hacked.nvim"
@@ -46,11 +50,11 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "6a224dd",
+      "rev": "8a7cf7e",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
-      "rev": "24e40e2",
+      "rev": "f4c7b06",
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
     "noice.nvim": {
@@ -62,7 +66,7 @@
       "src": "https://github.com/MunifTanjim/nui.nvim"
     },
     "nvim-dap": {
-      "rev": "881f7dc",
+      "rev": "6782b09",
       "src": "https://github.com/mfussenegger/nvim-dap"
     },
     "nvim-dap-python": {
@@ -94,7 +98,7 @@
       "src": "https://github.com/windwp/nvim-ts-autotag"
     },
     "one-small-step-for-vimkind": {
-      "rev": "c7c7aa7",
+      "rev": "8fdbb4e",
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "plenary.nvim": {
@@ -102,11 +106,11 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "sidekick.nvim": {
-      "rev": "b7085d7",
+      "rev": "9d3619c",
       "src": "https://github.com/folke/sidekick.nvim"
     },
     "snacks.nvim": {
-      "rev": "b8d838d",
+      "rev": "454ba02",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "synth.nvim": {

@@ -65,7 +65,7 @@ local to_change_symbol = {
 --- @return line.ChangeType|nil,string|nil
 local change_symbol = function(change)
     if string.find(change, "file") then
-        return to_change_symbol.file, "markdownUrl"
+        return to_change_symbol.file, "Constant"
     elseif string.find(change, "ins") then
         return to_change_symbol.ins, "DiagnosticOk"
     elseif string.find(change, "del") then

@@ -7,6 +7,7 @@ local M = {}
 --- @field close_on_q ?boolean
 --- @field bo ?table<string, any>
 --- @field wo ?table<string, any>
+--- @field border ?string
 
 local center_opts = {
     title = "",
@@ -15,6 +16,7 @@ local center_opts = {
     close_on_q = true,
     bo = {},
     wo = {},
+    border = "rounded",
 }
 
 --- @param opts ?CenterOpts
@@ -37,7 +39,7 @@ M.center = function(opts)
         width = width,
         height = height,
         style = "minimal",
-        border = "rounded",
+        border = opts.border or center_opts.border,
     })
 
     for buf_opt, setting in pairs(opts.bo or center_opts.bo) do

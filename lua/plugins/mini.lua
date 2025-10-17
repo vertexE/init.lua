@@ -157,5 +157,33 @@ return {
         vim.keymap.set("n", "<leader>fb", function()
             require("mini.pick").builtin.buffers()
         end)
+
+        local starter = require("mini.starter")
+        starter.setup({
+            evaluate_single = true,
+            header = table.concat({
+                [[ _____  ___    _______    ______  ___      ___  __     ___      ___ ]],
+                [[(\"   \|"  \  /"     "|  /    " \|"  \    /"  ||" \   |"  \    /"  |]],
+                [[|.\\   \    |(: ______) // ____  \\   \  //  / ||  |   \   \  //   |]],
+                [[|: \.   \\  | \/    |  /  /    ) :)\\  \/. ./  |:  |   /\\  \/.    |]],
+                [[|.  \    \. | // ___)_(: (____/ //  \.    //   |.  |  |: \.        |]],
+                [[|    \    \ |(:      "|\        /    \\   /    /\  |\ |.  \    /:  |]],
+                [[ \___|\____\) \_______) \"_____/      \__/    (__\_|_)|___|\__/|___|]],
+            }, "\n"),
+            footer = "nothing",
+            items = {
+                starter.sections.builtin_actions(),
+                starter.sections.recent_files(5, true),
+            },
+            content_hooks = {
+                starter.gen_hook.adding_bullet(" ", false),
+                starter.gen_hook.indexing("all", { "Builtin actions" }),
+                starter.gen_hook.padding(3, 2),
+                starter.gen_hook.aligning("center", "center"),
+            },
+        })
+        vim.api.nvim_set_hl(0, "MiniStarterItem", { link = "@constant" })
+        vim.api.nvim_set_hl(0, "MiniStarterHeader", { fg = "#ff9900", italic = true })
+        vim.api.nvim_set_hl(0, "MiniStarterFooter", { link = "Comment" })
     end,
 }
