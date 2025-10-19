@@ -9,6 +9,10 @@
       "src": "https://github.com/saghen/blink.cmp",
       "version": "1.0.0 - 2.0.0"
     },
+    "catppuccin": {
+      "rev": "af58927",
+      "src": "https://github.com/catppuccin/nvim"
+    },
     "chat-context-ui.nvim": {
       "rev": "5e5a14e",
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
@@ -32,6 +36,10 @@
     "hacked.nvim": {
       "rev": "821b1f9",
       "src": "https://github.com/vertexE/hacked.nvim"
+    },
+    "kanagawa.nvim": {
+      "rev": "aef7f5c",
+      "src": "https://github.com/rebelot/kanagawa.nvim"
     },
     "kulala.nvim": {
       "rev": "0d50e9c",

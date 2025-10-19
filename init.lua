@@ -19,6 +19,8 @@ local dependencies = {
     "nvim-treesitter/nvim-treesitter-textobjects",
     "vertexE/synth.nvim",
     "sainnhe/gruvbox-material",
+    "rebelot/kanagawa.nvim",
+    { src = "catppuccin/nvim", name = "catppuccin" },
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
     -- debugger
@@ -53,17 +55,7 @@ for _, dependency in ipairs(dependencies) do
 end
 vim.pack.add(spec)
 
-vim.g.gruvbox_material_enable_italic = true
-vim.g.gruvbox_material_background = "hard"
-vim.g.gruvbox_material_float_style = "none"
-vim.o.background = "dark"
-vim.cmd.colorscheme("gruvbox-material")
-vim.api.nvim_set_hl(0, "Pmenu", {})
-vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#2F3738" })
-vim.api.nvim_set_hl(0, "MiniCursorword", { underline = true })
-vim.api.nvim_set_hl(0, "MiniCursorwordCurrent", { link = "MiniCursorword" })
-vim.api.nvim_set_hl(0, "BlinkCmpLabelDeprecated", { strikethrough = true })
-
+require("colorscheme")
 require("boot")
 require("settings")
 require("keymaps")
