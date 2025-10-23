@@ -4,7 +4,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
     group = vim.api.nvim_create_augroup("user.lazy.load", { clear = true }),
     callback = function()
         vim.defer_fn(function()
-            require("plugins.snacks").config()
             require("plugins.dap").config()
             require("plugins.ai").config()
         end, 50)
@@ -30,5 +29,6 @@ require("plugins.lsp").config()
 require("plugins.vertexe").config()
 require("plugins.noice").config()
 require("plugins.treesitter").config()
+require("plugins.snacks").config()
 
 return M
