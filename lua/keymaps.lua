@@ -152,3 +152,17 @@ end, { desc = "" })
 vim.keymap.set("n", "<leader>o", function()
     status.open()
 end)
+
+vim.keymap.set("n", "ZQ", function()
+    if status.is_open() then
+        status.open()
+    end
+    vim.cmd("q!")
+end, { desc = "quit without saving" })
+
+vim.keymap.set("n", "ZZ", function()
+    if status.is_open() then
+        status.open()
+    end
+    vim.cmd("x")
+end, { desc = "save and quit" })
