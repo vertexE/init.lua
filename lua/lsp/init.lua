@@ -22,6 +22,7 @@ local on_attach = function(bufnr)
     end)
 
     vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
+        pattern = { "*.ts", "*.js", "*.go", "*.rs", "*.lua" },
         group = vim.api.nvim_create_augroup("user.lsp.codelens", { clear = true }),
         callback = function()
             vim.lsp.codelens.refresh({ bufnr = 0 })
