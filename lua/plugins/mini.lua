@@ -3,6 +3,7 @@ local function in_comment(marker)
         python = "#",
         lua = "--",
         c = "//",
+        go = "//",
         rust = "//",
         javascript = "//",
         typescript = "//",
@@ -119,6 +120,7 @@ return {
                 todo = { pattern = in_comment("TODO"), group = "MiniIconsGreen" },
                 perf = { pattern = in_comment("PERF"), group = "MiniIconsBlue" },
                 note = { pattern = in_comment("NOTE"), group = "MiniIconsYellow" },
+                info = { pattern = in_comment("INFO"), group = "MiniIconsYellow" },
 
                 hex_color = hipatterns.gen_highlighter.hex_color(),
             },
@@ -154,8 +156,15 @@ return {
             require("mini.pick").builtin.help()
         end)
 
+        local buf_delete = function()
+            vim.api.nvim_buf_delete(require("mini.pick").get_picker_matches().current.bufnr, {})
+        end
+
         vim.keymap.set("n", "<leader>fb", function()
-            require("mini.pick").builtin.buffers()
+            require("mini.pick").builtin.buffers(
+                nil,
+                { mappings = { wipeout = { char = "<C-d>", func = buf_delete } } }
+            )
         end)
 
         local starter = require("mini.starter")
@@ -173,7 +182,7 @@ return {
             footer = "nothing",
             items = {
                 starter.sections.builtin_actions(),
-                starter.sections.recent_files(5, true),
+                starter.sections.recent_files(5, true, false),
             },
             content_hooks = {
                 starter.gen_hook.adding_bullet(" ", false),
@@ -183,7 +192,7 @@ return {
             },
         })
         vim.api.nvim_set_hl(0, "MiniStarterItem", { link = "@constant" })
-        vim.api.nvim_set_hl(0, "MiniStarterHeader", { fg = "#ff9900", italic = true })
+        vim.api.nvim_set_hl(0, "MiniStarterHeader", { link = "MiniIconsGreen" })
         vim.api.nvim_set_hl(0, "MiniStarterFooter", { link = "Comment" })
     end,
 }
