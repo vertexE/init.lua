@@ -13,6 +13,8 @@ vim.keymap.set({ "n", "x" }, "H", "^")
 vim.keymap.set({ "n", "x" }, "L", "$")
 vim.keymap.set("n", "<C-u>", "8kzz", { desc = "scroll up half", noremap = true, silent = true })
 vim.keymap.set("n", "<C-d>", "8jzz", { desc = "scroll down half", noremap = true, silent = true })
+-- lsp uses c-i to trigger completion
+vim.keymap.set("n", "<c-m>", "<c-i>")
 
 -- windows
 vim.keymap.set({ "n" }, "<C-h>", "<C-w><C-h>", { desc = "move focus to left window" })
@@ -153,16 +155,37 @@ vim.keymap.set("n", "<leader>o", function()
     status.open()
 end)
 
+--- improve winclose behavior with my goto shortcuts
 vim.keymap.set("n", "ZQ", function()
-    if status.is_open() then
+    if status.is_open() and vim.fn.winnr("$") == 2 then
         status.open()
+        vim.cmd("q!")
+    elseif vim.fn.winnr("$") > 2 then
+        -- close then move to the previous win we were in
+        -- this stops the behavior of moving the cursor left
+        vim.cmd("q!")
+        -- we also refresh win width for status tray
+        -- by closing then re-opening
+        status.open()
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
+        status.open()
+    else
+        vim.cmd("q!")
     end
-    vim.cmd("q!")
 end, { desc = "quit without saving" })
 
 vim.keymap.set("n", "ZZ", function()
-    if status.is_open() then
+    if status.is_open() and vim.fn.winnr("$") == 2 then
         status.open()
+        vim.cmd("x")
+    elseif status.is_open() and vim.fn.winnr("$") > 2 then
+        vim.cmd("x")
+        -- refresh win width for status tray
+        -- by closing then re-opening
+        status.open()
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
+        status.open()
+    else
+        vim.cmd("x")
     end
-    vim.cmd("x")
 end, { desc = "save and quit" })
