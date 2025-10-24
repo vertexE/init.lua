@@ -1,7 +1,7 @@
 {
   "plugins": {
     "CopilotChat.nvim": {
-      "rev": "f68deee",
+      "rev": "94dfc01",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
     },
     "blink.cmp": {
@@ -18,7 +18,7 @@
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
     },
     "conform.nvim": {
-      "rev": "fbcb4fa",
+      "rev": "9fd3d5e",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "fold.nvim": {
@@ -42,15 +42,15 @@
       "src": "https://github.com/rebelot/kanagawa.nvim"
     },
     "kulala.nvim": {
-      "rev": "0d50e9c",
+      "rev": "183bf44",
       "src": "https://github.com/mistweaverco/kulala.nvim"
     },
     "lazydev.nvim": {
-      "rev": "e28ce52",
+      "rev": "01bc2aa",
       "src": "https://github.com/folke/lazydev.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "6bdb14f",
+      "rev": "2304ff6",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -58,15 +58,15 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "8a7cf7e",
+      "rev": "64a23d0",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
-      "rev": "f4c7b06",
+      "rev": "3458dcd",
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
     "noice.nvim": {
-      "rev": "38c702b",
+      "rev": "c86aea5",
       "src": "https://github.com/folke/noice.nvim"
     },
     "nui.nvim": {
@@ -86,7 +86,7 @@
       "src": "https://github.com/rcarriga/nvim-dap-ui"
     },
     "nvim-lspconfig": {
-      "rev": "ac98db2",
+      "rev": "ececa53",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-nio": {
@@ -98,7 +98,7 @@
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-treesitter-textobjects": {
-      "rev": "71385f1",
+      "rev": "a9742cb",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter-textobjects"
     },
     "nvim-ts-autotag": {
@@ -114,15 +114,15 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "sidekick.nvim": {
-      "rev": "9d3619c",
+      "rev": "dc2710a",
       "src": "https://github.com/folke/sidekick.nvim"
     },
     "snacks.nvim": {
-      "rev": "454ba02",
+      "rev": "277ba02",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "synth.nvim": {
-      "rev": "8acbcb3",
+      "rev": "824f5b3",
       "src": "https://github.com/vertexE/synth.nvim"
     }
   }
