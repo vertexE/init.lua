@@ -6,6 +6,7 @@ local CACHE_UPDATE_TIME = 20000
 local cache = {
     battery_level = nil,
     battery_hl = "DiagnosticOk",
+    battery_percent = "",
 }
 local valid = {
     battery_level = false,
@@ -30,10 +31,10 @@ local battery_levels = {
     { condition = 0, discharging = " ", charging = " 󱐋", hl = "MiniIconsRed" },
 }
 
---- @return string,string
+--- @return string,string,string
 local battery = function()
     if cache.battery_level ~= nil and valid.battery_level then
-        return cache.battery_level, cache.battery_hl
+        return cache.battery_percent, cache.battery_level, cache.battery_hl
     end
 
     vim.system({ "pmset", "-g", "batt" }, { text = true }, function(cmd)
@@ -61,18 +62,14 @@ local battery = function()
             if remaining >= level.condition then
                 cache.battery_level = string.find(cmd.stdout, "discharging") and level.discharging or level.charging
                 cache.battery_hl = level.hl
+                cache.battery_percent = percentage .. "%% "
                 valid.battery_level = true
                 return
             end
         end
     end)
 
-    return cache.battery_level or "", cache.battery_hl or "DiagnosticOk"
-end
-
-local hours_minutes = function()
-    local current_time = os.date("%a %H:%M")
-    return tostring(current_time)
+    return cache.battery_percent, cache.battery_level or "", cache.battery_hl or "DiagnosticOk"
 end
 
 M.setup = function()
@@ -80,12 +77,12 @@ M.setup = function()
         name = "system",
         split = false,
         focused = function()
-            local icon, hl = battery()
-            return { { hours_minutes, "@text" }, { " ", "Comment" }, { icon, hl } }
+            local perecent, icon, hl = battery()
+            return { { perecent, "@constant" }, { icon, hl } }
         end,
         default = function()
-            local icon, hl = battery()
-            return { { hours_minutes, "@text" }, { " ", "Comment" }, { icon, hl } }
+            local perecent, icon, hl = battery()
+            return { { perecent, "@constant" }, { icon, hl } }
         end,
     })
 

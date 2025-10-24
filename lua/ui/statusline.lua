@@ -215,6 +215,10 @@ M.copilot = function()
     end
 end
 
+M.time = function()
+    return "%#StatusLineSeparator#" .. "" .. "%#StatusLineSeparatorContent#" .. os.date("%H:%M") .. " "
+end
+
 M.active = function()
     return table.concat({
         "",
@@ -229,7 +233,7 @@ M.active = function()
         "%#Comment#",
         "",
         "%l:%c",
-        "",
+        "%{%v:lua.require'ui.statusline'.time()%}",
     }, " ")
 end
 

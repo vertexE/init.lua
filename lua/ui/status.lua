@@ -111,7 +111,7 @@ M.open = function()
     vim.api.nvim_create_autocmd({ "BufEnter", "BufWrite", "DiagnosticChanged" }, {
         group = vim.api.nvim_create_augroup("user.status.window.draw", { clear = true }),
         callback = function()
-            if state.bufnr > -1 then
+            if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
                 draw()
             end
         end,
@@ -121,7 +121,7 @@ M.open = function()
         pattern = "StatusRedraw",
         group = vim.api.nvim_create_augroup("user.status.window.draw.force", { clear = true }),
         callback = function()
-            if state.bufnr > -1 then
+            if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
                 draw()
             end
         end,

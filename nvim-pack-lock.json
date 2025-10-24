@@ -1,7 +1,7 @@
 {
   "plugins": {
     "CopilotChat.nvim": {
-      "rev": "94dfc01",
+      "rev": "a7138a0",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
     },
     "blink.cmp": {
@@ -50,7 +50,7 @@
       "src": "https://github.com/folke/lazydev.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "2304ff6",
+      "rev": "83db017",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
@@ -58,7 +58,7 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "64a23d0",
+      "rev": "d1a9158",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
@@ -86,7 +86,7 @@
       "src": "https://github.com/rcarriga/nvim-dap-ui"
     },
     "nvim-lspconfig": {
-      "rev": "ececa53",
+      "rev": "a9b2fb5",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-nio": {
@@ -114,15 +114,15 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "sidekick.nvim": {
-      "rev": "dc2710a",
+      "rev": "bd1f79a",
       "src": "https://github.com/folke/sidekick.nvim"
     },
     "snacks.nvim": {
-      "rev": "277ba02",
+      "rev": "a2c1e69",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "synth.nvim": {
-      "rev": "824f5b3",
+      "rev": "3eb2308",
       "src": "https://github.com/vertexE/synth.nvim"
     }
   }
