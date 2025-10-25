@@ -171,28 +171,29 @@ return {
         starter.setup({
             evaluate_single = true,
             header = table.concat({
-                [[ _____  ___    _______    ______  ___      ___  __     ___      ___ ]],
-                [[(\"   \|"  \  /"     "|  /    " \|"  \    /"  ||" \   |"  \    /"  |]],
-                [[|.\\   \    |(: ______) // ____  \\   \  //  / ||  |   \   \  //   |]],
-                [[|: \.   \\  | \/    |  /  /    ) :)\\  \/. ./  |:  |   /\\  \/.    |]],
-                [[|.  \    \. | // ___)_(: (____/ //  \.    //   |.  |  |: \.        |]],
-                [[|    \    \ |(:      "|\        /    \\   /    /\  |\ |.  \    /:  |]],
-                [[ \___|\____\) \_______) \"_____/      \__/    (__\_|_)|___|\__/|___|]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
+                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
             }, "\n"),
             footer = "nothing",
             items = {
-                starter.sections.builtin_actions(),
-                starter.sections.recent_files(5, true, false),
+                starter.sections.recent_files(3, true, false),
             },
             content_hooks = {
                 starter.gen_hook.adding_bullet(" ", false),
-                starter.gen_hook.indexing("all", { "Builtin actions" }),
+                starter.gen_hook.indexing("all"),
                 starter.gen_hook.padding(3, 2),
                 starter.gen_hook.aligning("center", "center"),
             },
         })
         vim.api.nvim_set_hl(0, "MiniStarterItem", { link = "@constant" })
-        vim.api.nvim_set_hl(0, "MiniStarterHeader", { link = "MiniIconsGreen" })
-        vim.api.nvim_set_hl(0, "MiniStarterFooter", { link = "Comment" })
+        vim.api.nvim_set_hl(0, "MiniStarterHeader", { link = "Comment" })
+        vim.api.nvim_set_hl(0, "MiniStarterSection", { link = "MiniIconsGrey" })
+        vim.api.nvim_set_hl(0, "MiniStarterFooter", { link = "MiniIconsGrey" })
     end,
 }
