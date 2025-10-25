@@ -46,7 +46,7 @@ local drift = function()
         )
     end
 
-    return " "
+    return ""
         .. (cache.drift.head == 0 and "" or string.format(" [%d] ", cache.drift.head))
         .. (cache.drift.origin == 0 and "" or string.format(" [%d] ", cache.drift.origin))
 end

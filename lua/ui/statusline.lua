@@ -1,49 +1,6 @@
 local M = {}
 
-local tbl = require("tbl")
 local symbols = require("symbols")
-
-local diagnostic_severity_priority = {
-    vim.diagnostic.severity.ERROR,
-    vim.diagnostic.severity.WARN,
-    vim.diagnostic.severity.INFO,
-    vim.diagnostic.severity.HINT,
-}
-
-local diagnostic_icon = {
-    [vim.diagnostic.severity.ERROR] = "✘",
-    [vim.diagnostic.severity.WARN] = "",
-    [vim.diagnostic.severity.INFO] = "󰭺",
-    [vim.diagnostic.severity.HINT] = "",
-}
-
-local diagnostic_hl = {
-    [vim.diagnostic.severity.ERROR] = "DiagnosticError",
-    [vim.diagnostic.severity.WARN] = "DiagnosticWarn",
-    [vim.diagnostic.severity.INFO] = "DiagnosticInfo",
-    [vim.diagnostic.severity.HINT] = "DiagnosticHint",
-}
-
---- @return string
-M.diagnostics = function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local diagnostics = vim.diagnostic.get(bufnr)
-    local diagnostics_by_severity = tbl.group_by_selector(diagnostics, function(a)
-        return a.severity
-    end)
-
-    local display = ""
-    for _, severity in ipairs(diagnostic_severity_priority) do
-        local diagnostics_for_severity = diagnostics_by_severity[severity]
-        if diagnostics_for_severity ~= nil then
-            local total = #diagnostics_for_severity
-            display = display
-                .. string.format("%%#%s#%s %d ", diagnostic_hl[severity], diagnostic_icon[severity], total)
-        end
-    end
-
-    return (#display > 0 and display:sub(1, #display - 1) or "%#MiniIconsGreen# ") .. "%#Comment# "
-end
 
 local cache = {
     stat = {},
@@ -176,7 +133,7 @@ M.mode = function()
     elseif mode:find("COMMAND") or mode:find("TERMINAL") or mode:find("EX") then
         hl = "Command"
     end
-    return string.format("%%#MiniStatuslineMode%s#%s", hl, " " .. mode)
+    return string.format("%%#MiniStatuslineMode%s#%s %%#MiniStatuslineMode%sSeparator#", hl, " " .. mode, hl)
 end
 
 M.tools = function()
@@ -185,13 +142,12 @@ M.tools = function()
     for _, client in ipairs(clients) do
         local symbol = symbols.lsp_servers(client.name)
         if symbol ~= "" then
-            display = display .. " %#MiniIconsGreen#" .. symbols.lsp_servers(client.name)
+            display = display .. (#display > 0 and " " or "") .. symbols.lsp_servers(client.name)
         end
     end
-    display = display .. "%#Comment# "
     -- local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsYellow#" .. " "
     -- dap ..
-    return display
+    return (#display > 0 and "%#StatusLineSeparatorLsp#" .. display or display) .. " %#StatusLineSeparator#"
 end
 
 M.git = function()
@@ -216,16 +172,15 @@ M.copilot = function()
 end
 
 M.time = function()
-    return "%#StatusLineSeparator#" .. "" .. "%#StatusLineSeparatorContent#" .. os.date("%H:%M") .. " "
+    return "%#StatusLineSeparator#" .. "" .. "%#StatusLineSeparatorContent# " .. os.date("%H:%M") .. " "
 end
 
 M.active = function()
     return table.concat({
         "",
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        "%#StatusLine#",
         "%{%v:lua.require'ui.statusline'.tools()%}",
-        "%{%v:lua.require'ui.statusline'.diagnostics()%}",
+        -- "%=",
         "%{%v:lua.require'ui.statusline'.copilot()%}",
         "%=",
         "%{%v:lua.require'ui.statusline'.active_macro_register()%}",
