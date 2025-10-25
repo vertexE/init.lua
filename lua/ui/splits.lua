@@ -106,7 +106,7 @@ M.vertical = function(content, opts)
     else
         opts.close_on_q = vertical_defaults.close_on_q
     end
-    opts.bufnr = opts.bufnr ~= nil and opts.bufnr or vim.api.nvim_create_buf(true, true)
+    opts.bufnr = opts.bufnr ~= nil and opts.bufnr or vim.api.nvim_create_buf(false, true)
     opts.bo = opts.bo ~= nil and opts.bo or vertical_defaults.bo
     opts.wo = opts.wo ~= nil and opts.wo or vertical_defaults.wo
     opts.width = opts.width ~= nil and opts.width or 35 -- default width for vertical split

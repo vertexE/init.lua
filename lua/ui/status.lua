@@ -93,7 +93,7 @@ M.is_open = function()
     return state.bufnr > -1
 end
 
-M.open = function()
+M.toggle_split = function()
     if state.bufnr > -1 then
         vim.api.nvim_buf_delete(state.bufnr, { force = true })
         state.bufnr = -1
