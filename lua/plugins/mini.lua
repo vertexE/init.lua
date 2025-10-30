@@ -166,34 +166,5 @@ return {
                 { mappings = { wipeout = { char = "<C-d>", func = buf_delete } } }
             )
         end)
-
-        local starter = require("mini.starter")
-        starter.setup({
-            evaluate_single = true,
-            header = table.concat({
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-                [[0x01 0x02 0x04 0x08 0x10 0x20 0x40 0x80]],
-            }, "\n"),
-            footer = "nothing",
-            items = {
-                starter.sections.recent_files(3, true, false),
-            },
-            content_hooks = {
-                starter.gen_hook.adding_bullet(" ", false),
-                starter.gen_hook.indexing("all"),
-                starter.gen_hook.padding(3, 2),
-                starter.gen_hook.aligning("center", "center"),
-            },
-        })
-        vim.api.nvim_set_hl(0, "MiniStarterItem", { link = "@constant" })
-        vim.api.nvim_set_hl(0, "MiniStarterHeader", { link = "Comment" })
-        vim.api.nvim_set_hl(0, "MiniStarterSection", { link = "MiniIconsGrey" })
-        vim.api.nvim_set_hl(0, "MiniStarterFooter", { link = "MiniIconsGrey" })
     end,
 }

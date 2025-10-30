@@ -133,6 +133,11 @@ M.mode = function()
     elseif mode:find("COMMAND") or mode:find("TERMINAL") or mode:find("EX") then
         hl = "Command"
     end
+
+    if require("dap").session() then
+        return string.format("%%#MiniStatuslineModeCommand#%s %%#MiniStatuslineModeCommandSeparator#", " DEBUG")
+    end
+
     return string.format("%%#MiniStatuslineMode%s#%s %%#MiniStatuslineMode%sSeparator#", hl, " " .. mode, hl)
 end
 
@@ -145,8 +150,6 @@ M.tools = function()
             display = display .. (#display > 0 and " " or "") .. symbols.lsp_servers(client.name)
         end
     end
-    -- local dap = require("dap").session() ~= nil and "%#MiniIconsGreen#" .. "󰃤 " or "%#MiniIconsYellow#" .. " "
-    -- dap ..
     return (#display > 0 and "%#StatusLineSeparatorLsp#" .. display or display) .. " %#StatusLineSeparator#"
 end
 

@@ -155,37 +155,37 @@ vim.keymap.set("n", "<leader>o", function()
     status.toggle_split()
 end)
 
---- improve winclose behavior with my goto shortcuts
-vim.keymap.set("n", "ZQ", function()
-    if status.is_open() and vim.fn.winnr("$") == 2 then
-        status.toggle_split()
-        vim.cmd("q!")
-    elseif vim.fn.winnr("$") > 2 then
-        -- close then move to the previous win we were in
-        -- this stops the behavior of moving the cursor left
-        vim.cmd("q!")
-        -- we also refresh win width for status tray
-        -- by closing then re-opening
-        status.toggle_split()
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
-        status.toggle_split()
-    else
-        vim.cmd("q!")
-    end
-end, { desc = "quit without saving" })
-
-vim.keymap.set("n", "ZZ", function()
-    if status.is_open() and vim.fn.winnr("$") == 2 then
-        status.toggle_split()
-        vim.cmd("x")
-    elseif status.is_open() and vim.fn.winnr("$") > 2 then
-        vim.cmd("x")
-        -- refresh win width for status tray
-        -- by closing then re-opening
-        status.toggle_split()
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
-        status.toggle_split()
-    else
-        vim.cmd("x")
-    end
-end, { desc = "save and quit" })
+-- --- improve winclose behavior with my goto shortcuts
+-- vim.keymap.set("n", "ZQ", function()
+--     if status.is_open() and vim.fn.winnr("$") == 2 then
+--         status.toggle_split()
+--         vim.cmd("q!")
+--     elseif vim.fn.winnr("$") > 2 then
+--         -- close then move to the previous win we were in
+--         -- this stops the behavior of moving the cursor left
+--         vim.cmd("q!")
+--         -- we also refresh win width for status tray
+--         -- by closing then re-opening
+--         status.toggle_split()
+--         vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
+--         status.toggle_split()
+--     else
+--         vim.cmd("q!")
+--     end
+-- end, { desc = "quit without saving" })
+--
+-- vim.keymap.set("n", "ZZ", function()
+--     if status.is_open() and vim.fn.winnr("$") == 2 then
+--         status.toggle_split()
+--         vim.cmd("x")
+--     elseif status.is_open() and vim.fn.winnr("$") > 2 then
+--         vim.cmd("x")
+--         -- refresh win width for status tray
+--         -- by closing then re-opening
+--         status.toggle_split()
+--         vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-w>p", true, false, true), "n", false)
+--         status.toggle_split()
+--     else
+--         vim.cmd("x")
+--     end
+-- end, { desc = "save and quit" })

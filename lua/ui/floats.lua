@@ -4,6 +4,8 @@ local M = {}
 --- @field title string
 --- @field height ?number percent of editor
 --- @field width ?number percent of editor
+--- @field max_width ?number max total cols
+--- @field max_height ?number max total rows
 --- @field close_on_q ?boolean
 --- @field bo ?table<string, any>
 --- @field wo ?table<string, any>
@@ -27,7 +29,9 @@ M.center = function(opts)
     local editor_width = vim.o.columns
     local editor_height = vim.o.lines
     local width = math.floor((opts.width or center_opts.width) * editor_width)
+    width = opts.max_width and math.min(width, opts.max_width) or width
     local height = math.floor((opts.height or center_opts.height) * editor_height)
+    height = opts.max_height and math.min(height, opts.max_height) or height
     local row = (editor_height - height) / 2
     local col = (editor_width - width) / 2
 
