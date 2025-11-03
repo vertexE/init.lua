@@ -4,10 +4,12 @@ local symbols = require("symbols")
 
 local cache = {
     stat = {},
+    spotify = "",
 }
 
 local valid = {
     stat = false,
+    spotify = false,
 }
 
 --- @type table<line.ChangeType, string>
@@ -178,14 +180,30 @@ M.time = function()
     return "%#StatusLineSeparator#" .. "" .. "%#StatusLineSeparatorContent# " .. os.date("%H:%M") .. " "
 end
 
+M.spotify = function()
+    if valid.spotify then
+        return #cache.spotify > 0 and "%#MiniIconsGreen# 󰓇  %#@constant#" .. cache.spotify or ""
+    end
+
+    -- this is a fifo pipe, will block until read/write pair go through
+    vim.system({ "cat", "/tmp/spyplayer" }, { text = true }, function(result)
+        if #result.stdout > 0 then
+            cache.spotify = result.stdout
+            valid.spotify = true
+        end
+    end)
+
+    return #cache.spotify > 0 and "%#MiniIconsGreen# 󰓇  %#@constant#" .. cache.spotify or ""
+end
+
 M.active = function()
     return table.concat({
         "",
         "%{%v:lua.require'ui.statusline'.mode()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",
-        -- "%=",
         "%{%v:lua.require'ui.statusline'.copilot()%}",
         "%=",
+        "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%{%v:lua.require'ui.statusline'.active_macro_register()%}",
         "%{%v:lua.require'ui.statusline'.git()%}",
         "%#Comment#",
@@ -209,6 +227,15 @@ end)
 
 M.setup = function()
     vim.opt.laststatus = 2
+
+    local timer = vim.uv.new_timer()
+    timer:start(
+        0,
+        5000,
+        vim.schedule_wrap(function()
+            valid.spotify = false
+        end)
+    )
 
     vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter" }, {
         group = vim.api.nvim_create_augroup("user.statusline.draw", { clear = true }),
