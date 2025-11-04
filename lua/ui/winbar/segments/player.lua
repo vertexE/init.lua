@@ -23,7 +23,7 @@ local content = function()
 
     -- this is a fifo pipe, will block until read/write pair go through
     if not loading.spotify then
-        vim.system({ "cat", "/tmp/spyplayer-track" }, { text = true }, function(result)
+        vim.system({ "cat", "/tmp/fifoplayer-track" }, { text = true }, function(result)
             if #result.stdout > 0 then
                 cache.spotify = result.stdout
                 valid.spotify = true

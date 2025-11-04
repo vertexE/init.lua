@@ -157,13 +157,13 @@ vim.keymap.set("n", "<leader>o", function()
 end)
 
 vim.keymap.set("n", "<leader>sP", function()
-    vim.system({ "sh", "-c", "echo pause > /tmp/spyplayer-control" })
+    vim.system({ "sh", "-c", "echo pause > /tmp/fifoplayer-control" })
 end, { desc = "spotify-player: pause track" })
 
 vim.keymap.set("n", "<leader>sp", function()
-    vim.system({ "sh", "-c", "echo play > /tmp/spyplayer-control" })
+    vim.system({ "sh", "-c", "echo play > /tmp/fifoplayer-control" })
 end, { desc = "spotify-player: play track" })
 
 vim.keymap.set("n", "<leader>sn", function()
-    vim.system({ "sh", "-c", "echo next > /tmp/spyplayer-control" })
+    vim.system({ "sh", "-c", "echo next > /tmp/fifoplayer-control" })
 end, { desc = "spotify-player: next track" })
