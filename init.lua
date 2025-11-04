@@ -2,6 +2,9 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 vim.g.hidden = true -- TODO: do I still need this?
 
+-- add venv to nvim python host prog
+-- vim.g.python3_host_prog = vim.fn.stdpath("config") .. "/.venv/bin/python"
+
 local dependencies = {
     -- common
     "nvim-lua/plenary.nvim",
@@ -18,11 +21,9 @@ local dependencies = {
     "nvim-treesitter/nvim-treesitter",
     "nvim-treesitter/nvim-treesitter-textobjects",
     "vertexE/synth.nvim",
-    "sainnhe/gruvbox-material",
-    "rebelot/kanagawa.nvim",
-    { src = "catppuccin/nvim", name = "catppuccin" },
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
+    "kevinhwang91/nvim-bqf",
     -- debugger
     "rcarriga/nvim-dap-ui",
     "mfussenegger/nvim-dap",

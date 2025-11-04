@@ -22,7 +22,7 @@ local draw_loop = function()
     local timer = vim.uv.new_timer()
     timer:start(
         0,
-        30000,
+        3000,
         vim.schedule_wrap(function()
             vim.cmd("redrawstatus")
         end)

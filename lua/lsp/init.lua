@@ -4,6 +4,10 @@ local on_attach = function(bufnr)
     local buf_opts = { buffer = bufnr, silent = true }
     vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, buf_opts)
 
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, buf_opts)
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, buf_opts)
+    vim.keymap.set("n", "gI", vim.lsp.buf.incoming_calls, buf_opts)
+    vim.keymap.set("n", "gO", vim.lsp.buf.outgoing_calls, buf_opts)
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, buf_opts)
     vim.keymap.set("n", "<leader>ra", vim.lsp.buf.code_action, buf_opts)
     vim.keymap.set("n", "K", function()

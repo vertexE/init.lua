@@ -172,7 +172,7 @@ return {
             require("osv").launch({ port = 8086 })
         end, { noremap = true })
 
-        keymap("n", "<leader>q", function()
+        keymap("n", "<leader>Q", function()
             dap.terminate()
         end, { desc = "DAP: end session" })
 

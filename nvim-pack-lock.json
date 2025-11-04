@@ -73,6 +73,10 @@
       "rev": "de74099",
       "src": "https://github.com/MunifTanjim/nui.nvim"
     },
+    "nvim-bqf": {
+      "rev": "a77b17e",
+      "src": "https://github.com/kevinhwang91/nvim-bqf"
+    },
     "nvim-dap": {
       "rev": "6782b09",
       "src": "https://github.com/mfussenegger/nvim-dap"
