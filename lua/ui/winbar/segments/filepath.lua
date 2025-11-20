@@ -10,6 +10,16 @@ local store = require("ui.winbar.store")
 --- @type table<winbar.filetype>
 local file_type_decorations = {
     {
+        ft = "astro",
+        icon = " ",
+        hl = "MiniIconsRed",
+    },
+    {
+        ft = "kitty",
+        icon = " ",
+        hl = "MiniIconsYellow",
+    },
+    {
         ft = "lua",
         icon = " ",
         hl = "MiniIconsAzure",
@@ -52,7 +62,7 @@ local file_type_decorations = {
     {
         ft = "rust",
         icon = " ",
-        hl = "MiniIconsOrange",
+        hl = "MiniIconsRed",
     },
     {
         ft = "typescript",
