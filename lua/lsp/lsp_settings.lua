@@ -1,5 +1,47 @@
 local M = {}
 
+M.astro = {}
+
+M.tailwindcss = {
+    tailwindCSS = {
+        validate = true,
+        lint = {
+            cssConflict = "warning",
+            invalidApply = "error",
+            invalidScreen = "error",
+            invalidVariant = "error",
+            invalidConfigPath = "error",
+            invalidTailwindDirective = "error",
+            recommendedVariantOrder = "warning",
+        },
+        classAttributes = {
+            "class",
+            "className",
+            "class:list",
+            "classList",
+            "ngClass",
+        },
+        includeLanguages = {
+            eelixir = "html-eex",
+            eruby = "erb",
+            templ = "html",
+            htmlangular = "html",
+        },
+    },
+    filetypes = {
+        "templ",
+        "vue",
+        "html",
+        "astro",
+        "javascript",
+        "typescript",
+        "react",
+        "htmlangular",
+    },
+}
+
+M.basedpyright = {}
+
 M.copilot = {}
 
 M.lua_ls = {
@@ -39,7 +81,7 @@ M.yamlls = {
 }
 
 M.ts_ls = {
-      typescript = {
+    typescript = {
         completions = {
             completeFunctionCalls = true,
         },

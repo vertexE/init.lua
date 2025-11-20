@@ -1,25 +1,38 @@
-require("synth").setup({
-    override_hl = function(colors)
+local Color = require("color")
+
+require("catppuccin").setup({
+    flavour = "mocha",
+    custom_highlights = function(colors)
         return {
-            -- default
-            ["StatusLineSeparator"] = { fg = colors.surface:lighten(8):hex() },
-            ["StatusLineSeparatorContent"] = {
-                fg = colors.steel:lighten(22):hex(),
-                bg = colors.surface:lighten(8):hex(),
-            },
-            -- lsp
-            ["StatusLineSeparatorLsp"] = { fg = colors.green:hex(), bg = colors.surface:lighten(8):hex() },
-            -- mode
+            ["Winbar"] = { bg = Color:from_hex(colors.base):lighten(2):hex() },
+            ["StatusLine"] = { bg = Color:from_hex(colors.base):lighten(2):hex() },
+            ["StatuslineNC"] = { bg = "" },
+            ["CommentItalic"] = { fg = colors.overlay1, italic = true },
+            ["StatusLineSeparator"] = { fg = Color:from_hex(colors.base):lighten(8):hex() },
+            ["StatusLineSeparatorContent"] = { fg = colors.subtext1, bg = Color:from_hex(colors.base):lighten(8):hex() },
+            ["StatuslineSeparatorLsp"] = { fg = colors.green, bg = Color:from_hex(colors.base):lighten(8):hex() },
             ["MiniStatuslineModeNormalSeparator"] = {
-                fg = colors.primary:fade(15):hex(),
-                bg = colors.surface:lighten(8):hex(),
+                fg = "#89b4fb",
+                bg = Color:from_hex(colors.base):lighten(8):hex(),
             },
-            ["MiniStatuslineModeReplaceSeparator"] = { fg = colors.red:hex(), bg = colors.surface:lighten(8):hex() },
-            ["MiniStatuslineModeVisualSeparator"] = { fg = colors.purple:hex(), bg = colors.surface:lighten(8):hex() },
-            ["MiniStatuslineModeInsertSeparator"] = { fg = colors.brown:hex(), bg = colors.surface:lighten(8):hex() },
-            ["MiniStatuslineModeCommandSeparator"] = { fg = colors.orange:hex(), bg = colors.surface:lighten(8):hex() },
+            ["MiniStatuslineModeReplaceSeparator"] = {
+                fg = "#f38ba9",
+                bg = Color:from_hex(colors.base):lighten(8):hex(),
+            },
+            ["MiniStatuslineModeVisualSeparator"] = {
+                fg = "#cba6f8",
+                bg = Color:from_hex(colors.base):lighten(8):hex(),
+            },
+            ["MiniStatuslineModeInsertSeparator"] = {
+                fg = "#a6e3a2",
+                bg = Color:from_hex(colors.base):lighten(8):hex(),
+            },
+            ["MiniStatuslineModeCommandSeparator"] = {
+                fg = "#fab388",
+                bg = Color:from_hex(colors.base):lighten(8):hex(),
+            },
         }
     end,
 })
 
-vim.cmd.colorscheme("synth")
+vim.cmd.colorscheme("catppuccin")

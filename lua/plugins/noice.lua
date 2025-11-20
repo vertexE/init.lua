@@ -24,6 +24,9 @@ return {
                 signature = {
                     enabled = false,
                 },
+                hover = {
+                    silent = true,
+                },
             },
             -- you can enable a preset for easier configuration
             presets = {

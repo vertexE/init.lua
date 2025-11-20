@@ -1,16 +1,16 @@
 {
   "plugins": {
     "CopilotChat.nvim": {
-      "rev": "a7138a0",
+      "rev": "df5376c",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
     },
     "blink.cmp": {
-      "rev": "327fff9",
+      "rev": "b19413d",
       "src": "https://github.com/saghen/blink.cmp",
       "version": "1.0.0 - 2.0.0"
     },
     "catppuccin": {
-      "rev": "af58927",
+      "rev": "da33755",
       "src": "https://github.com/catppuccin/nvim"
     },
     "chat-context-ui.nvim": {
@@ -18,7 +18,7 @@
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
     },
     "conform.nvim": {
-      "rev": "9fd3d5e",
+      "rev": "1bf8b5b",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "fold.nvim": {
@@ -30,7 +30,7 @@
       "src": "https://github.com/rafamadriz/friendly-snippets"
     },
     "gruvbox-material": {
-      "rev": "834dbf2",
+      "rev": "4bfc698",
       "src": "https://github.com/sainnhe/gruvbox-material"
     },
     "hacked.nvim": {
@@ -42,23 +42,23 @@
       "src": "https://github.com/rebelot/kanagawa.nvim"
     },
     "kulala.nvim": {
-      "rev": "183bf44",
+      "rev": "8676a4f",
       "src": "https://github.com/mistweaverco/kulala.nvim"
     },
     "lazydev.nvim": {
-      "rev": "01bc2aa",
+      "rev": "5231c62",
       "src": "https://github.com/folke/lazydev.nvim"
     },
     "mason-lspconfig.nvim": {
-      "rev": "83db017",
+      "rev": "7d527c7",
       "src": "https://github.com/mason-org/mason-lspconfig.nvim"
     },
     "mason.nvim": {
-      "rev": "ad7146a",
+      "rev": "57e5a8a",
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "d1a9158",
+      "rev": "6e885e4",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
@@ -66,7 +66,7 @@
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
     "noice.nvim": {
-      "rev": "c86aea5",
+      "rev": "7bfd942",
       "src": "https://github.com/folke/noice.nvim"
     },
     "nui.nvim": {
@@ -74,11 +74,11 @@
       "src": "https://github.com/MunifTanjim/nui.nvim"
     },
     "nvim-bqf": {
-      "rev": "a77b17e",
+      "rev": "ba2b365",
       "src": "https://github.com/kevinhwang91/nvim-bqf"
     },
     "nvim-dap": {
-      "rev": "6782b09",
+      "rev": "5860c7c",
       "src": "https://github.com/mfussenegger/nvim-dap"
     },
     "nvim-dap-python": {
@@ -90,7 +90,7 @@
       "src": "https://github.com/rcarriga/nvim-dap-ui"
     },
     "nvim-lspconfig": {
-      "rev": "a9b2fb5",
+      "rev": "b7c48a7",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-nio": {
@@ -102,7 +102,7 @@
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-treesitter-textobjects": {
-      "rev": "a9742cb",
+      "rev": "5ca4aaa",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter-textobjects"
     },
     "nvim-ts-autotag": {
@@ -110,7 +110,7 @@
       "src": "https://github.com/windwp/nvim-ts-autotag"
     },
     "one-small-step-for-vimkind": {
-      "rev": "8fdbb4e",
+      "rev": "87eeca2",
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
     },
     "plenary.nvim": {
@@ -118,15 +118,15 @@
       "src": "https://github.com/nvim-lua/plenary.nvim"
     },
     "sidekick.nvim": {
-      "rev": "bd1f79a",
+      "rev": "c2bdf8c",
       "src": "https://github.com/folke/sidekick.nvim"
     },
     "snacks.nvim": {
-      "rev": "a2c1e69",
+      "rev": "fe7cfe9",
       "src": "https://github.com/folke/snacks.nvim"
     },
     "synth.nvim": {
-      "rev": "3eb2308",
+      "rev": "66a878b",
       "src": "https://github.com/vertexE/synth.nvim"
     }
   }

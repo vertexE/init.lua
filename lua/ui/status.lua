@@ -71,7 +71,7 @@ local draw = function()
         },
     })
     table.insert(v_lines, {
-        { "  ", "MiniIconsGreen" },
+        { "󰫢  ", "MiniIconsGreen" },
         { "Agent ", "Comment" },
     })
 

@@ -4,16 +4,17 @@ local common = require("vcs.git_common")
 
 --- @type table<string, string>
 local enterprise_hosted = {
-    --- "dir-name" = "github-enterprise-domain"
+    --- "dir-name" = "https://github.enterprise.domain.com/ORG/REPO/pull/%s"
 }
 
 M.file = function()
-    local buf = vim.api.nvim_get_current_buf()
-    local this_dir = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":h")
+    local this_dir_abs = vim.fn.getcwd()
+    local this_dir = vim.fn.fnamemodify(this_dir_abs, ":t")
     for dir, domain in pairs(enterprise_hosted) do
         if this_dir == dir then
             local file_name = vim.fn.expand("%:.")
             vim.system({ "bash", "-c", string.format("GH_HOST=%s", domain), "gh", "browse", file_name })
+            return
         end
     end
 
@@ -22,17 +23,18 @@ M.file = function()
 end
 
 M.remote_branch = function()
-    local remote = common.remote_branch_name()
-    if remote == "no upstream" then
+    local remote = common.head_branch_name()
+    if remote == "" then
         vim.notify("no upstream set for this branch", vim.log.levels.WARN, {})
         return
     end
 
-    local buf = vim.api.nvim_get_current_buf()
-    local this_dir = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":h")
+    local this_dir_abs = vim.fn.getcwd()
+    local this_dir = vim.fn.fnamemodify(this_dir_abs, ":t")
     for dir, domain in pairs(enterprise_hosted) do
         if this_dir == dir then
-            vim.system({ "bash", "-c", string.format("GH_HOST=%s", domain), "gh", "browse", remote }):wait()
+            vim.system({ "open", string.format(domain, remote) })
+            return
         end
     end
 

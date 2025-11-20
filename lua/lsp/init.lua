@@ -67,6 +67,8 @@ require("conform").setup({
         javascript = { "prettierd", "prettier" },
         typescript = { "prettierd", "prettier" },
         typescriptreact = { "prettierd", "prettier" },
+        html = { "prettierd", "prettier" },
+        astro = { "prettierd", "prettier" },
     },
 })
 

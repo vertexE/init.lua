@@ -17,7 +17,7 @@ local default_opts = {
         commit_sha = "Comment",
         commit_msg = "@text",
         change_type = "Comment",
-        file_path = "@constant",
+        file_path = "@text",
     },
 }
 
@@ -127,9 +127,9 @@ end
 --- draw the git status tray, update state.lines_to_path
 --- this draw happen on every modification to the buffer
 --- @param bufnr integer
---- @param winr integer
+--- @param _ integer
 --- @param changes table<git.Change>
-local draw_tray = function(bufnr, winr, changes)
+local draw_tray = function(bufnr, _, changes)
     local ns = vim.api.nvim_create_namespace("user.git.tray")
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
@@ -150,20 +150,19 @@ local draw_tray = function(bufnr, winr, changes)
 
     local v_lines = {} -- we will instead write the lines to the buffer and apply and hl_group on each word
     table.insert(v_lines, {
-        { " ", "Comment" },
-        { "   GIT ", "MiniStatuslineModeNormal" },
+        { "   GIT ", "MiniStatuslineModeCommand" },
         -- { "", "Comment" },
     })
     table.insert(v_lines, {
         { "Hint: ", "Comment" },
         {
             "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull",
-            "@constant",
+            "Comment",
         },
     })
     table.insert(v_lines, {}) -- blank line
     table.insert(v_lines, {
-        { "  ", default_opts.hl.icon },
+        { " ", default_opts.hl.icon },
         { head_sha, default_opts.hl.commit_sha },
         { " ", "Comment" },
         { common.head_branch_name(), default_opts.hl.branch },
@@ -171,7 +170,7 @@ local draw_tray = function(bufnr, winr, changes)
         { #head_sha > 0 and common.commit_msg(head_sha) or "", default_opts.hl.commit_msg },
     })
     table.insert(v_lines, {
-        { "  ", "MiniIconsPurple" },
+        { " ", "MiniIconsPurple" },
         { remote_sha, "Comment" },
         { " ", "Comment" },
         { common.remote_branch_name(), default_opts.hl.branch },

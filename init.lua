@@ -24,6 +24,7 @@ local dependencies = {
     "folke/noice.nvim",
     "MunifTanjim/nui.nvim",
     "kevinhwang91/nvim-bqf",
+    { source = "catppuccin/nvim", name = "catppuccin" },
     -- debugger
     "rcarriga/nvim-dap-ui",
     "mfussenegger/nvim-dap",
