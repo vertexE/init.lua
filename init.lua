@@ -17,6 +17,8 @@ local dependencies = {
     "folke/lazydev.nvim",
     { src = "saghen/blink.cmp", version = vim.version.range("1.*") },
     "rafamadriz/friendly-snippets",
+    { src = "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
+    "rachartier/tiny-inline-diagnostic.nvim",
     -- syntax & appearance
     "nvim-treesitter/nvim-treesitter",
     "nvim-treesitter/nvim-treesitter-textobjects",
