@@ -10,7 +10,7 @@
       "version": "1.0.0 - 2.0.0"
     },
     "catppuccin": {
-      "rev": "da33755",
+      "rev": "ce4a8e0",
       "src": "https://github.com/catppuccin/nvim"
     },
     "chat-context-ui.nvim": {
@@ -18,7 +18,7 @@
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
     },
     "conform.nvim": {
-      "rev": "1bf8b5b",
+      "rev": "4993e07",
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "fold.nvim": {
@@ -42,7 +42,7 @@
       "src": "https://github.com/rebelot/kanagawa.nvim"
     },
     "kulala.nvim": {
-      "rev": "8676a4f",
+      "rev": "5d39161",
       "src": "https://github.com/mistweaverco/kulala.nvim"
     },
     "lazydev.nvim": {
@@ -58,7 +58,7 @@
       "src": "https://github.com/williamboman/mason.nvim"
     },
     "mini.nvim": {
-      "rev": "6e885e4",
+      "rev": "c007f4b",
       "src": "https://github.com/nvim-mini/mini.nvim"
     },
     "multibuffer.nvim": {
@@ -90,7 +90,7 @@
       "src": "https://github.com/rcarriga/nvim-dap-ui"
     },
     "nvim-lspconfig": {
-      "rev": "b7c48a7",
+      "rev": "07f4e93",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-nio": {
@@ -135,7 +135,7 @@
       "src": "https://github.com/vertexE/synth.nvim"
     },
     "tiny-inline-diagnostic.nvim": {
-      "rev": "1477762",
+      "rev": "3255aaf",
       "src": "https://github.com/rachartier/tiny-inline-diagnostic.nvim"
     }
   }
