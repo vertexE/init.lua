@@ -2,7 +2,11 @@ local git_tray = require("vcs.git_status")
 local git_blame = require("vcs.git_blame")
 local git_open = require("vcs.git_open")
 
+local code_extract = require("treesitter.extract")
+
 local status = require("ui.status")
+
+local buf = require("buf")
 
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })
@@ -13,7 +17,7 @@ vim.keymap.set({ "n", "x" }, "H", "^")
 vim.keymap.set({ "n", "x" }, "L", "$")
 vim.keymap.set("n", "<C-u>", "8kzz", { desc = "scroll up half", noremap = true, silent = true })
 vim.keymap.set("n", "<C-d>", "8jzz", { desc = "scroll down half", noremap = true, silent = true })
--- lsp uses c-i to trigger completion
+-- lsp uses c-m to jump back
 vim.keymap.set("n", "<c-m>", "<c-i>")
 
 -- windows
@@ -167,3 +171,10 @@ end, { desc = "spotify-player: play track" })
 vim.keymap.set("n", "<leader>sn", function()
     vim.system({ "sh", "-c", "echo next > /tmp/fifoplayer-control" })
 end, { desc = "spotify-player: next track" })
+
+vim.keymap.set({ "x", "n" }, "<leader>ex", function()
+    local start_line, end_line = buf.active_selection()
+    local content = code_extract.as_html(0, start_line, end_line)
+    vim.fn.setreg("*", content)
+    vim.notify("copied code as html", vim.log.levels.INFO)
+end)

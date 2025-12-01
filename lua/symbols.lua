@@ -50,6 +50,9 @@ M.lsp_servers = function(name)
     if name:match("tailwindcss") then
         return " "
     end
+    if name:match("astro") then
+        return " "
+    end
     if name:match("gopls") then
         return " "
     end
