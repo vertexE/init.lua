@@ -166,13 +166,7 @@ end
 
 M.copilot = function()
     local inline_enabled = vim.lsp.inline_completion.is_enabled() and " " or "%#Comment# "
-    local success, sidekick = pcall(require, "sidekick.nes")
-    if success then
-        local count = #sidekick.get()
-        return string.format("%%#MiniIconsPurple# %d %s", count, inline_enabled)
-    else
-        return "%#Comment# 0 " .. inline_enabled
-    end
+    return (inline_enabled and "%#MiniIconsPurple#  " or "%#Comment#  ") .. inline_enabled
 end
 
 M.time = function()

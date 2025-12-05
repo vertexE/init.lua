@@ -68,7 +68,7 @@ M.agent = function()
     return {
         {
             resource_state.agent == "Copilot" and " " or "󰛄 ",
-            "MiniIconsGreen",
+            "MiniIconsPurple",
         },
         { string.format(" %s", resource_state.agent), "Comment" },
     }
@@ -77,23 +77,23 @@ end
 M.status = function()
     local v_lines = {}
     table.insert(v_lines, {
-        { "󰒉 ", resources.selection and "MiniIconsOrange" or "Comment" },
+        { "󰒉 ", resources.selection and "MiniIconsRed" or "Comment" },
         { " - visual lines", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.lsp_diagnostics and "MiniIconsOrange" or "Comment" },
+        { " ", resources.lsp_diagnostics and "MiniIconsRed" or "Comment" },
         { " - diagnostics", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.git_diff and "MiniIconsOrange" or "Comment" },
+        { " ", resources.git_diff and "MiniIconsRed" or "Comment" },
         { " - git diff", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.blocks and "MiniIconsOrange" or "Comment" },
+        { " ", resources.blocks and "MiniIconsRed" or "Comment" },
         { string.format(" - blocks %d", #resource_state.blocks), "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.buffers and "MiniIconsOrange" or "Comment" },
+        { " ", resources.buffers and "MiniIconsRed" or "Comment" },
         { string.format(" - %s", active_bufs_summary()), "Comment" },
     })
     return v_lines
