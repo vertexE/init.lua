@@ -1,4 +1,10 @@
-return {
+--- @type PackSpec
+local M = {
+    event = "BufEnter",
+    requires = {
+        "multibuffer.nvim",
+        "hacked.nvim",
+    },
     config = function()
         require("hacked.clipboard").setup()
         require("hacked.todo").setup()
@@ -74,3 +80,5 @@ return {
         end, { desc = "narrow focus onto git diffs in current buffer" })
     end,
 }
+
+return M

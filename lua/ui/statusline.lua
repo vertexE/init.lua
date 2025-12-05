@@ -134,7 +134,8 @@ M.mode = function()
         hl = "Command"
     end
 
-    if require("dap").session() then
+    local status, dap = pcall(require, "dap")
+    if status and dap.session() then
         return string.format("%%#MiniStatuslineModeCommand#%s %%#MiniStatuslineModeCommandSeparator#", " DEBUG")
     end
 

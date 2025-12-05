@@ -1,4 +1,12 @@
-return {
+--- @type PackSpec
+local M = {
+    event = "BufEnter",
+    requires = {
+        "nvim-nio",
+        "nvim-dap",
+        "nvim-dap-python",
+        "one-small-step-for-vimkind",
+    },
     config = function()
         local keymap = vim.keymap.set
         local dap = require("dap")
@@ -236,3 +244,5 @@ return {
         vim.keymap.set("n", "<leader>dm", dapui.toggle, { desc = "DAP: toggle ui" })
     end,
 }
+
+return M

@@ -26,7 +26,7 @@ end
 --- @return table
 M.highlights = function(bufnr, start_line, end_line)
     local results = {}
-    local seen_positions = {}
+    local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line + 1, false)
 
     local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
     if not ok or not parser then
@@ -46,31 +46,30 @@ M.highlights = function(bufnr, start_line, end_line)
             local start_row, start_col, end_row, end_col = node:range()
 
             if start_row >= start_line and start_row <= end_line then
-                local pos_key = string.format("%d:%d", start_row, start_col)
+                local text = vim.treesitter.get_node_text(node, bufnr)
+                if node:type() == "//" then -- fix Rust issue
+                    local line = lines[start_row + 1 - start_line]
+                    text = line
+                end
+                local inspect = vim.inspect_pos(bufnr, start_row, start_col)
 
-                if not seen_positions[pos_key] then
-                    seen_positions[pos_key] = true
-                    local text = vim.treesitter.get_node_text(node, bufnr)
-                    local inspect = vim.inspect_pos(bufnr, start_row, start_col)
+                local hl_group = nil
+                if inspect.treesitter and #inspect.treesitter > 0 then
+                    hl_group = inspect.treesitter[#inspect.treesitter].hl_group_link
+                end
 
-                    local hl_group = nil
-                    if inspect.treesitter and #inspect.treesitter > 0 then
-                        hl_group = inspect.treesitter[#inspect.treesitter].hl_group_link
-                    end
-
-                    if hl_group then
-                        local fg, bg = get_hl_colors(hl_group)
-                        table.insert(results, {
-                            text = text,
-                            hl_group = hl_group,
-                            fg = fg,
-                            bg = bg,
-                            row = start_row,
-                            col = start_col,
-                            end_row = end_row,
-                            end_col = end_col,
-                        })
-                    end
+                if hl_group then
+                    local fg, bg = get_hl_colors(hl_group)
+                    table.insert(results, {
+                        text = text,
+                        hl_group = hl_group,
+                        fg = fg,
+                        bg = bg,
+                        row = start_row,
+                        col = start_col,
+                        end_row = end_row,
+                        end_col = end_col,
+                    })
                 end
             end
         end
@@ -110,9 +109,22 @@ end
 --- Sanitize class name (remove invalid CSS characters)
 --- @param name string
 --- @return string
-local function sanitize_class(name)
+local sanitize_class = function(name)
     local s, _ = name:gsub("[@.]", "")
     return s
+end
+
+---@param el string
+---@param class string
+---@param content string
+---@param id ?string
+---@return string
+local wrap = function(el, class, content, id)
+    if id then
+        return string.format('<%s id="%s" class="%s">%s</%s>', el, id, class, content, el)
+    end
+
+    return string.format('<%s class="%s">%s</%s>', el, class, content, el)
 end
 
 --- Convert highlights to HTML
@@ -122,6 +134,7 @@ end
 --- @return string
 M.as_html = function(bufnr, start_line, end_line)
     local highlights = M.highlights(bufnr, start_line, end_line)
+    local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, end_line + 1, false)
 
     if #highlights == 0 then
         return ""
@@ -137,7 +150,22 @@ M.as_html = function(bufnr, start_line, end_line)
         end
     end
 
-    local style_lines = { "<style>", ".line {", "  font-size: 0;", "}", ".space {", "  font-size: 1rem;", "}" }
+    local style_lines = {
+        "<style>",
+        ".line {",
+        "  font-size: 0;",
+        "}",
+        ".space {",
+        "  font-size: 1rem;",
+        "}",
+        ".code-block {",
+        "  background-color: #1e1e2f;",
+        "}",
+        ".shrink {",
+        "  transform: scale(0.8);",
+        "  transition: transform 0.2s;",
+        "}",
+    }
     for hl_group, colors in pairs(hl_styles) do
         local class_name = sanitize_class(hl_group)
         local style_parts = {}
@@ -161,10 +189,11 @@ M.as_html = function(bufnr, start_line, end_line)
     local html_lines = {}
     local current_line = nil
     local line_tokens = {}
+    local prev_token_end_col = nil
 
     for _, item in ipairs(highlights) do
         if current_line ~= nil and item.row ~= current_line then
-            local line_html = '  <div class="line">\n'
+            local line_html = '  <div class="line wrap-break-word whitespace-pre-wrap">\n'
             for _, token in ipairs(line_tokens) do
                 line_html = line_html .. token
             end
@@ -173,9 +202,29 @@ M.as_html = function(bufnr, start_line, end_line)
             line_tokens = {}
         end
 
-        current_line = item.row
+        -- BUG: this doesn't quite work for when the token is of type string...?
+        -- add spacing between tokens
+        if type(prev_token_end_col) == "number" and prev_token_end_col < item.col and current_line == item.row then
+            table.insert(
+                line_tokens,
+                string.format('    <span class="space">%s</span>', string.rep("&nbsp;", item.col - prev_token_end_col))
+            )
+        end
 
-        local class = item.hl_group and (' class="' .. sanitize_class(item.hl_group) .. '"') or ""
+        -- add spacing at the start of each line
+        if item.row ~= current_line then
+            table.insert(
+                line_tokens,
+                string.format('    <span class="space">%s</span>', string.rep("&nbsp;", item.col))
+            )
+        end
+
+        current_line = item.row
+        prev_token_end_col = item.end_col
+
+        local class = item.hl_group
+                and (' class="' .. sanitize_class(item.hl_group) .. " text-base max-md:text-sm" .. '"')
+            or ""
 
         local token_html = string.format("    <span%s>%s</span>\n", class, escape_html(item.text))
         table.insert(line_tokens, token_html)
@@ -191,7 +240,48 @@ M.as_html = function(bufnr, start_line, end_line)
         table.insert(html_lines, line_html)
     end
 
-    return table.concat(style_lines, "\n") .. '\n<div class="code-block">\n' .. table.concat(html_lines) .. "</div>"
+    local rand = tostring(math.floor(math.random() * 50000))
+
+    return table.concat(style_lines, "\n")
+        .. wrap(
+            "div",
+            "relative mx-auto max-w-3xl w-full font-maple",
+            wrap(
+                "button",
+                "absolute top-0 right-0 p-4 max-sm:p-2 max-sm:hidden",
+                [[
+<div class="relative">
+  <div class="border-gray-500 border rounded p-2 absolute right-4.5"></div>
+  <div class="border-gray-500 border rounded p-2 absolute right-3 top-1.5 bg-[#1e1e2f]"></div>
+</div>
+]],
+                rand
+            ) .. wrap("div", "code-block rounded p-4", table.concat(html_lines))
+        )
+        .. string.format(
+            [[
+<script>
+  const btn = document.getElementById("%s");
+  btn?.addEventListener("click", () => {
+    btn.classList.add("shrink");
+    btn.innerHTML =
+      '<span class="p-2 bg-[#11111c] rounded text-muted">COPIED!</span>';
+    navigator.clipboard.writeText(`%s`);
+    setTimeout(() => {
+      btn.classList.remove("shrink");
+      btn.innerHTML = `
+    <div class="relative">
+      <div class="border-gray-500 border rounded p-2 absolute right-4.5"></div>
+      <div class="border-gray-500 border rounded p-2 absolute right-3 top-1.5 bg-[#1e1e2f]"></div>
+    </div>
+        `;
+    }, 800);
+  });
+</script>
+]],
+            rand,
+            table.concat(lines, "\n")
+        )
 end
 
 return M

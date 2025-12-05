@@ -137,6 +137,10 @@
     "tiny-inline-diagnostic.nvim": {
       "rev": "3255aaf",
       "src": "https://github.com/rachartier/tiny-inline-diagnostic.nvim"
+    },
+    "vim-startuptime": {
+      "rev": "b6f0d93",
+      "src": "https://github.com/dstein64/vim-startuptime"
     }
   }
 }

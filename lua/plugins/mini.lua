@@ -19,7 +19,9 @@ local function in_comment(marker)
     end
 end
 
-return {
+--- @type PackSpec
+local M = {
+    event = "VimEnter",
     config = function()
         vim.api.nvim_create_autocmd("FileType", {
             pattern = { "snacks_picker_input", "snacks_picker_list" },
@@ -168,3 +170,5 @@ return {
         end)
     end,
 }
+
+return M

@@ -1,4 +1,4 @@
-return {
+local M = {
     config = function()
         require("nvim-treesitter.configs").setup({
             ensure_installed = {
@@ -62,3 +62,5 @@ return {
         })
     end,
 }
+
+return M

@@ -34,7 +34,8 @@ local clipboard = function()
     snacks.picker.pick("custom_picker", custom_picker_config)
 end
 
-return {
+--- @type PackSpec
+local M = {
     config = function()
         local snacks = require("snacks")
         snacks.setup({
@@ -109,3 +110,5 @@ return {
         end)
     end,
 }
+
+return M

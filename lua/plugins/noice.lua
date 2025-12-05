@@ -1,4 +1,8 @@
-return {
+--- @type PackSpec
+local M = {
+    requires = {
+        "nui.nvim",
+    },
     config = function()
         require("noice").setup({
             notify = { enabled = false },
@@ -39,3 +43,5 @@ return {
         })
     end,
 }
+
+return M

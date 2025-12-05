@@ -1,6 +1,8 @@
-return {
+--- @type PackSpec
+local M = {
+    event = "BufEnter",
+    pattern = { "*.http" },
     config = function()
-        -- Setup is required, even if you don't pass any options
         require("kulala").setup()
 
         vim.keymap.set("n", "<leader>kr", function()
@@ -12,3 +14,5 @@ return {
         end)
     end,
 }
+
+return M

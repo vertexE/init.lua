@@ -30,12 +30,13 @@ end
 
 local state = {
     should_refresh_cached_goto_list = true,
+    cursor_pos_by_buf = {},
 }
 
 --- add the current buffer to the file list
 M.add = function()
     local bufnr = vim.api.nvim_get_current_buf()
-    if vim.api.nvim_get_option_value("buftype", { buf = bufnr }) ~= "" then
+    if not H.is_supported_buf(bufnr) then
         vim.notify("cannot add invalid buffer", vim.log.levels.WARN, {})
         return
     end
@@ -43,6 +44,24 @@ M.add = function()
     local fpath = vim.fn.fnamemodify(name, ":p:.")
     local cl = vim.fn.getpos(".")[2]
     fs.append_line(filepath(), string.format("%s:%d", fpath, cl))
+    state.should_refresh_cached_goto_list = true
+end
+
+--- check if goto supports this buf type
+--- @param bufnr integer
+--- @return boolean
+H.is_supported_buf = function(bufnr)
+    return vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_get_option_value("buftype", { buf = bufnr }) == ""
+end
+
+--- sync state of active goto file to the passed in state
+--- @param files table<goto.File>
+H.sync = function(files)
+    local content = ""
+    for _, file in ipairs(files) do
+        content = content .. string.format("%s:%d\n", file.path, file.cl)
+    end
+    fs.write(filepath(), content)
     state.should_refresh_cached_goto_list = true
 end
 
@@ -113,6 +132,7 @@ M.menu = function()
         style = "minimal",
         border = "rounded",
     })
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = float_buf, scope = "local" })
 
     vim.cmd("edit " .. filepath())
 
@@ -145,6 +165,37 @@ M.setup = function()
     if vim.fn.isdirectory(dir) == 0 then
         vim.fn.mkdir(dir, "p")
     end
+
+    vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+        group = vim.api.nvim_create_augroup("user.goto.sync_cursor_pos", { clear = true }),
+        callback = function(ev)
+            state.cursor_pos_by_buf[ev.buf] = vim.fn.getpos(".")[2]
+        end,
+    })
+
+    vim.api.nvim_create_autocmd({ "BufLeave", "VimLeave" }, {
+        group = vim.api.nvim_create_augroup("user.goto.sync_cursor", { clear = true }),
+        callback = vim.schedule_wrap(function(ev)
+            if not vim.api.nvim_buf_is_valid(ev.buf) then
+                return
+            end
+            local content, _ = fs.read(filepath())
+            local name = vim.api.nvim_buf_get_name(ev.buf)
+            local fpath = vim.fn.fnamemodify(name, ":p:.")
+            local files = vim.iter(vim.split(content or "", "\n"))
+                :map(function(line)
+                    local file = parse_line(line)
+                    -- update the cursor pos in the active project file
+                    if file and fpath == file.path and state.cursor_pos_by_buf[ev.buf] then
+                        file.cl = state.cursor_pos_by_buf[ev.buf]
+                    end
+
+                    return file
+                end)
+                :totable()
+            H.sync(files)
+        end),
+    })
 
     vim.api.nvim_create_autocmd({ "DirChanged" }, {
         group = vim.api.nvim_create_augroup("user.goto.dir", { clear = true }),

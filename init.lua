@@ -2,72 +2,82 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 vim.g.hidden = true -- TODO: do I still need this?
 
+local pack = require("pack")
+
 -- add venv to nvim python host prog
 -- vim.g.python3_host_prog = vim.fn.stdpath("config") .. "/.venv/bin/python"
 
 local dependencies = {
+    { "dstein64/vim-startuptime" },
     -- common
-    "nvim-lua/plenary.nvim",
-    "nvim-mini/mini.nvim",
-    "folke/snacks.nvim",
-    -- lsp config, server install
-    "neovim/nvim-lspconfig",
-    "williamboman/mason.nvim",
-    "mason-org/mason-lspconfig.nvim",
-    "folke/lazydev.nvim",
-    { src = "saghen/blink.cmp", version = vim.version.range("1.*") },
-    "rafamadriz/friendly-snippets",
-    { src = "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
-    "rachartier/tiny-inline-diagnostic.nvim",
+    { "nvim-mini/mini.nvim", require("plugins.mini") },
+    { "folke/snacks.nvim", require("plugins.snacks") },
+
+    -- lsp
+    { "neovim/nvim-lspconfig", require("plugins.lsp") },
+    { "williamboman/mason.nvim", { dependency = true } },
+    { "mason-org/mason-lspconfig.nvim", { dependency = true } },
+    { "folke/lazydev.nvim", { dependency = true } },
+    { "stevearc/conform.nvim", { dependency = true } },
+    { "saghen/blink.cmp", { dependency = true }, version = vim.version.range("1.*") },
+    { "rafamadriz/friendly-snippets", { dependency = true } },
+    { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
+    { "rachartier/tiny-inline-diagnostic.nvim", { dependency = true } },
     -- syntax & appearance
-    "nvim-treesitter/nvim-treesitter",
-    "nvim-treesitter/nvim-treesitter-textobjects",
-    "vertexE/synth.nvim",
-    "folke/noice.nvim",
-    "MunifTanjim/nui.nvim",
-    "kevinhwang91/nvim-bqf",
-    { source = "catppuccin/nvim", name = "catppuccin" },
+    { "nvim-treesitter/nvim-treesitter", require("plugins.treesitter") },
+    { "nvim-treesitter/nvim-treesitter-textobjects", { dependency = true } },
+    -- custom UI
+    { "folke/noice.nvim", require("plugins.noice") },
+    { "MunifTanjim/nui.nvim", { dependency = true } },
+    { "kevinhwang91/nvim-bqf", { event = "BufEnter" } },
+    -- colorscheme
+    { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
     -- debugger
-    "rcarriga/nvim-dap-ui",
-    "mfussenegger/nvim-dap",
-    "mfussenegger/nvim-dap-python",
-    "jbyuki/one-small-step-for-vimkind",
-    "nvim-neotest/nvim-nio",
+    { "rcarriga/nvim-dap-ui", require("plugins.dap") },
+    { "nvim-neotest/nvim-nio", { dependency = true } },
+    { "mfussenegger/nvim-dap", { dependency = true } },
+    { "mfussenegger/nvim-dap-python", { dependency = true } },
+    { "jbyuki/one-small-step-for-vimkind", { dependency = true } },
     -- other developer tools
-    "stevearc/conform.nvim",
-    "mistweaverco/kulala.nvim",
+    { "mistweaverco/kulala.nvim", require("plugins.kulala") },
     -- react support
-    "windwp/nvim-ts-autotag",
+    { "windwp/nvim-ts-autotag", require("plugins.react") },
+
     -- AI
-    "folke/sidekick.nvim",
-    "CopilotC-Nvim/CopilotChat.nvim",
-    "vertexE/chat-context-ui.nvim",
+    { "folke/sidekick.nvim", require("plugins.ai") },
+    { "CopilotC-Nvim/CopilotChat.nvim", { dependency = true } },
+    { "nvim-lua/plenary.nvim", { dependency = true } },
     -- personal plugins
-    "vertexE/fold.nvim",
-    "vertexE/multibuffer.nvim",
-    "vertexE/hacked.nvim",
+    { "vertexE/fold.nvim", require("plugins.vertexe") },
+    { "vertexE/multibuffer.nvim", { dependency = true } },
+    { "vertexE/hacked.nvim", { dependency = true } },
 }
 
 local spec = {}
 for _, dependency in ipairs(dependencies) do
     if type(dependency) == "table" then
-        dependency.src = string.format("https://github.com/%s", dependency.src)
-        table.insert(spec, dependency)
+        local src = dependency[1]
+        local data = dependency[2]
+        local version = dependency.version
+        local name = dependency.name
+        src = string.format("https://github.com/%s", src)
+        table.insert(spec, {
+            src = src,
+            data = data,
+            version = version,
+            name = name,
+        })
     else
         table.insert(spec, string.format("https://github.com/%s", dependency))
     end
 end
-vim.pack.add(spec)
 
-require("colorscheme")
+pack.lazy_load(spec)
+
 require("boot")
 require("settings")
 require("keymaps")
 require("auto")
-require("lsp")
 
 require("ui.statusline").setup()
 require("ui.winbar").setup()
-
--- load external
-require("plugins")

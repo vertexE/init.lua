@@ -36,44 +36,26 @@ local on_attach = function(bufnr)
     vim.keymap.set("i", "<c-i>", "<c-x><c-o>", { desc = "trigger completion menu" })
 end
 
-require("lsp.diagnostics").setup()
-require("mason").setup()
-local servers = require("lsp.lsp_settings")
+M.setup = function()
+    require("lsp.diagnostics").setup()
+    local servers = require("lsp.lsp_settings")
 
-vim.api.nvim_create_autocmd({ "LspAttach" }, {
-    group = vim.api.nvim_create_augroup("user.lsp.attach", { clear = true }),
-    desc = "setup lsp specific keymaps",
-    callback = function(ev)
-        on_attach(ev.buf)
-    end,
-})
-
-for server, _ in pairs(servers) do
-    vim.lsp.config(server, {
-        settings = servers[server],
-        filetypes = (servers[server] or {}).filetypes,
+    vim.api.nvim_create_autocmd({ "LspAttach" }, {
+        group = vim.api.nvim_create_augroup("user.lsp.attach", { clear = true }),
+        desc = "setup lsp specific keymaps",
+        callback = function(ev)
+            on_attach(ev.buf)
+        end,
     })
 
-    vim.lsp.enable(server)
+    for server, _ in pairs(servers) do
+        vim.lsp.config(server, {
+            settings = servers[server],
+            filetypes = (servers[server] or {}).filetypes,
+        })
+
+        vim.lsp.enable(server)
+    end
 end
-
-require("conform").setup({
-    formatters_by_ft = {
-        zig = { "zigfmt" },
-        go = { "gofmt" },
-        lua = { "stylua" },
-        python = { "isort", "black" }, -- maybe can use ruff instead!
-        rust = { "rustfmt", lsp_format = "fallback" },
-        javascript = { "prettierd", "prettier" },
-        typescript = { "prettierd", "prettier" },
-        typescriptreact = { "prettierd", "prettier" },
-        html = { "prettierd", "prettier" },
-        astro = { "prettierd", "prettier" },
-    },
-})
-
-vim.keymap.set({ "n", "v" }, "<leader>rr", function()
-    require("conform").format({ async = true, lsp_fallback = "fallback", stop_after_first = false })
-end)
 
 return M

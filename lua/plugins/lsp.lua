@@ -1,5 +1,40 @@
-return {
+local lsp = require("lsp")
+
+--- @type PackSpec
+local M = {
+    event = "BufEnter",
+    requires = {
+        "conform.nvim",
+        "friendly-snippets",
+        "blink.cmp",
+        "lazydev.nvim",
+        "mason.nvim",
+        "mason-lspconfig.nvim",
+        "tiny-inline-diagnostic.nvim",
+    },
     config = function()
+        require("mason").setup()
+        lsp.setup()
+
+        require("conform").setup({
+            formatters_by_ft = {
+                zig = { "zigfmt" },
+                go = { "gofmt" },
+                lua = { "stylua" },
+                python = { "isort", "black" }, -- maybe can use ruff instead!
+                rust = { "rustfmt", lsp_format = "fallback" },
+                javascript = { "prettierd", "prettier" },
+                typescript = { "prettierd", "prettier" },
+                typescriptreact = { "prettierd", "prettier" },
+                html = { "prettierd", "prettier" },
+                astro = { "prettierd", "prettier" },
+            },
+        })
+
+        vim.keymap.set({ "n", "v" }, "<leader>rr", function()
+            require("conform").format({ async = true, lsp_fallback = "fallback", stop_after_first = false })
+        end)
+
         require("lazydev").setup({
             library = {
                 -- See the configuration section for more details
@@ -57,3 +92,5 @@ return {
         })
     end,
 }
+
+return M

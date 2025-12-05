@@ -1,9 +1,11 @@
-return {
+--- @type PackSpec
+local M = {
+    requires = {
+        "plenary.nvim",
+        "CopilotChat.nvim",
+    },
     config = function()
-        require("sidekick").setup()
-        vim.keymap.set("n", "<s-enter>", function()
-            require("sidekick").nes_jump_or_apply()
-        end, { remap = true }) -- remap set to not override other <enter> callbacks
+        require("sidekick").setup({ nes = { enabled = false } })
 
         vim.keymap.set("n", "<leader>ac", function()
             require("sidekick.cli").toggle({ name = "claude", focus = true })
@@ -31,3 +33,5 @@ return {
         })
     end,
 }
+
+return M
