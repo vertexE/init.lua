@@ -29,11 +29,15 @@ local resources = {
     buffers = false,
 }
 
+--- @alias llm.Agent"Copilot"|"Claude"
+
 local resource_state = {
     --- @type table<string>
     blocks = {},
     --- @type table<integer,boolean>
     active_bufs = {},
+    --- @type llm.Agent -- default agent to use for inline requests
+    agent = "Copilot",
 }
 
 local active_bufs_summary = function()
@@ -49,6 +53,25 @@ local active_bufs_summary = function()
         end
     end
     return count == 1 and first or (count > 1 and string.format("%s..+%d", first, count - 1) or "..")
+end
+
+M.agent_icon = function()
+    return resource_state.agent == "Copilot" and " " or "󰛄 "
+end
+
+--- @return llm.Agent
+M.agent_name = function()
+    return resource_state.agent
+end
+
+M.agent = function()
+    return {
+        {
+            resource_state.agent == "Copilot" and " " or "󰛄 ",
+            "MiniIconsGreen",
+        },
+        { string.format(" %s", resource_state.agent), "Comment" },
+    }
 end
 
 M.status = function()
@@ -99,7 +122,11 @@ M.active = function(bufnr)
         knowledge = knowledge .. selection()
     end
     if resources.git_diff then
-        knowledge = knowledge .. " #gitdiff:unstaged #gitdiff:staged"
+        knowledge = knowledge
+            .. (
+                resource_state.agent == "Claude" and "\n include git diff in context"
+                or "\n #gitdiff:unstaged #gitdiff:staged"
+            )
     end
     if resources.lsp_diagnostics then
         knowledge = knowledge .. "<diagnostics>" .. diagnostics(bufnr) .. "</diagnostics>"
@@ -109,7 +136,10 @@ M.active = function(bufnr)
     end
     if resources.buffers then
         for _bufnr, _ in pairs(resource_state.active_bufs) do
-            knowledge = knowledge .. string.format("\n#buffer:%d ", _bufnr)
+            local file = resource_state.agent == "Claude"
+                    and vim.fn.fnamemodify(vim.api.nvim_buf_get_name(_bufnr), ":.")
+                or string.format("\n#buffer:%d ", _bufnr)
+            knowledge = knowledge .. file
         end
     end
     return knowledge
@@ -174,6 +204,14 @@ M.select_buffers = function()
         end
         draw(bufnr)
     end, { buffer = bufnr })
+end
+
+M.next_agent = function()
+    if resource_state.agent == "Copilot" then
+        resource_state.agent = "Claude"
+    else
+        resource_state.agent = "Copilot"
+    end
 end
 
 return M

@@ -70,10 +70,7 @@ local draw = function()
             "Comment",
         },
     })
-    table.insert(v_lines, {
-        { "󰫢  ", "MiniIconsGreen" },
-        { "Agent ", "Comment" },
-    })
+    table.insert(v_lines, assistant.agent())
 
     local assistant_v_lines = assistant.status()
     for _, v_line in ipairs(assistant_v_lines) do
@@ -103,7 +100,7 @@ M.toggle_split = function()
     local bufnr = splits.vertical(nil, {
         wo = { number = false },
         bo = { buflisted = false },
-        split = "left",
+        split = "left_most",
         width = 30,
     })
     state.bufnr = bufnr
@@ -113,6 +110,16 @@ M.toggle_split = function()
         callback = function()
             if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
                 draw()
+            end
+        end,
+    })
+
+    vim.api.nvim_create_autocmd({ "TabEnter" }, {
+        group = vim.api.nvim_create_augroup("user.status.tab.change", { clear = true }),
+        callback = function()
+            if M.is_open() then
+                M.toggle_split()
+                M.toggle_split()
             end
         end,
     })

@@ -112,8 +112,13 @@ vim.keymap.set("n", "<c-4>", function()
 end, { desc = "quick goto file 4" })
 
 vim.keymap.set({ "n", "x" }, "<localleader>g", function()
-    require("assistant.copilot").generate()
-end, { desc = "" })
+    require("assistant.llm").generate()
+end, { desc = "llm: inline code generation" })
+
+vim.keymap.set({ "n" }, "<localleader>a", function()
+    require("assistant.resources").next_agent()
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+end, { desc = "llm: chang agent" })
 
 vim.keymap.set("n", "<localleader><localleader>s", function()
     require("assistant.resources").toggle("selection")
@@ -157,8 +162,8 @@ vim.keymap.set({ "n", "x" }, "<localleader>o", function()
 end, { desc = "" })
 
 vim.keymap.set({ "n", "x" }, "<localleader>c", function()
-    require("assistant.copilot").ask()
-end, { desc = "" })
+    require("assistant.llm").ask()
+end, { desc = "llm: ask agent a question" })
 
 vim.keymap.set("n", "<leader>o", function()
     status.toggle_split()

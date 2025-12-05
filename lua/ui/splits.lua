@@ -76,7 +76,7 @@ end
 --- @field wo ?table<string, any>
 --- @field enter ?boolean whether to enter float, defaults to true
 --- @field close_on_q ?boolean
---- @field split ?"left"|"right"
+--- @field split ?"left"|"right"|"left_most"
 
 --- @type ccc.VSplitOpts
 local vertical_defaults = {
@@ -89,6 +89,21 @@ local vertical_defaults = {
     close_on_q = true,
     split = "right",
 }
+
+--- find the left most win
+--- @return integer
+local left_most_win = function()
+    local wins = vim.api.nvim_tabpage_list_wins(0)
+    for _, win in ipairs(wins) do
+        local row, col = unpack(vim.api.nvim_win_get_position(win))
+        if row == 0 and col == 0 then
+            return win
+        end
+    end
+
+    -- by default, returns current window
+    return 0
+end
 
 --- @param content ?string
 --- @param opts ?ccc.VSplitOpts
@@ -111,8 +126,15 @@ M.vertical = function(content, opts)
     opts.wo = opts.wo ~= nil and opts.wo or vertical_defaults.wo
     opts.width = opts.width ~= nil and opts.width or 35 -- default width for vertical split
 
+    if opts.split == "left_most" then
+        opts.split = "left"
+        vim.api.nvim_set_current_win(left_most_win())
+    end
+
     local split_win = vim.api.nvim_open_win(opts.bufnr, opts.enter, {
+        ---@diagnostic disable: assign-type-mismatch
         split = opts.split or vertical_defaults.split,
+        ---@diagnostic enable: assign-type-mismatch
         width = opts.width,
     })
 

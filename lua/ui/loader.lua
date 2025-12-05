@@ -24,7 +24,7 @@ M.start = function(bufnr, start_row, end_row, apply_ghost)
         virt_lines = {
             {
                 { string.rep(" ", dist_to_non_whitespace(lines[1])), "Comment" },
-                { "  Thinking...", "DiagnosticOk" },
+                { "Thinking...", "DiagnosticOk" },
             },
         },
         virt_lines_above = true,
