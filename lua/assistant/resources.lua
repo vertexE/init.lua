@@ -135,11 +135,17 @@ M.active = function(bufnr)
         knowledge = knowledge .. "<code-segments>" .. vim.fn.join(resource_state.blocks, "\n") .. "</code-segments>"
     end
     if resources.buffers then
+        local files = "\n"
         for _bufnr, _ in pairs(resource_state.active_bufs) do
             local file = resource_state.agent == "Claude"
                     and vim.fn.fnamemodify(vim.api.nvim_buf_get_name(_bufnr), ":.")
-                or string.format("\n#buffer:%d ", _bufnr)
-            knowledge = knowledge .. file
+                or string.format("#buffer:%d ", _bufnr)
+            files = files .. file .. "\n"
+        end
+        if resource_state.agent == "Claude" then
+            knowledge = knowledge .. "\n<files>\n" .. files .. "</files>\n"
+        else
+            knowledge = knowledge .. "\n" .. files
         end
     end
     return knowledge
@@ -171,14 +177,16 @@ local draw = function(bufnr)
     local line = 1
     for _, _buf in ipairs(vim.api.nvim_list_bufs()) do
         local name = vim.api.nvim_buf_get_name(_buf)
-        local display_name = name ~= "" and vim.fn.fnamemodify(name, ":t") or ""
+        local display_name = name ~= "" and vim.fn.fnamemodify(name, ":.") or ""
         if
             vim.api.nvim_buf_is_loaded(_buf)
             and vim.api.nvim_get_option_value("buflisted", { buf = _buf })
             and #display_name > 0
         then
             local toggled_on = resource_state.active_bufs[_buf]
+            vim.api.nvim_buf_set_lines(bufnr, line - 1, line - 1, false, { "   " .. display_name })
             vim.api.nvim_buf_set_extmark(bufnr, ns, line - 1, 0, {
+                virt_text_pos = "overlay",
                 virt_text = {
                     toggled_on and { "  ", "MiniIconsOrange" } or { "  ", "@constant" },
                     { display_name, "@constant" },
@@ -200,10 +208,27 @@ M.select_buffers = function()
         if resource_state.active_bufs[_buf] == nil then
             resource_state.active_bufs[_buf] = true
         else
-            resource_state.active_bufs[_buf] = not resource_state.active_bufs[_buf]
+            resource_state.active_bufs[_buf] = nil
         end
         draw(bufnr)
     end, { buffer = bufnr })
+end
+
+--- all buffers set to active + the current buffer
+--- @return string[]
+M.active_files = function()
+    local files = {}
+    local open_bufnr = vim.api.nvim_get_current_buf()
+    for _buf, _ in pairs(resource_state.active_bufs) do
+        if _buf ~= open_bufnr then
+            local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(_buf), ":.")
+            table.insert(files, file)
+        end
+    end
+    local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(open_bufnr), ":.")
+    table.insert(files, file)
+
+    return files
 end
 
 M.next_agent = function()

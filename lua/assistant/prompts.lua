@@ -48,6 +48,28 @@ local copilot = {
 local claude = {
     --- @param ctx prompt.context
     --- @return string
+    modify = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        local knowledge = resources.active()
+        local prompt_header = string.format(
+            -- FIXME: maybe improve this
+            [[
+<rules>
+- you are in the current file @%s
+- don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
+- use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
+- `files` lists the files you are allowed to modify including the current file
+</rules>
+    ]],
+            file
+        )
+        prompt_header = prompt_header .. knowledge .. "\n\n"
+
+        return prompt_header
+    end,
+
+    --- @param ctx prompt.context
+    --- @return string
     generate = function(ctx)
         local is_visual_mode = ctx.mode == "v" or ctx.mode == "V" or ctx.mode == "^V"
         local sel_start, sel_end = buf.active_selection()
@@ -62,7 +84,8 @@ local claude = {
 - for replace mode, only modify in the bounds of the selection
 - for insert mode, only add lines to the current file at the cursor position, do not modify any existing lines
 - we're in %s mode, 
-- `user-cursor` describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
+- `user-cursor` tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
+- `files` tag are key files you may consider looking at when building your solution
 </rules>
 <user-cursor>
 selecting: %s
@@ -89,10 +112,21 @@ position: (%d, %d)
 - keep it short, to the point, and use markdown standards.
 - instead of suggesting any edits, provide examples
 - encourage an environment of learning
+- use `files` tag as hints of which files to read to answer the question
 </rules>
         ]]
     end,
 }
+
+--- @param ctx prompt.context
+--- @return string
+M.modify = function(ctx)
+    if resources.agent_name() ~= "Claude" then
+        vim.notify("unsupported agent", vim.log.levels.WARN)
+        return ""
+    end
+    return claude.modify(ctx)
+end
 
 --- @param ctx prompt.context
 --- @return string

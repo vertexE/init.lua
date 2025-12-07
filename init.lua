@@ -78,6 +78,7 @@ require("boot")
 require("settings")
 require("keymaps")
 require("auto")
-
 require("ui.statusline").setup()
 require("ui.winbar").setup()
+
+require("assistant").setup()

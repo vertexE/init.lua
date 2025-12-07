@@ -149,18 +149,7 @@ local draw_tray = function(bufnr, _, changes)
     end
 
     local v_lines = {} -- we will instead write the lines to the buffer and apply and hl_group on each word
-    table.insert(v_lines, {
-        { "   GIT ", "MiniStatuslineModeCommand" },
-        -- { "", "Comment" },
-    })
-    table.insert(v_lines, {
-        { "Hint: ", "Comment" },
-        {
-            "s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull",
-            "Comment",
-        },
-    })
-    table.insert(v_lines, {}) -- blank line
+    table.insert(v_lines, {})
     table.insert(v_lines, {
         { " ", default_opts.hl.icon },
         { head_sha, default_opts.hl.commit_sha },
@@ -322,6 +311,8 @@ M.status_tray = function()
                 local bufnr, winr = splits.horizontal(nil, { enter = true, height = 0.66, wo = { number = false } })
                 state.bufnr = bufnr
                 state.winr = winr
+                vim.wo[winr].winbar =
+                    "%#MiniStatuslineModeCommand#   GIT %#MiniStatuslineModeCommandSeparator#%#Comment# Hint: s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull"
                 redraw = false
 
                 vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
