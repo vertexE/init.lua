@@ -130,10 +130,6 @@ local M = {
 
         require("mini.pick").setup()
 
-        vim.keymap.set("n", "<leader>ff", function()
-            require("mini.pick").builtin.files()
-        end)
-
         vim.keymap.set("n", "<leader>fo", function()
             require("mini.extra").pickers.treesitter()
         end)
