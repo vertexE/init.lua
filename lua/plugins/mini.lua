@@ -164,6 +164,19 @@ local M = {
                 { mappings = { wipeout = { char = "<C-d>", func = buf_delete } } }
             )
         end)
+
+        local mini_map = require("mini.map")
+        mini_map.setup({
+            symbols = {
+                encode = mini_map.gen_encode_symbols.dot("4x2"),
+                scroll_line = "█",
+                scroll_view = "┃",
+            },
+            window = {
+                zindex = 1, -- Try lowering this value if your winbar is still covered
+            },
+        })
+        vim.keymap.set("n", "<leader>mo", mini_map.open)
     end,
 }
 

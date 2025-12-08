@@ -3,6 +3,7 @@ local M = {}
 local buf = require("buf")
 local tbl = require("tbl")
 local floats = require("ui.floats")
+local request = require("assistant.request")
 
 local diagnostics = function(bufnr)
     local buf_name = vim.api.nvim_buf_get_name(bufnr or 0)
@@ -55,6 +56,29 @@ local active_bufs_summary = function()
     return count == 1 and first or (count > 1 and string.format("%s..+%d", first, count - 1) or "..")
 end
 
+--- comment
+--- @param req llm.request
+--- @return table<table<string>>
+local render_request = function(req)
+    local file = vim.fn.fnamemodify(req.files[1], ":t")
+
+    return {
+        { file, "Comment" },
+        { #req.files > 1 and string.format("..+%d", #req.files - 1) or "", "Comment" },
+    }
+end
+
+--- @return table<table<table>>>
+M.locked_files = function()
+    local requests = request.active_requests()
+    local v_lines = {}
+
+    for _, req in pairs(requests) do
+        table.insert(v_lines, render_request(req))
+    end
+    return v_lines
+end
+
 M.agent_icon = function()
     return resource_state.agent == "Copilot" and " " or "󰛄 "
 end
@@ -68,7 +92,7 @@ M.agent = function()
     return {
         {
             resource_state.agent == "Copilot" and " " or "󰛄 ",
-            "MiniIconsPurple",
+            "MiniIconsGreen",
         },
         { string.format(" %s", resource_state.agent), "Comment" },
     }

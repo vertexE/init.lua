@@ -72,10 +72,8 @@ M.setup = function()
     store.register_segment({
         name = "git",
         split = false,
-        focused = function()
-            return { { branch, "MiniIconsPurple" }, { drift, "Comment" } }
-        end,
-        default = function()
+        type = "tabline",
+        content = function()
             return { { branch, "MiniIconsPurple" }, { drift, "Comment" } }
         end,
     })

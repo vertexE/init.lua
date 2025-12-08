@@ -11,6 +11,7 @@ M.fold_chars = function()
     }
 end
 
+-- ├, ┤
 M.rounded_border = function()
     return {
         { "╭", "FloatBorder" },

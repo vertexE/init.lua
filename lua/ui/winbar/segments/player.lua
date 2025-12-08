@@ -39,9 +39,9 @@ end
 M.setup = function()
     store.register_segment({
         name = "player",
-        split = false,
-        focused = content,
-        default = content,
+        type = "tabline",
+        split = true,
+        content = content,
     })
 
     local timer = vim.uv.new_timer()

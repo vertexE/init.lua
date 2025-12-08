@@ -8,14 +8,16 @@ local ui = require("ui.winbar.draw")
 --- @type string[]
 local EXCLUDE_FNAME = { "dbui", "COMMIT_EDITMSG" }
 
-M.draw_all = function()
-    store.tick()
-    return ui.winbar(store.content())
+M.draw_tabline = function()
+    return ui.winbar(store.content("tabline"))
 end
 
-M.draw_simple = function()
-    store.tick()
-    return ui.winbar(store.content("filepath"))
+M.draw_winbar = function()
+    return ui.winbar(store.content("winbar"))
+end
+
+M.draw_focused_winbar = function()
+    return ui.winbar(store.content("winbar", true))
 end
 
 local draw_loop = function()
@@ -30,22 +32,22 @@ local draw_loop = function()
 end
 
 --- @class statusbar.DrawRequest
---- @field simple integer[] all the winr to draw a simple view in
---- @field main integer the main winr to draw in
+--- @field inactive integer[] all other drawable wins
+--- @field active integer the win the cursor is in
 
 --- find which windows we want to draw
 --- @return statusbar.DrawRequest
 local get_drawable_wins = function()
     local wins = vim.api.nvim_list_wins()
+    local cursor_winr = vim.api.nvim_get_current_win()
     local tab = vim.api.nvim_get_current_tabpage()
 
     --- @type statusbar.DrawRequest
     local request = {
-        simple = {},
-        main = -1,
+        inactive = {},
+        active = -1,
     }
 
-    local top_right_col = -1
     for _, winr in ipairs(wins) do
         local buf = vim.api.nvim_win_get_buf(winr)
         local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
@@ -56,19 +58,10 @@ local get_drawable_wins = function()
             and not vim.tbl_contains(EXCLUDE_FNAME, name)
             and not vim.wo[winr].diff -- not in diff mode
 
-        local pos = vim.api.nvim_win_get_position(winr)
-        local row, col = pos[1], pos[2]
-
-        if can_draw and row == 0 and col > top_right_col then -- found a new winr that is the largest
-            top_right_col = col
-            if request.main >= 0 then
-                table.insert(request.simple, request.main)
-                request.main = winr
-            else
-                request.main = winr
-            end
-        elseif can_draw then -- default case, these are simple windows
-            table.insert(request.simple, winr)
+        if can_draw and cursor_winr == winr then
+            request.active = winr
+        elseif can_draw then
+            table.insert(request.inactive, winr)
         end
     end
 
@@ -79,19 +72,22 @@ M.setup = function()
     segments.setup()
     vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter", "WinEnter" }, {
         group = vim.api.nvim_create_augroup("user.winbar", { clear = true }),
-        desc = "Attach winbar",
+        desc = "Attach bars",
         callback = function(args)
+            -- always refresh tabline
+            vim.o.tabline = "%{%v:lua.require'ui.winbar.bar'.draw_tabline()%}"
+
             if vim.bo[args.buf].buftype ~= "" then
-                return -- no need to recalculate for wins that aren't normal buffers
+                return -- skip running on unsupported buffers
             end
+
             local to_draw = get_drawable_wins()
-
-            if vim.api.nvim_win_is_valid(to_draw.main) then
-                vim.wo[to_draw.main].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_all()%}"
+            if vim.api.nvim_win_is_valid(to_draw.active) then
+                vim.wo[to_draw.active].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_focused_winbar()%}"
             end
 
-            for _, simple_win in ipairs(to_draw.simple) do
-                vim.wo[simple_win].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_simple()%}"
+            for _, inactive_win in ipairs(to_draw.inactive) do
+                vim.wo[inactive_win].winbar = "%{%v:lua.require'ui.winbar.bar'.draw_winbar()%}"
             end
         end,
     })

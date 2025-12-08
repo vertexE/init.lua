@@ -75,12 +75,9 @@ end
 M.setup = function()
     store.register_segment({
         name = "system",
+        type = "tabline",
         split = false,
-        focused = function()
-            local perecent, icon, hl = battery()
-            return { { perecent, "@constant" }, { icon, hl } }
-        end,
-        default = function()
+        content = function()
             local perecent, icon, hl = battery()
             return { { perecent, "@constant" }, { icon, hl } }
         end,

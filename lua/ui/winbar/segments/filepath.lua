@@ -104,21 +104,20 @@ local file_path = function()
     end
 
     return {
-        { "│ " or "", "Comment" },
-        { ft_decoration.icon, ft_decoration.hl },
-        { file, "@constant" },
-        { vim.bo.modified and " ● " or "   ", "Comment" },
+        { " " .. ft_decoration.icon, "StatuslineSeparatorLsp" },
+        { " " .. file .. " ", "StatuslineSeparatorLsp" },
+        { vim.bo.modified and " ● " or "   ", "StatuslineSeparatorLsp" },
+        { "", "StatusLineSeparator" },
+        { "", "Comment" },
     }
 end
 
 M.setup = function()
     store.register_segment({
         name = "filepath",
+        type = "winbar",
         split = true,
-        focused = function()
-            return file_path()
-        end,
-        default = function()
+        content = function()
             return file_path()
         end,
     })

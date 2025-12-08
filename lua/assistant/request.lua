@@ -16,6 +16,7 @@ M.complete = function(req_id)
     end
 
     requests[req_id] = nil
+    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 
     local bufnr = vim.api.nvim_get_current_buf()
     local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":.")
@@ -54,6 +55,11 @@ M.file_has_active_request = function(file)
     return vim.iter(requests):any(function(request)
         return vim.list_contains(request.files, file)
     end)
+end
+
+--- @return table<integer, llm.request>
+M.active_requests = function()
+    return requests
 end
 
 M.setup = function()
