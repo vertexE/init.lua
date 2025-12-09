@@ -1,9 +1,15 @@
+local status = require("ui.status")
+
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "COMMIT_EDITMSG",
     callback = function(ev)
         vim.keymap.set("n", "<enter>", function()
             vim.cmd("normal! ZZ")
         end, { buffer = ev.buf })
+
+        if status.is_open() then
+            status.toggle_split()
+        end
     end,
     desc = "save & close git commit",
 })
