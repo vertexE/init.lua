@@ -1,3 +1,5 @@
+local status = require("ui.status")
+
 local clipboard = function()
     local snacks = require("snacks")
     local hacked = require("hacked.clipboard")
@@ -82,6 +84,9 @@ local M = {
         end)
 
         vim.keymap.set("n", "<leader>gS", function()
+            if status.is_open() then
+                status.toggle_split()
+            end
             snacks.picker.git_stash({ layout = { preset = "sidebar" } })
         end)
 
@@ -94,18 +99,46 @@ local M = {
         end, { desc = "snacks: notification history" })
 
         vim.keymap.set("n", "<leader>gi", function()
+            if status.is_open() then
+                status.toggle_split()
+            end
             snacks.picker.git_log_file({ layout = { preset = "sidebar" } })
         end, { desc = "snacks: file history" })
 
         vim.keymap.set("n", "gD", function()
+            if status.is_open() then
+                status.toggle_split()
+            end
             snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })
         end, { desc = "snacks: declarations" })
 
-        vim.keymap.set("n", "<leader>gI", function()
-            snacks.picker.lsp_implementations({ layout = { preset = "sidebar" } })
+        vim.keymap.set("n", "gi", function()
+            snacks.picker.lsp_implementations({
+                layout = {
+                    preset = "ivy",
+                },
+            })
+        end, { desc = "snacks: implementation" })
+
+        vim.keymap.set("n", "<leader>gD", function()
+            if status.is_open() then
+                status.toggle_split()
+            end
+            snacks.picker.git_diff({ layout = { preset = "sidebar" } })
+        end, { desc = "snacks: file history" })
+
+        vim.keymap.set("n", "gd", function()
+            snacks.picker.lsp_definitions({
+                layout = {
+                    preset = "ivy",
+                },
+            })
         end, { desc = "snacks: implementation" })
 
         vim.keymap.set("n", "<leader>u", function()
+            if status.is_open() then
+                status.toggle_split()
+            end
             snacks.picker.undo({ layout = { preset = "sidebar" } })
         end)
 

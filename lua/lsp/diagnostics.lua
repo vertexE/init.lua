@@ -14,6 +14,7 @@ M.setup = function()
             },
         },
     })
+
     vim.diagnostic.config({
         signs = {
             enable = true,

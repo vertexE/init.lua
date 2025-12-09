@@ -209,3 +209,7 @@ vim.keymap.set({ "x", "n" }, "<leader>ex", function()
     vim.fn.setreg("*", content)
     vim.notify("copied code as html", vim.log.levels.INFO)
 end)
+
+-- vim.keymap.set("n", "ZQ", function ()
+
+-- end)

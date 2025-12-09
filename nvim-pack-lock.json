@@ -22,13 +22,14 @@
       "src": "https://github.com/stevearc/conform.nvim"
     },
     "fold.nvim": {
-      "rev": "f351a71",
+      "rev": "244763c",
       "src": "https://github.com/vertexE/fold.nvim"
     },
     "friendly-snippets": {
       "rev": "572f566",
       "src": "https://github.com/rafamadriz/friendly-snippets"
     },
+    "gitsigns.nvim": [],
     "gruvbox-material": {
       "rev": "4bfc698",
       "src": "https://github.com/sainnhe/gruvbox-material"

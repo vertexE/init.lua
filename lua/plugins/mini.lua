@@ -66,22 +66,6 @@ local M = {
             vim.cmd("Git commit")
         end, { desc = "mini.git: commit" })
 
-        local mini_diff = require("mini.diff")
-        mini_diff.setup({
-            view = {
-                priority = 1,
-            },
-            mappings = { -- usage, gHgh resets textobject (hunk)
-                apply = "gh",
-                reset = "gH",
-                textobject = "gh",
-            },
-        })
-
-        vim.keymap.set("n", "<leader>gd", function()
-            mini_diff.toggle_overlay(0)
-        end)
-
         local mini_files = require("mini.files")
         mini_files.setup({
             windows = {

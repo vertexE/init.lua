@@ -188,7 +188,7 @@ M.toggle_split = function()
     end
 
     local bufnr, winr = splits.vertical(nil, {
-        wo = { number = false, statuscolumn = "" },
+        wo = { number = false, relativenumber = false, statuscolumn = "" },
         bo = { buflisted = false },
         split = "left_most",
         width = STATUS_WIN_WIDTH,
@@ -199,7 +199,17 @@ M.toggle_split = function()
     vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufWrite", "DiagnosticChanged" }, {
         group = vim.api.nvim_create_augroup("user.status.window.draw", { clear = true }),
         callback = function()
-            if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
+            if vim.api.nvim_get_current_win() == state.winr then
+                -- move out of the window if we can
+                local keys = vim.api.nvim_replace_termcodes("<C-w>l", true, false, true)
+                vim.api.nvim_feedkeys(keys, "n", false)
+            end
+
+            if
+                state.bufnr > -1
+                and vim.api.nvim_buf_is_loaded(state.bufnr)
+                and vim.api.nvim_win_is_valid(state.winr)
+            then
                 draw()
             end
         end,

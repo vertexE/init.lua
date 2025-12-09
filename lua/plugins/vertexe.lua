@@ -37,18 +37,9 @@ local M = {
             require("multibuffer").lsp_diagnostics()
         end, { desc = "show workspace diagnostics in multibuffer" })
 
-        -- vim.keymap.set("n", "gr", function()
-        --     require("multibuffer").lsp_references()
-        -- end, { desc = "show lsp references in multibuffer" })
-
-        -- vim.keymap.set("n", "gd", function()
-        --     require("multibuffer").lsp_definitions(function(e)
-        --         if string.match(e.fp, "react/index.d.ts") ~= nil then
-        --             return false
-        --         end
-        --         return true
-        --     end)
-        -- end, { desc = "show lsp definitions in multibuffer" })
+        require("fold").setup({
+            diffsrc = "gitsigns",
+        })
 
         vim.keymap.set("n", "<leader>fi", function()
             if require("fold").focused() then
