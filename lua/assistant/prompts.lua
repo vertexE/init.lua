@@ -57,6 +57,7 @@ local claude = {
 <rules>
 - you are in the current file @%s
 - do not include unnecessary details in the plan, keep it focused
+- output the outcome of planning (single short sentence specifying success, errors, confusion, etc.) once you are done
 </rules>
         ]],
             file

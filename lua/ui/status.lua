@@ -103,8 +103,8 @@ local draw = function()
 
     table.insert(v_lines, {
         { "│ ", "WinSeparator" },
-        { "󰫣 ", "MiniIconsGreen" },
-        { " - llm requests", "Comment" },
+        { "  ", "MiniIconsGreen" },
+        { " - locked files", "Comment" },
     })
 
     table.insert(v_lines, {
@@ -116,7 +116,7 @@ local draw = function()
 
     local locked_files_vlines = assistant.locked_files()
     if #locked_files_vlines == 0 then
-        table.insert(v_lines, { { "│ ", "WinSeparator" }, { "...", "Comment" } })
+        table.insert(v_lines, { { "│ ", "WinSeparator" } })
     else
         for _, v_line in ipairs(locked_files_vlines) do
             table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
@@ -139,7 +139,7 @@ local draw = function()
 
     table.insert(v_lines, {
         { "│ ", "WinSeparator" },
-        { "󰫣 ", "MiniIconsGreen" },
+        { " 󰫣 ", "MiniIconsGreen" },
         { " - llm plans", "Comment" },
     })
 
@@ -151,9 +151,7 @@ local draw = function()
     })
 
     local plans_vlines = assistant.plans()
-    if #plans_vlines == 0 then
-        table.insert(v_lines, { { "│ ", "WinSeparator" }, { "...", "Comment" } })
-    else
+    if #plans_vlines > 0 then
         for _, v_line in ipairs(plans_vlines) do
             table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
         end

@@ -56,6 +56,37 @@ M.write = function(path, content)
     end
 end
 
+local MAX_PLANS_ON_DISK = 1000000
+
+--- @param dir_path string formatted like ~/.claude/plans <-- notice no trailing forward slash
+--- @return string|nil -- the absolute_path to the last modified file, or nil if an error occurred
+M.last_modified_file_in_dir = function(dir_path)
+    local expanded_dir_path = vim.fn.expand(dir_path)
+    local dir = vim.uv.fs_opendir(expanded_dir_path, nil, MAX_PLANS_ON_DISK)
+    if not dir then
+        vim.notify("Failed to open directory: " .. expanded_dir_path, vim.log.levels.ERROR)
+        return
+    end
+
+    local last_modified_file_path = nil
+    local most_recent_modification_time = 0
+    local entries = vim.uv.fs_readdir(dir)
+    if type(entries) == "table" then
+        for _, entry in ipairs(entries) do
+            local absolute_path = expanded_dir_path .. "/" .. entry.name
+            local stat = vim.uv.fs_stat(absolute_path)
+            if stat and most_recent_modification_time < stat.mtime.sec then
+                last_modified_file_path = absolute_path
+                most_recent_modification_time = stat.mtime.sec
+            end
+        end
+    end
+
+    vim.uv.fs_closedir(dir)
+
+    return last_modified_file_path
+end
+
 local icons = {
     lua = " ",
     py = "󰌠 ",

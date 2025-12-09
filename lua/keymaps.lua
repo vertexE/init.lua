@@ -165,27 +165,13 @@ vim.keymap.set({ "n", "x" }, "<localleader>c", function()
     require("assistant.llm").ask()
 end, { desc = "llm: ask agent a question" })
 
-vim.api.nvim_create_user_command("Plan", function()
+vim.keymap.set("n", "<leader>ae", function()
+    require("assistant.llm").execute_plan()
+end)
+
+vim.keymap.set("n", "<leader>ap", function()
     require("assistant.llm").create_plan()
-end, {})
-
-vim.api.nvim_create_user_command("Review", function(cmd_args)
-    local idx = tonumber(cmd_args.args)
-    if not idx then
-        vim.notify("(assistant): invalid cmd argument")
-        return
-    end
-    require("assistant.llm").review_plan(idx)
-end, { nargs = 1 })
-
-vim.api.nvim_create_user_command("Execute", function(cmd_args)
-    local idx = tonumber(cmd_args.args)
-    if not idx then
-        vim.notify("(assistant): invalid cmd argument")
-        return
-    end
-    require("assistant.llm").execute_plan(idx)
-end, { nargs = 1 })
+end)
 
 vim.keymap.set("n", "<leader>o", function()
     status.toggle_split()
@@ -209,7 +195,3 @@ vim.keymap.set({ "x", "n" }, "<leader>ex", function()
     vim.fn.setreg("*", content)
     vim.notify("copied code as html", vim.log.levels.INFO)
 end)
-
--- vim.keymap.set("n", "ZQ", function ()
-
--- end)

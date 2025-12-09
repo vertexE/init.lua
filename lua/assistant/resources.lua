@@ -75,8 +75,12 @@ local plan_status_to_icon_hl = function(status)
     return "", "Comment"
 end
 
---- @param llm_plan llm.Plan
+--- @param llm_plan ?llm.Plan
 local render_plan = function(llm_plan)
+    if not llm_plan then
+        return {}
+    end
+
     local icon, hl = plan_status_to_icon_hl(llm_plan.status)
     return {
         { icon, hl },
@@ -88,10 +92,7 @@ end
 --- @return table<table<table<string>>>
 M.plans = function()
     local v_lines = {}
-    local plans = plan.plans()
-    for _, _plan in ipairs(plans) do
-        table.insert(v_lines, render_plan(_plan))
-    end
+    table.insert(v_lines, render_plan(plan.active_plan()))
     return v_lines
 end
 

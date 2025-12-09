@@ -112,6 +112,14 @@ local M = {
             snacks.picker.lsp_declarations({ layout = { preset = "sidebar" } })
         end, { desc = "snacks: declarations" })
 
+        vim.keymap.set("n", "gr", function()
+            snacks.picker.lsp_references({
+                layout = {
+                    preset = "ivy",
+                },
+            })
+        end, { desc = "snacks: references" })
+
         vim.keymap.set("n", "gi", function()
             snacks.picker.lsp_implementations({
                 layout = {
@@ -125,7 +133,7 @@ local M = {
                 status.toggle_split()
             end
             snacks.picker.git_diff({ layout = { preset = "sidebar" } })
-        end, { desc = "snacks: file history" })
+        end, { desc = "snacks: git diff" })
 
         vim.keymap.set("n", "gd", function()
             snacks.picker.lsp_definitions({
@@ -133,7 +141,7 @@ local M = {
                     preset = "ivy",
                 },
             })
-        end, { desc = "snacks: implementation" })
+        end, { desc = "snacks: lsp_definitions" })
 
         vim.keymap.set("n", "<leader>u", function()
             if status.is_open() then

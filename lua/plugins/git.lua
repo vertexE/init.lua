@@ -8,28 +8,28 @@ local M = {
 
         vim.keymap.set("n", "<leader>hd", function()
             gitsigns.diffthis()
-        end)
+        end, { desc = "gitsigns: Diff this file" })
 
         vim.keymap.set("n", "<leader>hS", function()
             vim.system({ "git", "add", vim.fn.expand("%") })
             vim.notify("gitsigns: staged buffer!")
-        end)
+        end, { desc = "gitsigns: Stage buffer" })
 
         vim.keymap.set("n", "<leader>hs", function()
             gitsigns.stage_hunk()
             vim.notify("gitsigns: staged hunk!")
-        end)
+        end, { desc = "gitsigns: Stage hunk" })
 
         vim.keymap.set("v", "<leader>hs", function()
             gitsigns.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
             vim.notify("gitsigns: staged hunk!")
-        end)
+        end, { desc = "gitsigns: Stage hunk (visual)" })
 
-        vim.keymap.set("n", "<leader>hi", gitsigns.preview_hunk_inline)
+        vim.keymap.set("n", "<leader>hi", gitsigns.preview_hunk_inline, { desc = "gitsigns: Preview hunk inline" })
 
         vim.keymap.set("n", "<leader>hD", function()
             gitsigns.diffthis("~")
-        end)
+        end, { desc = "gitsigns: Diff against HEAD~" })
 
         vim.keymap.set("n", "]c", function()
             if vim.wo.diff then
@@ -37,7 +37,7 @@ local M = {
             else
                 gitsigns.nav_hunk("next")
             end
-        end)
+        end, { desc = "gitsigns: Next hunk/change" })
 
         vim.keymap.set("n", "[c", function()
             if vim.wo.diff then
@@ -45,12 +45,12 @@ local M = {
             else
                 gitsigns.nav_hunk("prev")
             end
-        end)
+        end, { desc = "gitsigns: Previous hunk/change" })
 
         vim.keymap.set("n", "<leader>hr", function()
             gitsigns.reset_hunk()
             vim.notify("gitsigns: reset hunk!")
-        end)
+        end, { desc = "gitsigns: Reset hunk" })
     end,
 }
 

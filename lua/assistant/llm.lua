@@ -13,6 +13,7 @@ local splits = require("ui.splits")
 
 local CMD_PREFIX = "<user-request>"
 local CMD_POSTFIX = "</user-request>\n"
+local CLAUDE_PLANS_DIR = "~/.claude/plans"
 
 --- @alias llm.Action "generate"|"ask"|"modify"|"plan"
 
@@ -25,10 +26,14 @@ local state = {
     bufnr = -1,
 }
 
+--- @class llm.PromptCfg
+--- @field session_id ?string
+
 --- prompt selected agent
 --- @param prompt string
 --- @param resolve fun(result:string)
-local prompt_agent = function(prompt, resolve)
+--- @param opts ?llm.PromptCfg
+local prompt_agent = function(prompt, resolve, opts)
     if resources.agent_name() == "Copilot" then
         require("CopilotChat").ask(prompt, {
             headless = true,
@@ -46,7 +51,16 @@ local prompt_agent = function(prompt, resolve)
         elseif state.active_action == "plan" then
             table.insert(cmd, "--permission-mode")
             table.insert(cmd, "plan")
+            table.insert(cmd, "--output-format")
+            table.insert(cmd, "json")
         end
+
+        if opts and opts.session_id then
+            table.insert(cmd, "--resume")
+            table.insert(cmd, opts.session_id)
+            vim.notify(string.format("(assistant): starting plan with session_id %s", opts.session_id))
+        end
+
         vim.system(
             cmd,
             { text = true },
@@ -72,60 +86,45 @@ M.create_plan = function()
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local status = vim.api.nvim_get_mode()
     local prompt_header = prompts.plan({ mode = status.mode, req_bufnr = requesting_bufnr })
-    -- TODO: in planning mode, claude may decide to output it's full plan to a file... need to fix this :thinking...
     plan.create_plan(function(goal, _plan)
+        vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
         prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(result)
-            fs.write(_plan.location, result)
+            local res = vim.json.decode(result)
+            if not res then
+                vim.notify("(assistant): an issue occurred decoding the plan")
+                return
+            end
             _plan.status = "reviewable"
+            _plan.session_id = res["session_id"]
 
-            vim.notify("(assistant): plan is now ready for review", vim.log.levels.INFO)
+            vim.notify(string.format("(assistant): %s", res["result"]), vim.log.levels.INFO)
             vim.cmd.tabnew()
-            vim.cmd.edit({ args = { _plan.location } })
+            vim.cmd.edit({ args = { fs.last_modified_file_in_dir(CLAUDE_PLANS_DIR) } })
 
             local bufnr = vim.api.nvim_get_current_buf()
             vim.keymap.set("n", "q", function()
                 vim.cmd.tabclose()
             end, { buffer = bufnr })
 
-            vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+            vim.keymap.set("n", "<enter>", function()
+                vim.notify("(assistant): approved plan!")
+                _plan.status = "executable"
+                vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+                vim.cmd.tabclose()
+            end, { buffer = bufnr })
         end)
     end)
 end
 
---- review the selected plan
---- @param idx integer
-M.review_plan = function(idx)
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
-        return
-    end
-
-    local selected_plan = plan.plans()[idx]
-    if not selected_plan then
-        vim.notify("(assistant) no such plan exists", vim.log.levels.ERROR)
-        return
-    end
-    vim.cmd.tabnew()
-    vim.cmd.edit({ args = { selected_plan.location } })
-    local bufnr = vim.api.nvim_get_current_buf()
-    vim.keymap.set("n", "<enter>", function()
-        vim.notify("(assistant): approved plan!")
-        selected_plan.status = "executable"
-        vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-        vim.cmd.tabclose()
-    end, { buffer = bufnr })
-end
-
---- execute the given plan
---- @param idx integer
-M.execute_plan = function(idx)
+--- execute the active plan
+M.execute_plan = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
         return
     end
 
     state.active_action = "modify" -- uses the same permissions
-    local selected_plan = plan.plans()[idx]
+    local selected_plan = plan.active_plan()
     if not selected_plan then
         vim.notify("(assistant) no such plan exists", vim.log.levels.ERROR)
         return
@@ -136,19 +135,14 @@ M.execute_plan = function(idx)
         return
     end
 
-    local content = fs.read(selected_plan.location)
-    if not content then
-        vim.notify("(assistant) unable to read plan file", vim.log.levels.ERROR)
-        return
-    end
-
     selected_plan.status = "executing"
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    prompt_agent(content, function(_)
+    prompt_agent("execute the plan", function(_)
         vim.notify("(assistant): plan completed")
         selected_plan.status = "completed"
+        vim.cmd.checktime({ mods = { silent = true } })
         vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    end)
+    end, { session_id = selected_plan.session_id })
 end
 
 M.generate = function()
