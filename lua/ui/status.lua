@@ -13,9 +13,9 @@ local state = {
 }
 
 local diagnostic_icon_error = "✘"
-local diagnostic_icon_warn = ""
+local diagnostic_icon_warn = ""
 local diagnostic_icon_info = "󰭺"
-local diagnostic_icon_hint = ""
+local diagnostic_icon_hint = ""
 
 local diagnostic_hl_error = "DiagnosticError"
 local diagnostic_hl_warn = "DiagnosticWarn"
@@ -119,6 +119,42 @@ local draw = function()
         table.insert(v_lines, { { "│ ", "WinSeparator" }, { "...", "Comment" } })
     else
         for _, v_line in ipairs(locked_files_vlines) do
+            table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
+        end
+    end
+
+    table.insert(v_lines, {
+        {
+            "╰───────────────────────────────────────────────────",
+            "WinSeparator",
+        },
+    })
+
+    table.insert(v_lines, {
+        {
+            "╭───────────────────────────────────────────────────",
+            "WinSeparator",
+        },
+    })
+
+    table.insert(v_lines, {
+        { "│ ", "WinSeparator" },
+        { "󰫣 ", "MiniIconsGreen" },
+        { " - llm plans", "Comment" },
+    })
+
+    table.insert(v_lines, {
+        {
+            "├───────────────────────────────────────────────────",
+            "WinSeparator",
+        },
+    })
+
+    local plans_vlines = assistant.plans()
+    if #plans_vlines == 0 then
+        table.insert(v_lines, { { "│ ", "WinSeparator" }, { "...", "Comment" } })
+    else
+        for _, v_line in ipairs(plans_vlines) do
             table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
         end
     end

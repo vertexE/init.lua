@@ -4,6 +4,7 @@ local buf = require("buf")
 local tbl = require("tbl")
 local floats = require("ui.floats")
 local request = require("assistant.request")
+local plan = require("assistant.plan")
 
 local diagnostics = function(bufnr)
     local buf_name = vim.api.nvim_buf_get_name(bufnr or 0)
@@ -54,6 +55,44 @@ local active_bufs_summary = function()
         end
     end
     return count == 1 and first or (count > 1 and string.format("%s..+%d", first, count - 1) or "..")
+end
+
+--- @param status llm.PlanStatus
+--- @return string,string
+local plan_status_to_icon_hl = function(status)
+    if status == "planning" then
+        return "󰩉  ", "MiniIconsGreen"
+    elseif status == "reviewable" then
+        return "  ", "MiniIconsGreen"
+    elseif status == "executable" then
+        return "  ", "MiniIconsOrange"
+    elseif status == "executing" then
+        return "  ", "MiniIconsOrange"
+    elseif status == "completed" then
+        return "  ", "MiniIconsGreen"
+    end
+
+    return "", "Comment"
+end
+
+--- @param llm_plan llm.Plan
+local render_plan = function(llm_plan)
+    local icon, hl = plan_status_to_icon_hl(llm_plan.status)
+    return {
+        { icon, hl },
+        { llm_plan.title, "Comment" },
+    }
+end
+
+--- virtual lines for llm plan list
+--- @return table<table<table<string>>>
+M.plans = function()
+    local v_lines = {}
+    local plans = plan.plans()
+    for _, _plan in ipairs(plans) do
+        table.insert(v_lines, render_plan(_plan))
+    end
+    return v_lines
 end
 
 --- comment

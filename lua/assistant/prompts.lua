@@ -46,6 +46,25 @@ local copilot = {
 }
 
 local claude = {
+
+    --- @param ctx prompt.context
+    --- @return string
+    plan = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        local knowledge = resources.active()
+        local prompt_header = string.format(
+            [[
+<rules>
+- you are in the current file @%s
+- do not include unnecessary details in the plan, keep it focused
+</rules>
+        ]],
+            file
+        )
+
+        return prompt_header .. knowledge .. "\n\n"
+    end,
+
     --- @param ctx prompt.context
     --- @return string
     modify = function(ctx)
@@ -80,9 +99,9 @@ local claude = {
 <rules>
 - you are in the current file @%s
 - don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
+- if you are unable to comply with these rules, you may then explain why in your response
 - use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
 - for replace mode, only modify in the bounds of the selection
-- for insert mode, only add lines to the current file at the cursor position, do not modify any existing lines
 - we're in %s mode, 
 - `user-cursor` tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
 - `files` tag are key files you may consider looking at when building your solution
@@ -117,6 +136,16 @@ position: (%d, %d)
         ]]
     end,
 }
+
+--- @param ctx prompt.context
+--- @return string
+M.plan = function(ctx)
+    if resources.agent_name() ~= "Claude" then
+        vim.notify("unsupported agent", vim.log.levels.WARN)
+        return ""
+    end
+    return claude.plan(ctx)
+end
 
 --- @param ctx prompt.context
 --- @return string
