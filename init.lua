@@ -25,10 +25,10 @@ local dependencies = {
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
     { "rachartier/tiny-inline-diagnostic.nvim", { dependency = true } },
     -- syntax & appearance
-    { "nvim-treesitter/nvim-treesitter", require("plugins.treesitter"), version = "main" },
-    { "nvim-treesitter/nvim-treesitter-textobjects", { dependency = true } },
+    { "nvim-treesitter/nvim-treesitter-textobjects", require("plugins.treesitter"), version = "main" },
+    { "nvim-treesitter/nvim-treesitter", dependency = true, version = "main" },
+    { "nvim-treesitter/nvim-treesitter-context", dependency = true },
     -- custom UI
-    { "nvim-treesitter/nvim-treesitter-context", event = "BufEnter" },
     -- colorscheme
     { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
     -- debugger
