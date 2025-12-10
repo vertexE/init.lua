@@ -1,5 +1,10 @@
 local M = {}
 
+M.is_floating_win = function(winr)
+    local cfg = vim.api.nvim_win_get_config(winr)
+    return cfg.relative ~= "" and cfg.external
+end
+
 --- @class CenterOpts
 --- @field title string
 --- @field height ?number percent of editor

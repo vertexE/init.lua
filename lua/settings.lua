@@ -21,7 +21,7 @@ vim.opt.signcolumn = "yes"
 
 vim.opt.termguicolors = true
 
-vim.o.showtabline = 1
+vim.o.showtabline = 0
 
 -- Folding.
 vim.o.foldcolumn = "0" -- set to display fold symbols

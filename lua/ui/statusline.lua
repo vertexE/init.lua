@@ -154,6 +154,31 @@ M.tools = function()
     return vlines_to_inline_hl(vlines)
 end
 
+M.tabs = function()
+    local active_tabpage = vim.api.nvim_tabpage_get_number(0)
+    local tabs = vim.api.nvim_list_tabpages()
+
+    local vlines = {}
+
+    for i, tab in ipairs(tabs) do
+        if tab == active_tabpage then
+            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+            table.insert(vlines, { "●", "TinyInlineDiagnosticVirtualTextInfo" })
+            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+        else
+            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+            table.insert(vlines, { "○", "TinyInlineDiagnosticVirtualTextInfo" })
+            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+        end
+
+        if i < #tabs then
+            table.insert(vlines, { " ", "Comment" })
+        end
+    end
+
+    return vlines_to_inline_hl(vlines)
+end
+
 M.time = function()
     return "%#StatusLineSeparator#" .. "" .. "%#StatuslineSeparatorLsp# " .. os.date("%H:%M") .. " "
 end
@@ -165,6 +190,7 @@ M.active = function()
         -- "%l/%L",
         "%=",
         "%{%v:lua.require'ui.statusline'.active_macro_register()%}",
+        "%{%v:lua.require'ui.statusline'.tabs()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",
         "%{%v:lua.require'ui.statusline'.time()%}",
     }, " ")

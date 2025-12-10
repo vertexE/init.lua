@@ -7,6 +7,7 @@ local code_extract = require("treesitter.extract")
 local status = require("ui.status")
 
 local buf = require("buf")
+local float = require("ui.floats")
 
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })
@@ -194,4 +195,29 @@ vim.keymap.set({ "x", "n" }, "<leader>ex", function()
     local content = code_extract.as_html(0, start_line - 1, end_line)
     vim.fn.setreg("*", content)
     vim.notify("copied code as html", vim.log.levels.INFO)
+end)
+
+vim.keymap.set({ "n" }, "ZQ", function()
+    local windows = vim.api.nvim_tabpage_list_wins(0)
+    local active_winr = vim.api.nvim_get_current_win()
+    local splits = vim.iter(windows)
+        :filter(function(window)
+            return not float.is_floating_win(window)
+        end)
+        :totable()
+    local is_cursor_in_split = vim.iter(splits):find(function(split_winr)
+        return split_winr == active_winr
+    end)
+    local tabs = vim.api.nvim_list_tabpages()
+
+    local should_close_tab = #splits == 2 and is_cursor_in_split and status.is_open()
+
+    if #tabs == 1 and should_close_tab then
+        vim.cmd("quit")
+        vim.cmd("quit")
+    elseif #tabs > 1 and should_close_tab then
+        vim.cmd("tabclose")
+    else
+        vim.cmd("quit")
+    end
 end)
