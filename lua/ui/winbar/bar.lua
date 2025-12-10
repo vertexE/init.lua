@@ -75,7 +75,7 @@ M.setup = function()
         desc = "Attach bars",
         callback = function(args)
             -- always refresh tabline
-            vim.o.tabline = "%{%v:lua.require'ui.winbar.bar'.draw_tabline()%}"
+            -- vim.o.tabline = "%{%v:lua.require'ui.winbar.bar'.draw_tabline()%}"
 
             if vim.bo[args.buf].buftype ~= "" then
                 return -- skip running on unsupported buffers

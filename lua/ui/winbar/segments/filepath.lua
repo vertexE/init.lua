@@ -84,8 +84,11 @@ local file_type_decorations = {
 --- @return table<table<string,string>>
 local file_path = function()
     local bufnr = vim.api.nvim_get_current_buf()
+    local project = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
     local path = vim.fn.expand("%:.")
+    local segments = vim.split(path, "/")
     local file = vim.fn.fnamemodify(path, ":t")
+
     local ext = vim.bo[bufnr].filetype
     if #file == 0 then
         return {}
@@ -103,13 +106,23 @@ local file_path = function()
         }
     end
 
-    return {
-        { " " .. ft_decoration.icon, "StatuslineSeparatorLsp" },
-        { " " .. file .. " ", "StatuslineSeparatorLsp" },
-        { vim.bo.modified and " ● " or "   ", "StatuslineSeparatorLsp" },
-        { "", "StatusLineSeparator" },
-        { "", "Comment" },
+    local virtual_path = {
+        { string.format(" %s", project), "DropBarIconUISeparator" },
+        { "  ", "DropBarIconUISeparator" },
     }
+
+    for i, segment in ipairs(segments) do
+        if i == #segments then
+            table.insert(virtual_path, { ft_decoration.icon, ft_decoration.hl })
+            table.insert(virtual_path, { string.format("%s", segment), "Text" })
+            table.insert(virtual_path, { vim.bo.modified and " ● " or "   ", "TextDim" })
+        else
+            table.insert(virtual_path, { string.format("%s", segment), "DropBarIconUISeparator" })
+            table.insert(virtual_path, { "  ", "DropBarIconUISeparator" })
+        end
+    end
+
+    return virtual_path
 end
 
 M.setup = function()

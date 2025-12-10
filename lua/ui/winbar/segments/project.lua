@@ -7,9 +7,7 @@ local project = function()
     local dir = vim.fn.fnamemodify(vim.fn.getcwd(0, 0), ":t")
 
     return {
-        { " ", "MiniStatuslineModeNormal" },
-        { dir .. " ", "MiniStatuslineModeNormal" },
-        { "", "MiniStatuslineModeNormalSeparator" },
+        { string.format("▌ %s ", dir), "NormalMode" },
     }
 end
 

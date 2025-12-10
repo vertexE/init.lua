@@ -12,10 +12,10 @@ local on_attach = function(bufnr)
         vim.lsp.buf.hover({ silent = true })
     end)
 
-    vim.keymap.set("n", "<leader>ai", function()
-        vim.lsp.inline_completion.enable(not vim.lsp.inline_completion.is_enabled())
-        vim.cmd("redrawstatus")
-    end, { desc = "enable inline completion" })
+    -- vim.keymap.set("n", "<leader>ai", function()
+    --     vim.lsp.inline_completion.enable(not vim.lsp.inline_completion.is_enabled())
+    --     vim.cmd("redrawstatus")
+    -- end, { desc = "enable inline completion" })
 
     vim.keymap.set("i", "<s-tab>", vim.lsp.inline_completion.get, { desc = "enable inline completion" })
 

@@ -143,6 +143,10 @@ local M = {
             })
         end, { desc = "snacks: lsp_definitions" })
 
+        vim.keymap.set("n", "<leader>fH", function()
+            snacks.picker.highlights({ layout = { preset = "vscode" } })
+        end)
+
         vim.keymap.set("n", "<leader>u", function()
             if status.is_open() then
                 status.toggle_split()

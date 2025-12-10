@@ -118,10 +118,6 @@ local M = {
             require("mini.extra").pickers.treesitter()
         end)
 
-        vim.keymap.set("n", "<leader>fH", function()
-            require("mini.extra").pickers.hl_groups()
-        end)
-
         vim.keymap.set("n", "<leader>gb", function()
             require("mini.extra").pickers.git_branches()
         end)
@@ -161,6 +157,8 @@ local M = {
             },
         })
         vim.keymap.set("n", "<leader>mo", mini_map.open)
+
+        require("mini.cmdline").setup()
     end,
 }
 

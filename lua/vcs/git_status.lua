@@ -17,7 +17,7 @@ local default_opts = {
         commit_sha = "Comment",
         commit_msg = "@text",
         change_type = "Comment",
-        file_path = "@text",
+        file_path = "Text",
     },
 }
 

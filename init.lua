@@ -28,7 +28,6 @@ local dependencies = {
     { "nvim-treesitter/nvim-treesitter", require("plugins.treesitter") },
     { "nvim-treesitter/nvim-treesitter-textobjects", { dependency = true } },
     -- custom UI
-    { "folke/noice.nvim", require("plugins.noice") },
     { "MunifTanjim/nui.nvim", { dependency = true } },
     { "kevinhwang91/nvim-bqf", { event = "BufEnter" } },
     -- colorscheme

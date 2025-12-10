@@ -1,71 +1,67 @@
 local M = {}
 
-local symbols = require("symbols")
+local FIFO_PIPE_UPDATE_TIME = 3000
 
 local cache = {
-    stat = {},
+    spotify = "No track currently playing",
 }
 
 local valid = {
-    stat = false,
+    spotify = true,
 }
 
---- @type table<line.ChangeType, string>
-local to_change_symbol = {
-    file = "f",
-    ins = "+",
-    del = "-",
+local loading = {
+    spotify = false,
 }
 
---- @alias line.ChangeType "file"|"ins"|"del"
-
---- @return line.ChangeType|nil,string|nil
-local change_symbol = function(change)
-    if string.find(change, "file") then
-        return to_change_symbol.file, "Constant"
-    elseif string.find(change, "ins") then
-        return to_change_symbol.ins, "DiagnosticOk"
-    elseif string.find(change, "del") then
-        return to_change_symbol.del, "DiagnosticError"
+--- @param vlines table<table<string,string>>
+--- @return string
+local vlines_to_inline_hl = function(vlines)
+    local content = ""
+    for _, segment in ipairs(vlines) do
+        local s, hl = unpack(segment)
+        content = content .. string.format("%%#%s#%s", hl, s)
     end
+    return content
 end
 
---- @return table<table<string>>
-local stat = function()
-    if cache.stat and valid.stat then
-        return cache.stat
+local spotify = function()
+    if valid.spotify then
+        return #cache.spotify > 0
+                and {
+                    { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+                    { "󰓇  ", "TinyInlineDiagnosticVirtualTextInfo" },
+                    { cache.spotify, "TinyInlineDiagnosticVirtualTextInfo" },
+                    { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+                }
+            or {}
     end
 
-    vim.system({ "git", "diff", "--stat" }, { text = true }, function(out)
-        if #out.stdout > 0 then
-            local lines = vim.split(out.stdout, "\n", { trimempty = true })
-            local changes = lines[#lines]
-            if changes and #changes > 0 then
-                local changes_by_type = vim.split(changes, ",", { trimempty = true })
-                local content = {}
-                local total = 0
-                for _, change in ipairs(changes_by_type) do
-                    local amount = string.match(change, "%d+")
-                    total = total + tonumber(vim.trim(amount))
-                    local symbol, hg = change_symbol(change)
-                    if symbol == "f" then
-                        table.insert(content, { amount .. symbol, hg })
-                    else
-                        table.insert(content, { symbol .. amount, hg })
-                    end
-                end
-                if total > 0 then
-                    cache.stat = content
-                else
-                    cache.stat = {}
-                end
+    -- this is a fifo pipe, will block until read/write pair go through
+    if not loading.spotify then
+        vim.system({ "cat", "/tmp/fifoplayer-track" }, { text = true }, function(result)
+            if #result.stdout > 0 then
+                cache.spotify = result.stdout
+                valid.spotify = true
+                loading.spotify = false
             end
-        else
-            cache.stat = {}
-        end
-        valid.stat = true
-    end)
-    return cache.stat or {}
+        end)
+        loading.spotify = true
+    end
+
+    return #cache.spotify > 0
+            and {
+                { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+                { "󰓇  ", "TinyInlineDiagnosticVirtualTextInfo" },
+                { cache.spotify, "TinyInlineDiagnosticVirtualTextInfo" },
+                { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+            }
+        or {}
+end
+
+M.spotify = function()
+    local segments = spotify()
+    return vlines_to_inline_hl(segments)
 end
 
 ---@return string
@@ -136,55 +132,40 @@ M.mode = function()
 
     local status, dap = pcall(require, "dap")
     if status and dap.session() then
-        return string.format("%%#MiniStatuslineModeCommand#%s %%#MiniStatuslineModeCommandSeparator#", " DEBUG")
+        return string.format("%%#CommandMode#▌ %s", " DEBUG")
     end
 
-    return string.format("%%#MiniStatuslineMode%s#%s %%#MiniStatuslineMode%sSeparator#", hl, " " .. mode, hl)
+    return string.format("%%#%sMode#▌ %s ", hl, mode)
 end
 
 M.tools = function()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
-    local display = ""
-    for _, client in ipairs(clients) do
-        local symbol = symbols.lsp_servers(client.name)
-        if symbol ~= "" then
-            display = display .. (#display > 0 and " " or "") .. symbols.lsp_servers(client.name)
-        end
+    local vlines = {
+        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+        { " ", "TinyInlineDiagnosticVirtualTextInfo" },
+    }
+    for i, client in ipairs(clients) do
+        local lsp_name = (i > 1 and " " or "") .. client.name
+        table.insert(vlines, { lsp_name, "TinyInlineDiagnosticVirtualTextInfo" })
     end
-    return (#display > 0 and "%#StatusLineSeparatorLsp#" .. display or display) .. " %#StatusLineSeparator#"
-end
 
-M.git = function()
-    local content = stat()
-    local expanded = ""
-    for _, block in ipairs(content) do
-        local s, hl = unpack(block)
-        expanded = expanded .. string.format("%%#%s# %s", hl, s)
-    end
-    return expanded
-end
+    table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
 
-M.copilot = function()
-    local inline_enabled = vim.lsp.inline_completion.is_enabled() and " " or "%#Comment# "
-    return (inline_enabled and "%#MiniIconsPurple#  " or "%#Comment#  ") .. inline_enabled
+    return vlines_to_inline_hl(vlines)
 end
 
 M.time = function()
-    return "%#StatusLineSeparator#" .. "" .. "%#StatusLineSeparatorContent# " .. os.date("%H:%M") .. " "
+    return "%#StatusLineSeparator#" .. "" .. "%#StatuslineSeparatorLsp# " .. os.date("%H:%M") .. " "
 end
 
 M.active = function()
     return table.concat({
-        "",
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        "%{%v:lua.require'ui.statusline'.tools()%}",
-        "%{%v:lua.require'ui.statusline'.copilot()%}",
+        "%{%v:lua.require'ui.statusline'.spotify()%}",
+        -- "%l/%L",
         "%=",
         "%{%v:lua.require'ui.statusline'.active_macro_register()%}",
-        "%{%v:lua.require'ui.statusline'.git()%}",
-        "%#Comment#",
-        "",
-        "%l:%c",
+        "%{%v:lua.require'ui.statusline'.tools()%}",
         "%{%v:lua.require'ui.statusline'.time()%}",
     }, " ")
 end
@@ -202,7 +183,7 @@ local draw_statusline = vim.schedule_wrap(function()
 end)
 
 M.setup = function()
-    vim.opt.laststatus = 2
+    vim.opt.laststatus = 3
 
     vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter" }, {
         group = vim.api.nvim_create_augroup("user.statusline.draw", { clear = true }),
@@ -212,22 +193,14 @@ M.setup = function()
         end,
     })
 
-    vim.api.nvim_create_autocmd("User", {
-        pattern = "MiniGitCommandDone",
-        group = vim.api.nvim_create_augroup("user.statusline.git", { clear = true }),
-        desc = "refresh git stats",
-        callback = vim.schedule_wrap(function()
-            valid.stat = false
-        end),
-    })
-
-    vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost" }, {
-        group = vim.api.nvim_create_augroup("user.statusline.git", { clear = true }),
-        desc = "refresh git stats",
-        callback = vim.schedule_wrap(function()
-            valid.stat = false
-        end),
-    })
+    local timer = vim.uv.new_timer()
+    timer:start(
+        0,
+        FIFO_PIPE_UPDATE_TIME,
+        vim.schedule_wrap(function()
+            valid.spotify = false
+        end)
+    )
 end
 
 return M

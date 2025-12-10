@@ -21,7 +21,7 @@ vim.opt.signcolumn = "yes"
 
 vim.opt.termguicolors = true
 
-vim.o.showtabline = 2
+vim.o.showtabline = 1
 
 -- Folding.
 vim.o.foldcolumn = "0" -- set to display fold symbols
@@ -82,3 +82,5 @@ vim.opt.formatoptions = "qjl1" -- Don't autoformat comments
 vim.opt.splitkeep = "screen"
 
 vim.go.shell = "/bin/bash"
+
+vim.o.pumheight = 10
