@@ -123,6 +123,8 @@ M.mode = function()
         hl = "Insert"
     elseif mode:find("COMMAND") or mode:find("TERMINAL") or mode:find("EX") then
         hl = "Command"
+    elseif mode:find("PENDING") then
+        hl = "Pending"
     end
 
     local status, dap = pcall(require, "dap")

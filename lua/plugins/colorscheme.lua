@@ -100,6 +100,7 @@ local M = {
                     ["NormalMode"] = { fg = "#7daea4" },
                     ["ReplaceMode"] = { fg = "#ea6963" },
                     ["CommandMode"] = { fg = "#e78a4f" },
+                    ["PendingMode"] = { fg = "#D8A658" },
                     ["InsertMode"] = { fg = "#a9b666" },
                     ["VisualMode"] = { fg = "#D3869C" },
                     ["MiniFilesTitleFocused"] = { link = "FloatTitle" },
