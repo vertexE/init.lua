@@ -26,16 +26,28 @@ local on_attach = function(bufnr)
     vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
         pattern = { "*.ts", "*.js", "*.go", "*.rs", "*.lua" },
         group = vim.api.nvim_create_augroup("user.lsp.codelens", { clear = true }),
-        callback = function()
-            vim.lsp.codelens.refresh({ bufnr = 0 })
+        callback = function(ev)
+            -- vim.lsp.codelens.refresh({})
+            -- local buf_lens = vim.lsp.codelens.get(ev.buf)
+            -- vim.print(buf_lens)
+            -- vim.lsp.buf.document_symbol({on_list = function (symbols)
+            --     vim.print(symbols)
+            -- end})
+            -- local ns = vim.api.nvim_create_namespace("user.codelens.ui")
+            -- for _, lens in ipairs(buf_lens) do
+            -- end
         end,
     })
+
+
+
 
     vim.keymap.set("i", "<c-i>", "<c-x><c-o>", { desc = "trigger completion menu" })
 end
 
 M.setup = function()
     require("lsp.diagnostics").setup()
+    require("ui.codelens").setup()
     local servers = require("lsp.lsp_settings")
 
     vim.api.nvim_create_autocmd({ "LspAttach" }, {
