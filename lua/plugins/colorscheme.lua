@@ -81,7 +81,7 @@ local M = {
                     ["TabLineFill"] = { bg = Color:from_hex(colors.base):hex() },
                     ["WinBar"] = { bg = colors.base },
                     ["WinSeparator"] = { fg = colors.surface1 },
-                    ["StatusLine"] = { bg = Color:from_hex(colors.crust):lighten(4):hex() },
+                    ["StatusLine"] = { bg = "" }, -- Color:from_hex(colors.crust):lighten(4):hex()
                     ["StatusLineNC"] = { bg = "" },
                     ["CommentItalic"] = { fg = colors.overlay1, italic = true },
                     ["CommentBg"] = { bg = colors.base, bold = true, fg = colors.overlay2 },
@@ -89,6 +89,9 @@ local M = {
                     ["Folded"] = { link = "TextDimmer" },
                     ["MsgArea"] = { link = "TextDim" },
                     ["ModeMsg"] = { link = "TextDim" },
+                    ["CodeLensSeparator"] = { fg = colors.surface0 },
+                    ["CodeLensContentIcon"] = { fg = colors.green, bg = colors.surface0 },
+                    ["CodeLensContent"] = { fg = colors.overlay0, bg = colors.surface0, italic = true },
                     ["StatusLineSeparatorContent"] = {
                         fg = colors.subtext1,
                         bg = Color:from_hex(colors.base):lighten(8):hex(),

@@ -6,12 +6,15 @@ local draw_extmarks = function(bufnr, results)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
     for _, item in ipairs(results) do
-        if item.count > 0 then
-            vim.api.nvim_buf_set_extmark(bufnr, ns, item.lnum - 1, 0, {
-                virt_text = { { " " .. item.count, "Comment" } },
-                virt_text_pos = "eol",
-            })
-        end
+        vim.api.nvim_buf_set_extmark(bufnr, ns, item.lnum - 1, 0, {
+            virt_text = {
+                { "", "CodeLensSeparator" },
+                { "󰌹 ", "CodeLensContentIcon" },
+                { item.count > 0 and tostring(item.count) or "no usage", "CodeLensContent" },
+                { "", "CodeLensSeparator" },
+            },
+            virt_text_pos = "eol",
+        })
     end
 end
 
@@ -76,7 +79,7 @@ M.setup = function()
         callback = function(ev)
             vim.defer_fn(function()
                 refresh_codelens(ev.buf)
-            end, 500)
+            end, 3000)
         end,
     })
 
@@ -84,6 +87,7 @@ M.setup = function()
         pattern = { "*.ts", "*.js", "*.tsx", "*.jsx", "*.go", "*.rs", "*.lua" },
         group = vim.api.nvim_create_augroup("user.codelens.refresh", { clear = true }),
         callback = function(ev)
+            vim.api.nvim_buf_clear_namespace(ev.buf, ns, 0, -1)
             refresh_codelens(ev.buf)
         end,
     })

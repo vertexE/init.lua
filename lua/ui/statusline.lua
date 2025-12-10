@@ -183,7 +183,7 @@ M.tabs = function()
 end
 
 M.time = function()
-    return "%#StatusLineSeparator#" .. "" .. "%#StatuslineSeparatorLsp# " .. os.date("%H:%M") .. " "
+    return "%#CodeLensSeparator#" .. "%#CodeLensContentIcon#" .. os.date("%H:%M") .. " "
 end
 
 M.git_branch = function()
