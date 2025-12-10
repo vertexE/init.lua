@@ -99,8 +99,13 @@
       "src": "https://github.com/nvim-neotest/nvim-nio"
     },
     "nvim-treesitter": {
-      "rev": "42fc28ba",
-      "src": "https://github.com/nvim-treesitter/nvim-treesitter"
+      "rev": "b6271b67",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter",
+      "version": "'main'"
+    },
+    "nvim-treesitter-context": {
+      "rev": "64dd4cf",
+      "src": "https://github.com/nvim-treesitter/nvim-treesitter-context"
     },
     "nvim-treesitter-textobjects": {
       "rev": "5ca4aaa",

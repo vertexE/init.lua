@@ -1,13 +1,17 @@
 local M = {}
 
+local git_common = require("vcs.git_common")
+
 local FIFO_PIPE_UPDATE_TIME = 3000
 
 local cache = {
     spotify = "No track currently playing",
+    tools = {},
 }
 
 local valid = {
     spotify = true,
+    tools = false,
 }
 
 local loading = {
@@ -62,15 +66,6 @@ end
 M.spotify = function()
     local segments = spotify()
     return vlines_to_inline_hl(segments)
-end
-
----@return string
-M.active_macro_register = function()
-    if vim.fn.reg_recording() ~= "" then
-        return "recording @" .. vim.fn.reg_recording()
-    else
-        return ""
-    end
 end
 
 local mode_map = {
@@ -139,17 +134,23 @@ M.mode = function()
 end
 
 M.tools = function()
+    if valid.tools then
+        return vlines_to_inline_hl(cache.tools)
+    end
+
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local vlines = {
         { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-        { " ", "TinyInlineDiagnosticVirtualTextInfo" },
+        { "", "TinyInlineDiagnosticVirtualTextInfo" },
     }
-    for i, client in ipairs(clients) do
-        local lsp_name = (i > 1 and " " or "") .. client.name
+    for _, client in ipairs(clients) do
+        local lsp_name = " " .. client.name
         table.insert(vlines, { lsp_name, "TinyInlineDiagnosticVirtualTextInfo" })
     end
 
     table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+    cache.tools = vlines
+    valid.tools = true
 
     return vlines_to_inline_hl(vlines)
 end
@@ -183,15 +184,23 @@ M.time = function()
     return "%#StatusLineSeparator#" .. "" .. "%#StatuslineSeparatorLsp# " .. os.date("%H:%M") .. " "
 end
 
+M.git_branch = function()
+    local local_branch = git_common.head_branch_name()
+    return vlines_to_inline_hl({
+        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+        { local_branch, "TinyInlineDiagnosticVirtualTextInfo" },
+        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+    })
+end
+
 M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
         "%{%v:lua.require'ui.statusline'.spotify()%}",
-        -- "%l/%L",
         "%=",
-        "%{%v:lua.require'ui.statusline'.active_macro_register()%}",
         "%{%v:lua.require'ui.statusline'.tabs()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",
+        "%{%v:lua.require'ui.statusline'.git_branch()%}",
         "%{%v:lua.require'ui.statusline'.time()%}",
     }, " ")
 end
@@ -216,6 +225,15 @@ M.setup = function()
         desc = "Attach statusline",
         callback = function()
             draw_statusline()
+        end,
+    })
+
+    local invalidate_group = vim.api.nvim_create_augroup("user.statusline.invalidate", { clear = true })
+
+    vim.api.nvim_create_autocmd("LspAttach", {
+        group = invalidate_group,
+        callback = function()
+            valid.tools = false
         end,
     })
 

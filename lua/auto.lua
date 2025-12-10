@@ -1,5 +1,27 @@
 local status = require("ui.status")
 
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = {
+        "lua",
+        "rust",
+        "python",
+        "go",
+        "c",
+        "html",
+        "typescript",
+        "javascript",
+        "typescriptreact",
+        "javascriptreact",
+        "markdown",
+        "markdown_inline",
+        "vimdoc",
+    },
+    callback = function()
+        vim.treesitter.start()
+        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end,
+})
+
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "COMMIT_EDITMSG",
     callback = function(ev)

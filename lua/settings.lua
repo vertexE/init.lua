@@ -26,13 +26,13 @@ vim.o.showtabline = 0
 -- Folding.
 vim.o.foldcolumn = "0" -- set to display fold symbols
 vim.o.foldlevelstart = 99
-vim.o.foldmethod = "expr"
 vim.wo.foldtext = ""
 vim.opt.foldopen:remove("block")
 
 -- TODO: eventually this should be changed to nvim's builtin LSP
 -- see https://github.com/neovim/neovim/pull/31311
 vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.foldmethod = "expr"
 
 -- UI characters.
 vim.opt.fillchars = symbols.fold_chars()
