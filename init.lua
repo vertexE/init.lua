@@ -27,6 +27,8 @@ local dependencies = {
     -- syntax & appearance
     { "nvim-treesitter/nvim-treesitter", require("plugins.treesitter"), version = "main" },
     { "nvim-treesitter/nvim-treesitter-textobjects", { dependency = true } },
+    -- custom UI
+    { "nvim-treesitter/nvim-treesitter-context", event = "BufEnter" },
     -- colorscheme
     { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
     -- debugger

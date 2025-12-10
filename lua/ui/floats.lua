@@ -2,7 +2,7 @@ local M = {}
 
 M.is_floating_win = function(winr)
     local cfg = vim.api.nvim_win_get_config(winr)
-    return cfg.relative ~= "" and cfg.external
+    return cfg.relative ~= "" or cfg.external
 end
 
 --- @class CenterOpts
