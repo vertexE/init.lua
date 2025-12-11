@@ -99,13 +99,13 @@ local claude = {
             [[
 <rules>
 - you are in the current file @%s
+- you are only allowed to modify the current file and the files listed in the `files` tag.
+- the `files` tag contains a list of files to be modified or used as additional context
 - don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
-- if you are unable to comply with these rules, you may then explain why in your response
 - use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
 - for replace mode, only modify in the bounds of the selection
 - we're in %s mode, 
 - `user-cursor` tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
-- `files` tag are key files you may consider looking at when building your solution
 </rules>
 <user-cursor>
 selecting: %s

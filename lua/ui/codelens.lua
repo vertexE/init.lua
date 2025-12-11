@@ -5,6 +5,10 @@ local ns = vim.api.nvim_create_namespace("user.codelens.references")
 local draw_extmarks = function(bufnr, results)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
+    if bufnr ~= vim.api.nvim_get_current_buf() then
+        return
+    end
+
     for _, item in ipairs(results) do
         vim.api.nvim_buf_set_extmark(bufnr, ns, item.lnum - 1, 0, {
             virt_text = {
@@ -74,7 +78,7 @@ local refresh_codelens = function(bufnr)
 end
 
 M.setup = function()
-    vim.api.nvim_create_autocmd({ "LspAttach" }, {
+    vim.api.nvim_create_autocmd("BufEnter", {
         group = vim.api.nvim_create_augroup("user.codelens.attach", { clear = true }),
         callback = function(ev)
             vim.defer_fn(function()

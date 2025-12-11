@@ -190,7 +190,7 @@ M.git_branch = function()
     local local_branch = git_common.head_branch_name()
     return vlines_to_inline_hl({
         { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-        { local_branch, "TinyInlineDiagnosticVirtualTextInfo" },
+        { #local_branch > 0 and local_branch or "!git", "TinyInlineDiagnosticVirtualTextInfo" },
         { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
     })
 end

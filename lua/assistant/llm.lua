@@ -170,6 +170,7 @@ M.generate = function()
             end
 
             local req_id = request.start({ requesting_file })
+            vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
             local ns_id = loader.start(requesting_bufnr, _start, _end, should_replace)
             vim.defer_fn(function() -- timeout
                 loader.stop(ns_id)
