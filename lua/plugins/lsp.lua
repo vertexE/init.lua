@@ -10,7 +10,6 @@ local M = {
         "lazydev.nvim",
         "mason.nvim",
         "mason-lspconfig.nvim",
-        "tiny-inline-diagnostic.nvim",
     },
     config = function()
         require("mason").setup()

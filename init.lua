@@ -23,7 +23,6 @@ local dependencies = {
     { "saghen/blink.cmp", { dependency = true }, version = vim.version.range("1.*") },
     { "rafamadriz/friendly-snippets", { dependency = true } },
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
-    { "rachartier/tiny-inline-diagnostic.nvim", { dependency = true } },
     -- syntax & appearance
     { "nvim-treesitter/nvim-treesitter-textobjects", require("plugins.treesitter"), version = "main" },
     { "nvim-treesitter/nvim-treesitter", dependency = true, version = "main" },
