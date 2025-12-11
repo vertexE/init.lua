@@ -118,7 +118,7 @@ local M = {
                     FloatBorder = { bg = Color:from_hex(colors.crust):lighten(3):hex(), fg = colors.surface0 },
                     FloatTitle = { bg = Color:from_hex(colors.crust):lighten(3):hex(), fg = colors.green },
                     BlinkCmpMenuBorder = { fg = colors.surface0 },
-                    BlinkCmpMenuSelection = { bg = "#354137" },
+                    BlinkCmpMenuSelection = { bg = "#3b3b3b" },
                     Pmenu = { bg = colors.mantle, fg = "" },
                     PmenuSel = { bg = colors.surface0, fg = colors.green },
                     GitSignsChange = { fg = colors.peach },
