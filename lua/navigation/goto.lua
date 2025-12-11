@@ -122,7 +122,7 @@ M.menu = function()
     local col = (editor_width - width) / 2
 
     local float_buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_open_win(float_buf, true, {
+    local float_winr = vim.api.nvim_open_win(float_buf, true, {
         title = vim.fn.fnamemodify("", ":p:h"),
         relative = "editor",
         row = row,
@@ -133,6 +133,7 @@ M.menu = function()
         border = "rounded",
     })
     vim.api.nvim_set_option_value("buftype", "nofile", { buf = float_buf, scope = "local" })
+    vim.wo[float_winr].signcolumn = "yes"
 
     vim.cmd("edit " .. filepath())
 
