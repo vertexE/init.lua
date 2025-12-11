@@ -162,15 +162,16 @@ local draw_diagnostics = function(bufnr)
         draw_diagnostics_on_line(bufnr, line_diagnostics, cl)
         return
     end
-    -- elseif #line_diagnostics == 0 and is_cl_move_event and have_drawn_in_buffer[bufnr] then
-    --     -- reduce unnecessary redraws of diagnostics
-    --     return
-    -- end
 
     if #other_diagnostics > 0 then
         draw_diagnostics_summary(bufnr, other_diagnostics)
         return
     end
+end
+
+local is_in_insert_mode = function()
+    local mode = vim.api.nvim_get_mode().mode or ""
+    return mode == "i" or mode == "ic" or mode == "ix"
 end
 
 M.setup = function()
@@ -182,12 +183,18 @@ M.setup = function()
 
     vim.api.nvim_create_autocmd("CursorMoved", {
         callback = function(ev)
+            if is_in_insert_mode() then
+                return
+            end
             draw_diagnostics(ev.buf)
         end,
     })
 
     vim.api.nvim_create_autocmd("DiagnosticChanged", {
         callback = function(ev)
+            if is_in_insert_mode() then
+                return
+            end
             draw_diagnostics(ev.buf)
         end,
     })

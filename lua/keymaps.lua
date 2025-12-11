@@ -211,12 +211,15 @@ vim.keymap.set({ "n" }, "ZQ", function()
     local tabs = vim.api.nvim_list_tabpages()
 
     local should_close_tab = #splits == 2 and is_cursor_in_split and status.is_open()
+    local no_name = vim.api.nvim_buf_get_name(0) == ""
 
     if #tabs == 1 and should_close_tab then
         vim.cmd("quit")
         vim.cmd("quit")
     elseif #tabs > 1 and should_close_tab then
         vim.cmd("tabclose")
+    elseif no_name then
+        vim.cmd("quit!")
     else
         vim.cmd("quit")
     end
