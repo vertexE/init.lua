@@ -1,5 +1,7 @@
 local M = {}
 
+local custom_diagnostics = require("ui.diagnostics")
+
 M.setup = function()
     local signs = require("symbols").lsp_signs()
     for type, icon in pairs(signs) do
@@ -7,13 +9,7 @@ M.setup = function()
         vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
     end
 
-    require("tiny-inline-diagnostic").setup({
-        options = {
-            multilines = {
-                enabled = true,
-            },
-        },
-    })
+    custom_diagnostics.setup()
 
     vim.diagnostic.config({
         signs = {
@@ -26,43 +22,12 @@ M.setup = function()
             },
         },
         virtual_text = false,
-        -- virtual_text = {
-        --     spacing = 4,
-        --     severity = { vim.diagnostic.severity.ERROR, vim.diagnostic.severity.WARN },
-        --     source = "if_many",
-        --     -- current_line = true,
-        --     --- @param diagnostic vim.Diagnostic
-        --     format = function(diagnostic)
-        --         local icon = ""
-        --         if diagnostic.code == "unused-local" or diagnostic.code == 6133 then
-        --             icon = signs.HINT
-        --         end
-        --         if diagnostic.severity == vim.diagnostic.severity.ERROR then
-        --             icon = signs.Error
-        --         end
-        --         if diagnostic.severity == vim.diagnostic.severity.WARN then
-        --             icon = signs.Warn
-        --         end
-        --         if diagnostic.severity == vim.diagnostic.severity.INFO then
-        --             icon = signs.Info
-        --         end
-        --         if diagnostic.severity == vim.diagnostic.severity.HINT then
-        --             icon = signs.Hint
-        --         end
-        --         local lines = vim.split(diagnostic.message, "\n")
-        --         local message = lines[1]
-        --         if #lines > 1 then
-        --             message = message .. "..."
-        --         end
-        --         return string.format("%s %s", icon, message)
-        --     end,
-        --     prefix = "",
-        -- },
+        virtual_lines = false,
         inlay_hint = {
             enable = true,
         },
         severity_sort = true,
-        underline = true,
+        underline = false,
         float = {
             -- style = 'minimal',
             border = "rounded",

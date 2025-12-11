@@ -33,10 +33,10 @@ local spotify = function()
     if valid.spotify then
         return #cache.spotify > 0
                 and {
-                    { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-                    { "󰓇  ", "TinyInlineDiagnosticVirtualTextInfo" },
-                    { cache.spotify, "TinyInlineDiagnosticVirtualTextInfo" },
-                    { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+                    { "", "StatusLineGreenTextNoBg" },
+                    { "󰓇  ", "StatusLineGreenTextWithBg" },
+                    { cache.spotify, "StatusLineGreenTextWithBg" },
+                    { "", "StatusLineGreenTextNoBg" },
                 }
             or {}
     end
@@ -55,10 +55,10 @@ local spotify = function()
 
     return #cache.spotify > 0
             and {
-                { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-                { "󰓇  ", "TinyInlineDiagnosticVirtualTextInfo" },
-                { cache.spotify, "TinyInlineDiagnosticVirtualTextInfo" },
-                { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+                { "", "StatusLineGreenTextNoBg" },
+                { "󰓇  ", "StatusLineGreenTextWithBg" },
+                { cache.spotify, "StatusLineGreenTextWithBg" },
+                { "", "StatusLineGreenTextNoBg" },
             }
         or {}
 end
@@ -142,15 +142,15 @@ M.tools = function()
 
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local vlines = {
-        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-        { "", "TinyInlineDiagnosticVirtualTextInfo" },
+        { "", "StatusLineGreenTextNoBg" },
+        { "", "StatusLineGreenTextWithBg" },
     }
     for _, client in ipairs(clients) do
         local lsp_name = " " .. client.name
-        table.insert(vlines, { lsp_name, "TinyInlineDiagnosticVirtualTextInfo" })
+        table.insert(vlines, { lsp_name, "StatusLineGreenTextWithBg" })
     end
 
-    table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+    table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
     cache.tools = vlines
     valid.tools = true
 
@@ -165,13 +165,13 @@ M.tabs = function()
 
     for i, tab in ipairs(tabs) do
         if tab == active_tabpage then
-            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
-            table.insert(vlines, { "●", "TinyInlineDiagnosticVirtualTextInfo" })
-            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+            table.insert(vlines, { "●", "StatusLineGreenTextWithBg" })
+            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
         else
-            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
-            table.insert(vlines, { "○", "TinyInlineDiagnosticVirtualTextInfo" })
-            table.insert(vlines, { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" })
+            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+            table.insert(vlines, { "○", "StatusLineGreenTextWithBg" })
+            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
         end
 
         if i < #tabs then
@@ -189,9 +189,9 @@ end
 M.git_branch = function()
     local local_branch = git_common.head_branch_name()
     return vlines_to_inline_hl({
-        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
-        { #local_branch > 0 and local_branch or "!git", "TinyInlineDiagnosticVirtualTextInfo" },
-        { "", "TinyInlineInvDiagnosticVirtualTextInfoNoBg" },
+        { "", "StatusLineGreenTextNoBg" },
+        { #local_branch > 0 and local_branch or "!git", "StatusLineGreenTextWithBg" },
+        { "", "StatusLineGreenTextNoBg" },
     })
 end
 

@@ -26,8 +26,7 @@ M.rounded_border = function()
 end
 
 M.lsp_signs = function()
-    -- NOTE: err was 
-    return { Error = "✘", Warn = "", Hint = "", Info = "󰭺" }
+    return { Error = "", Warn = "", Hint = "", Info = "󰭺" }
 end
 
 --- return a symbol representing the LSP server

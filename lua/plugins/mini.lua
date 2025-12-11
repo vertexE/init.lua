@@ -19,6 +19,10 @@ local function in_comment(marker)
     end
 end
 
+local IGNORE_NOTIFICATIONS = {
+    "lua_ls",
+}
+
 --- @type PackSpec
 local M = {
     event = "VimEnter",
@@ -31,7 +35,22 @@ local M = {
             desc = "Disable mini.completion in snacks.nvim picker buffers",
         })
 
-        require("mini.notify").setup()
+        require("mini.notify").setup({
+            content = {
+                sort = function(notif_arr)
+                    return vim.iter(notif_arr)
+                        :filter(function(notif)
+                            for _, IGNORE in ipairs(IGNORE_NOTIFICATIONS) do
+                                if notif.msg:match(IGNORE) then
+                                    return false
+                                end
+                            end
+                            return true
+                        end)
+                        :totable()
+                end,
+            },
+        })
         require("mini.icons").setup()
         require("mini.cursorword").setup({ delay = 500 })
         require("mini.ai").setup()
@@ -82,7 +101,7 @@ local M = {
             buffer = { suffix = "b", options = {} },
             comment = { suffix = "", options = {} },
             conflict = { suffix = "x", options = {} },
-            diagnostic = { suffix = "d", options = {} },
+            diagnostic = { suffix = "", options = {} },
             file = { suffix = "f", options = {} },
             indent = { suffix = "i", options = {} },
             jump = { suffix = "j", options = {} },

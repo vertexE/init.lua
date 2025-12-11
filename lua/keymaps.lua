@@ -221,3 +221,37 @@ vim.keymap.set({ "n" }, "ZQ", function()
         vim.cmd("quit")
     end
 end)
+
+vim.keymap.set("n", "]d", function()
+    local buf_diagnostics = vim.diagnostic.get(0)
+    local cl = vim.fn.getpos(".")[2] - 1
+    local next_diagnostic_pos = nil
+    for _, diagnostic in ipairs(buf_diagnostics) do
+        if cl < diagnostic.lnum and (not next_diagnostic_pos or next_diagnostic_pos[1] > (diagnostic.lnum + 1)) then
+            next_diagnostic_pos = { diagnostic.lnum + 1, diagnostic.col }
+        end
+    end
+
+    if next_diagnostic_pos then
+        vim.api.nvim_win_set_cursor(0, next_diagnostic_pos)
+    else
+        vim.notify("no next diagnostic")
+    end
+end, { desc = "next diagnostic" })
+
+vim.keymap.set("n", "[d", function()
+    local buf_diagnostics = vim.diagnostic.get(0)
+    local cl = vim.fn.getpos(".")[2] - 1
+    local prev_diagnostic_pos = nil
+    for _, diagnostic in ipairs(buf_diagnostics) do
+        if cl > diagnostic.lnum and (not prev_diagnostic_pos or prev_diagnostic_pos[1] < (diagnostic.lnum + 1)) then
+            prev_diagnostic_pos = { diagnostic.lnum + 1, diagnostic.col }
+        end
+    end
+
+    if prev_diagnostic_pos then
+        vim.api.nvim_win_set_cursor(0, prev_diagnostic_pos)
+    else
+        vim.notify("no next diagnostic")
+    end
+end, { desc = "prev diagnostic" })

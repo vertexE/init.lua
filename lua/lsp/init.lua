@@ -39,9 +39,6 @@ local on_attach = function(bufnr)
         end,
     })
 
-
-
-
     vim.keymap.set("i", "<c-i>", "<c-x><c-o>", { desc = "trigger completion menu" })
 end
 
