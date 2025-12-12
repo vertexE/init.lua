@@ -102,6 +102,32 @@ local M = {
                     ["DiagnosticWarnTextWithBg"] = { fg = "#D8A658", bg = "#463D2E", italic = true },
                     ["DiagnosticHintTextNoBg"] = { fg = "#354137" },
                     ["DiagnosticHintTextWithBg"] = { fg = "#89B483", bg = "#354137", italic = true },
+
+                    -- Multi-dot diagnostic highlights (for displaying multiple diagnostic types on same line)
+                    -- Error background combinations
+                    ["DiagnosticErrorDotOnErrorBg"] = { fg = "#EA6963", bg = "#4A3030", italic = true },
+                    ["DiagnosticWarnDotOnErrorBg"] = { fg = "#D8A658", bg = "#4A3030", italic = true },
+                    ["DiagnosticInfoDotOnErrorBg"] = { fg = "#89B483", bg = "#4A3030", italic = true },
+                    ["DiagnosticHintDotOnErrorBg"] = { fg = "#89B483", bg = "#4A3030", italic = true },
+
+                    -- Warn background combinations
+                    ["DiagnosticErrorDotOnWarnBg"] = { fg = "#EA6963", bg = "#463D2E", italic = true },
+                    ["DiagnosticWarnDotOnWarnBg"] = { fg = "#D8A658", bg = "#463D2E", italic = true },
+                    ["DiagnosticInfoDotOnWarnBg"] = { fg = "#89B483", bg = "#463D2E", italic = true },
+                    ["DiagnosticHintDotOnWarnBg"] = { fg = "#89B483", bg = "#463D2E", italic = true },
+
+                    -- Info background combinations
+                    ["DiagnosticErrorDotOnInfoBg"] = { fg = "#EA6963", bg = "#354137", italic = true },
+                    ["DiagnosticWarnDotOnInfoBg"] = { fg = "#D8A658", bg = "#354137", italic = true },
+                    ["DiagnosticInfoDotOnInfoBg"] = { fg = "#89B483", bg = "#354137", italic = true },
+                    ["DiagnosticHintDotOnInfoBg"] = { fg = "#89B483", bg = "#354137", italic = true },
+
+                    -- Hint background combinations (same as Info since they share colors)
+                    ["DiagnosticErrorDotOnHintBg"] = { fg = "#EA6963", bg = "#354137", italic = true },
+                    ["DiagnosticWarnDotOnHintBg"] = { fg = "#D8A658", bg = "#354137", italic = true },
+                    ["DiagnosticInfoDotOnHintBg"] = { fg = "#89B483", bg = "#354137", italic = true },
+                    ["DiagnosticHintDotOnHintBg"] = { fg = "#89B483", bg = "#354137", italic = true },
+
                     ["StatusLineSeparatorContent"] = {
                         fg = colors.subtext1,
                         bg = Color:from_hex(colors.base):lighten(8):hex(),

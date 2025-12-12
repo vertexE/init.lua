@@ -13,7 +13,7 @@ local ns = vim.api.nvim_create_namespace("user.diagnostic.inline")
 
 --- shrink diagnostic message to size of window as best as we can
 --- fallback on wrapping the diagnostic message at 30 characters, without splitting words
-local WRAP_WORDS_CHAR_LIMIT = 40
+local WRAP_WORDS_CHAR_LIMIT = 45
 
 --- wrap words to meed wrap_at limit, adding whitespace padding to the end
 --- of each new line.
@@ -21,25 +21,27 @@ local WRAP_WORDS_CHAR_LIMIT = 40
 --- @param wrap_at number maximum characters per line
 --- @return string[] adjusted multiline string
 local word_wrap_aligned = function(lines, wrap_at)
+    local DOT_PREFIX_RENDER_OFFSET = 5
     local result = {}
     for i, line in ipairs(lines) do
-        local offset = i == 1 and 3 or 0
-        if #line <= wrap_at then
-            table.insert(result, line .. string.rep(" ", wrap_at - #line - offset))
+        local offset = i == 1 and DOT_PREFIX_RENDER_OFFSET or 0 -- " ● " where the dot counts as 3 chars
+        local prefix = #result >= 1 and " ┊ " or ""
+        local prefixed_line = prefix .. line
+        if #prefixed_line + offset < wrap_at then
+            table.insert(result, prefixed_line .. string.rep(" ", wrap_at - #prefixed_line - offset))
             offset = 0
         else
             -- wrap long lines at word boundaries
             local current = ""
             for word in line:gmatch("%S+") do
                 if #current == 0 then
-                    local prefix = #result >= 1 and string.rep(" ", 3) or ""
                     current = prefix .. word
                 elseif #current + 1 + offset + #word < wrap_at then
                     current = current .. " " .. word
                 else
                     table.insert(result, current .. string.rep(" ", wrap_at - #current - offset))
                     offset = 0
-                    current = string.rep(" ", 3) .. word
+                    current = " ┊ " .. word
                 end
             end
             if #current > 0 then
@@ -49,6 +51,49 @@ local word_wrap_aligned = function(lines, wrap_at)
         end
     end
     return result
+end
+
+--- Build virt_text for multi-colored diagnostic dots
+--- @param diagnostics_for_line vim.Diagnostic[] diagnostics on the line
+--- @param highest_severity string "Error" | "Warn" | "Info" | "Hint"
+--- @return table<table<string>> virt_text array
+local build_dot_vtext = function(diagnostics_for_line, highest_severity)
+    local counts = { Error = 0, Warn = 0, Info = 0, Hint = 0 }
+    for _, diag in ipairs(diagnostics_for_line) do
+        local severity_word = severity_to_word[diag.severity]
+        counts[severity_word] = counts[severity_word] + 1
+    end
+
+    local text_hl = string.format("Diagnostic%sTextWithBg", highest_severity)
+    local border_hl = string.format("Diagnostic%sTextNoBg", highest_severity)
+
+    local vtext = {
+        { "     ", "TextDimmer" },
+        { "", border_hl },
+        { " ", text_hl },
+    }
+
+    local bg_suffix = "On" .. highest_severity .. "Bg"
+
+    local severities = {}
+    for _, severity in pairs(severity_to_word) do
+        if severity ~= highest_severity then
+            table.insert(severities, severity)
+        end
+    end
+    table.insert(severities, highest_severity)
+    for _, severity in ipairs(severities) do
+        if counts[severity] > 0 then
+            local hl_group = "Diagnostic" .. severity .. "Dot" .. bg_suffix
+            table.insert(vtext, { "●", hl_group })
+        end
+    end
+
+    local total_count = #diagnostics_for_line
+    table.insert(vtext, { " " .. tostring(total_count) .. " ", text_hl })
+    table.insert(vtext, { "", border_hl })
+
+    return vtext
 end
 
 local draw_diagnostics_summary = function(bufnr, diagnostics)
@@ -65,15 +110,13 @@ local draw_diagnostics_summary = function(bufnr, diagnostics)
         end)
         --- @type vim.Diagnostic
         local diagnostic = diagnostics_for_line[1]
-        local hl_key = severity_to_word[diagnostic.severity]
-        local hl_no_bg = string.format("Diagnostic%sTextNoBg", hl_key)
-        local hl_with_bg = string.format("Diagnostic%sTextWithBg", hl_key)
-        vline_by_lnum[lnum] = {
-            { "     ", "TextDimmer" },
-            { "", hl_no_bg },
-            { "  " .. tostring(#diagnostics_for_line) .. " ", hl_with_bg },
-            { "", hl_no_bg },
-        }
+        local severity = severity_to_word[diagnostic.severity]
+        local dot_vtext = build_dot_vtext(diagnostics_for_line, severity)
+
+        vline_by_lnum[lnum] = {}
+        for _, vtext_elem in ipairs(dot_vtext) do
+            table.insert(vline_by_lnum[lnum], vtext_elem)
+        end
     end
 
     for lnum, vline in pairs(vline_by_lnum) do
@@ -103,11 +146,13 @@ local draw_diagnostics_on_line = function(bufnr, diagnostics, cl_zero)
     local wrap_word_on_len = math.min(win_width - line_len, WRAP_WORDS_CHAR_LIMIT)
 
     local vlines = {}
+    local hl_with_bg = ""
+    local hl_no_bg = ""
     for i, diagnostic in ipairs(diagnostics) do
         local msg = word_wrap_aligned(vim.split(diagnostic.message, "\n"), wrap_word_on_len)
         local hl_key = severity_to_word[diagnostic.severity]
-        local hl_no_bg = string.format("Diagnostic%sTextNoBg", hl_key)
-        local hl_with_bg = string.format("Diagnostic%sTextWithBg", hl_key)
+        hl_with_bg = string.format("Diagnostic%sTextWithBg", hl_key)
+        hl_no_bg = string.format("Diagnostic%sTextNoBg", hl_key)
         for j, msg_segment in ipairs(msg) do
             local vline = (i == 1 and j == 1) and { { "     ", "TextDimmer" }, { "", hl_no_bg } }
                 or { { string.rep(" ", 7), "TextDimmer" } }
@@ -126,9 +171,13 @@ local draw_diagnostics_on_line = function(bufnr, diagnostics, cl_zero)
                 virt_text_win_col = line_len + 1,
             })
         elseif cl_zero + i == total_lines then
-            -- FIXME: this isn't a great solution -- prefer to squish or do something else...
+            local PREFIX_RENDERED_LENGTH = 4
+            --- @type string[] of len 2
+            local last_segment = vline[#vline]
+            last_segment[1] = last_segment[1]:sub(1, #last_segment[1] - PREFIX_RENDERED_LENGTH)
+                .. string.format("…+++")
             vim.api.nvim_buf_set_extmark(bufnr, ns, cl_zero + i - 1, 0, {
-                virt_text = tbl.merge(vline, { { "+++", "TextDimmer" } }),
+                virt_text = vline,
                 virt_text_win_col = line_len + 1,
             })
         end
