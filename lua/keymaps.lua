@@ -258,3 +258,7 @@ vim.keymap.set("n", "[d", function()
         vim.notify("no next diagnostic")
     end
 end, { desc = "prev diagnostic" })
+
+vim.keymap.set("n", "<leader>ak", function()
+    require("assistant.terminal").claude()
+end)

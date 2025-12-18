@@ -6,6 +6,7 @@ local buf = require("buf")
 --- @class prompt.context
 --- @field mode string
 --- @field req_bufnr integer
+--- @field input ?string
 
 local copilot = {
     --- @param ctx prompt.context
@@ -46,6 +47,44 @@ local copilot = {
 }
 
 local claude = {
+
+    --- @param ctx prompt.context
+    --- @return string
+    default = function(ctx)
+        local is_visual_mode = ctx.mode == "v" or ctx.mode == "V" or ctx.mode == "^V"
+        local sel_start, sel_end = buf.active_selection()
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        local knowledge = resources.active()
+        local prompt_header = string.format(
+            [[
+<rules>
+- you are in the current file @%s
+- you are only allowed to modify the current file and the files listed in the `files` tag.
+- you may create any number of files as you see fit
+- if you need to modify a file outside of the file list, request the user to approve beforehand
+- the `files` XML tag contains a list of files to be modified or used as additional context
+- don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
+- use the data in the `<context>` XML tags to inform your decisions, look elsewhere if context is missing
+- `user-cursor` XML tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
+- `user-input` XML tag describes the request and the overall goal
+</rules>
+<user-cursor>
+selecting: %s
+position: (%d, %d) 
+</user-cursor>
+<user-input>
+%s
+</user-input>
+    ]],
+            file,
+            is_visual_mode,
+            sel_start,
+            sel_end,
+            ctx.input
+        )
+
+        return prompt_header .. knowledge
+    end,
 
     --- @param ctx prompt.context
     --- @return string
@@ -183,6 +222,12 @@ M.ask = function(ctx)
 
     vim.notify("unsupported agent", vim.log.levels.WARN)
     return ""
+end
+
+--- @param ctx prompt.context
+--- @return string
+M.default = function(ctx)
+    return claude.default(ctx)
 end
 
 return M

@@ -14,6 +14,7 @@ end
 --- @field close_on_q ?boolean
 --- @field bo ?table<string, any>
 --- @field wo ?table<string, any>
+--- @field bufnr ?integer
 --- @field border ?string
 
 local center_opts = {
@@ -23,6 +24,7 @@ local center_opts = {
     close_on_q = true,
     bo = {},
     wo = {},
+    bufnr = -1,
     border = "rounded",
 }
 
@@ -30,7 +32,7 @@ local center_opts = {
 --- @return integer bufnr,integer winr
 M.center = function(opts)
     opts = opts or {}
-    local bufnr = vim.api.nvim_create_buf(true, true)
+    local bufnr = (opts.bufnr and opts.bufnr > 0) and opts.bufnr or vim.api.nvim_create_buf(true, true)
     local editor_width = vim.o.columns
     local editor_height = vim.o.lines
     local width = math.floor((opts.width or center_opts.width) * editor_width)
