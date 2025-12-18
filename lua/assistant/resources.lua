@@ -39,7 +39,7 @@ local resource_state = {
     --- @type table<integer,boolean>
     active_bufs = {},
     --- @type llm.Agent -- default agent to use for inline requests
-    agent = "Copilot",
+    agent = "Claude",
 }
 
 local active_bufs_summary = function()
@@ -61,15 +61,15 @@ end
 --- @return string,string
 local plan_status_to_icon_hl = function(status)
     if status == "planning" then
-        return "󰩉  ", "MiniIconsGreen"
+        return " 󰩉  ", "MiniIconsGreen"
     elseif status == "reviewable" then
-        return "  ", "MiniIconsGreen"
+        return "   ", "MiniIconsGreen"
     elseif status == "executable" then
-        return "  ", "MiniIconsOrange"
+        return "   ", "MiniIconsGreen"
     elseif status == "executing" then
-        return "  ", "MiniIconsOrange"
+        return "   ", "MiniIconsYellow"
     elseif status == "completed" then
-        return "  ", "MiniIconsGreen"
+        return "   ", "MiniIconsGreen"
     end
 
     return "", "Comment"
@@ -131,7 +131,7 @@ end
 M.agent = function()
     return {
         {
-            resource_state.agent == "Copilot" and " " or "󰛄 ",
+            resource_state.agent == "Copilot" and "  " or " 󰛄 ",
             "MiniIconsGreen",
         },
         { string.format(" %s", resource_state.agent), "Comment" },
@@ -141,23 +141,23 @@ end
 M.status = function()
     local v_lines = {}
     table.insert(v_lines, {
-        { "󰒉 ", resources.selection and "MiniIconsRed" or "Comment" },
+        { " 󰒉 ", resources.selection and "MiniIconsRed" or "Comment" },
         { " - visual lines", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.lsp_diagnostics and "MiniIconsRed" or "Comment" },
+        { "  ", resources.lsp_diagnostics and "MiniIconsRed" or "Comment" },
         { " - diagnostics", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.git_diff and "MiniIconsRed" or "Comment" },
+        { "  ", resources.git_diff and "MiniIconsRed" or "Comment" },
         { " - git diff", "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.blocks and "MiniIconsRed" or "Comment" },
+        { "  ", resources.blocks and "MiniIconsRed" or "Comment" },
         { string.format(" - blocks %d", #resource_state.blocks), "Comment" },
     })
     table.insert(v_lines, {
-        { " ", resources.buffers and "MiniIconsRed" or "Comment" },
+        { "  ", resources.buffers and "MiniIconsRed" or "Comment" },
         { string.format(" - %s", active_bufs_summary()), "Comment" },
     })
     return v_lines

@@ -104,6 +104,7 @@ local claude = {
 - don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
 - use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
 - for replace mode, only modify in the bounds of the selection
+- if in insert mode, modify the file(s) to resolve the user's request
 - we're in %s mode, 
 - `user-cursor` tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
 </rules>

@@ -5,7 +5,18 @@ local M = {
         "CopilotChat.nvim",
     },
     config = function()
-        require("sidekick").setup({ nes = { enabled = false } })
+        require("sidekick").setup({
+            nes = { enabled = false },
+            cli = {
+                win = {
+                    layout = "float",
+                    float = {
+                        width = 0.8,
+                        height = 0.85,
+                    },
+                },
+            },
+        })
 
         vim.keymap.set("n", "<leader>ac", function()
             require("sidekick.cli").toggle({ name = "claude", focus = true })

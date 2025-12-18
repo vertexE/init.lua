@@ -115,7 +115,7 @@ local file_path = function()
         if i == #segments then
             table.insert(virtual_path, { ft_decoration.icon, ft_decoration.hl })
             table.insert(virtual_path, { string.format("%s", segment), "Text" })
-            table.insert(virtual_path, { vim.bo.modified and " ● " or "   ", "TextDim" })
+            table.insert(virtual_path, { vim.bo.modified and " ● " or "   ", "MiniIconsOrange" })
         else
             table.insert(virtual_path, { string.format("%s", segment), "DropBarIconUISeparator" })
             table.insert(virtual_path, { "  ", "DropBarIconUISeparator" })

@@ -76,6 +76,19 @@ local prompt_agent = function(prompt, resolve, opts)
     end
 end
 
+--- Extract session_id from Claude CLI JSON output
+--- @param output string
+--- @return string|nil
+local extract_session_id = function(output)
+    for line in output:gmatch("[^\r\n]+") do
+        local session_id = line:match('"session_id"%s*:%s*"([^"]+)"')
+        if session_id then
+            return session_id
+        end
+    end
+    return nil
+end
+
 M.create_plan = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
@@ -89,29 +102,31 @@ M.create_plan = function()
     plan.create_plan(function(goal, _plan)
         vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
         prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(result)
-            local res = vim.json.decode(result)
-            if not res then
-                vim.notify("(assistant): an issue occurred decoding the plan")
+            local session_id = extract_session_id(result)
+            if not session_id then
+                vim.notify("(assistant): failed to extract session_id from plan")
                 return
             end
             _plan.status = "reviewable"
-            _plan.session_id = res["session_id"]
+            _plan.session_id = session_id
 
-            vim.notify(string.format("(assistant): %s", res["result"]), vim.log.levels.INFO)
+            vim.notify(string.format("(assistant): plan is ready for review"), vim.log.levels.INFO)
             vim.cmd.tabnew()
             vim.cmd.edit({ args = { fs.last_modified_file_in_dir(CLAUDE_PLANS_DIR) } })
 
-            local bufnr = vim.api.nvim_get_current_buf()
-            vim.keymap.set("n", "q", function()
-                vim.cmd.tabclose()
-            end, { buffer = bufnr })
+            vim.schedule(function()
+                local bufnr = vim.api.nvim_get_current_buf()
+                vim.keymap.set("n", "q", function()
+                    vim.cmd.tabclose()
+                end, { buffer = bufnr })
 
-            vim.keymap.set("n", "<enter>", function()
-                vim.notify("(assistant): approved plan!")
-                _plan.status = "executable"
-                vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-                vim.cmd.tabclose()
-            end, { buffer = bufnr })
+                vim.keymap.set("n", "<enter>", function()
+                    vim.notify("(assistant): approved plan!")
+                    _plan.status = "executable"
+                    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+                    vim.cmd.tabclose()
+                end, { buffer = bufnr })
+            end)
         end)
     end)
 end

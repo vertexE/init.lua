@@ -30,7 +30,7 @@ M.create_plan = function(callback)
         end
 
         local file_name = vim.fn.tempname()
-        textarea.open({ prompt = "󰛄 Plan" }, function(goal)
+        textarea.open({ prompt = "󰛄 Plan", height = 0.3, width = 0.5 }, function(goal)
             if not goal or #goal == 0 then
                 return
             end

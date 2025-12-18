@@ -123,6 +123,7 @@ local draw_diagnostics_summary = function(bufnr, diagnostics)
         vim.api.nvim_buf_set_extmark(bufnr, ns, lnum, 0, {
             virt_text = vline,
             virt_text_pos = "eol",
+            priority = 100,
         })
     end
 end
