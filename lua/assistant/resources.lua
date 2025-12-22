@@ -1,8 +1,6 @@
 local M = {}
 
 local buf = require("buf")
-local tbl = require("tbl")
-local floats = require("ui.floats")
 local request = require("assistant.request")
 local plan = require("assistant.plan")
 
@@ -249,53 +247,22 @@ M.clear_blocks = function()
     vim.notify("clear blocks!", vim.log.levels.INFO, {})
 end
 
---- @type table<integer,integer> 1 based index map
-local line_to_bufnr = {}
-local MAX_LINES = 100
-
-local draw = function(bufnr)
-    local ns = vim.api.nvim_create_namespace("user.assistant.select_buffers")
-    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, tbl.rep({}, " ", MAX_LINES))
-
-    local line = 1
-    for _, _buf in ipairs(vim.api.nvim_list_bufs()) do
-        local name = vim.api.nvim_buf_get_name(_buf)
-        local display_name = name ~= "" and vim.fn.fnamemodify(name, ":.") or ""
-        if
-            vim.api.nvim_buf_is_loaded(_buf)
-            and vim.api.nvim_get_option_value("buflisted", { buf = _buf })
-            and #display_name > 0
-        then
-            local toggled_on = resource_state.active_bufs[_buf]
-            vim.api.nvim_buf_set_lines(bufnr, line - 1, line - 1, false, { "   " .. display_name })
-            vim.api.nvim_buf_set_extmark(bufnr, ns, line - 1, 0, {
-                virt_text_pos = "overlay",
-                virt_text = {
-                    toggled_on and { "  ", "MiniIconsOrange" } or { "  ", "@constant" },
-                    { display_name, "@constant" },
-                },
-            })
-            line_to_bufnr[line] = _buf
-            line = line + 1
-        end
-    end
-end
-
 M.select_buffers = function()
-    local bufnr = floats.center({ height = 0.25, width = 0.8, title = "Select buffers" })
-    draw(bufnr)
-
-    vim.keymap.set("n", "<enter>", function()
-        local cursor_ln = vim.fn.getpos(".")[2]
-        local _buf = line_to_bufnr[cursor_ln]
-        if resource_state.active_bufs[_buf] == nil then
-            resource_state.active_bufs[_buf] = true
-        else
-            resource_state.active_bufs[_buf] = nil
-        end
-        draw(bufnr)
-    end, { buffer = bufnr })
+    require("snacks").picker.pick("buffers", {
+        filter = {
+            filter = function(item)
+                return string.find(item.file, "Scratch") == nil
+            end,
+        },
+        confirm = function(picker)
+            local items = picker:selected()
+            resource_state.active_bufs = {}
+            for _, item in ipairs(items) do
+                resource_state.active_bufs[item.buf] = true
+            end
+            vim.notify(string.format("Set %d active buffer(s)", #items), vim.log.levels.INFO)
+        end,
+    })
 end
 
 --- all buffers set to active + the current buffer
