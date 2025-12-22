@@ -1,3 +1,5 @@
+local buf = require("buf")
+
 --- @type PackSpec
 local M = {
     requires = {
@@ -18,17 +20,28 @@ local M = {
             },
         })
 
-        vim.keymap.set("n", "<leader>ac", function()
+        local state = {
+            req_bufnr = -1,
+            sel_start = -1,
+            sel_end = -1,
+        }
+
+        vim.keymap.set({ "n", "x" }, "<leader>ac", function()
+            state.req_bufnr = vim.api.nvim_get_current_buf()
+            local sel_start, sel_end = buf.active_selection()
+            state.sel_start = sel_start
+            state.sel_end = sel_end
             require("sidekick.cli").toggle({ name = "claude", focus = true })
         end, { desc = "Sidekick Toggle Claude" })
 
-        vim.keymap.set("x", "<leader>av", function()
-            require("sidekick.cli").send({ msg = "{selection}" })
-        end, { desc = "Send Visual Selection" })
-
-        vim.keymap.set("n", "<leader>af", function()
-            require("sidekick.cli").send({ msg = "{file}" })
-        end, { desc = "Send File" })
+        vim.keymap.set("t", "<c-cr>", function()
+            vim.print(vim.inspect(state))
+            require("assistant.terminal").msg_claude({
+                req_bufnr = state.req_bufnr,
+                sel_start = state.sel_start,
+                sel_end = state.sel_end,
+            })
+        end)
 
         require("CopilotChat").setup({
             mappings = {

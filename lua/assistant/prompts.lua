@@ -7,6 +7,8 @@ local buf = require("buf")
 --- @field mode string
 --- @field req_bufnr integer
 --- @field input ?string
+--- @field sel_start ?integer
+--- @field sel_end ?integer
 
 local copilot = {
     --- @param ctx prompt.context
@@ -51,35 +53,64 @@ local claude = {
     --- @param ctx prompt.context
     --- @return string
     default = function(ctx)
-        local is_visual_mode = ctx.mode == "v" or ctx.mode == "V" or ctx.mode == "^V"
-        local sel_start, sel_end = buf.active_selection()
         local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
-        local knowledge = resources.active()
+        local lines = vim.api.nvim_buf_get_lines(ctx.req_bufnr, ctx.sel_start - 1, ctx.sel_end, false)
+        local knowledge = resources.active(ctx.req_bufnr, {
+            sel_start = ctx.sel_start,
+            sel_end = ctx.sel_end,
+            sel_lines = lines,
+        })
         local prompt_header = string.format(
             [[
-<rules>
-- you are in the current file @%s
-- you are only allowed to modify the current file and the files listed in the `files` tag.
-- you may create any number of files as you see fit
-- if you need to modify a file outside of the file list, request the user to approve beforehand
-- the `files` XML tag contains a list of files to be modified or used as additional context
-- don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
-- use the data in the `<context>` XML tags to inform your decisions, look elsewhere if context is missing
-- `user-cursor` XML tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
-- `user-input` XML tag describes the request and the overall goal
-</rules>
-<user-cursor>
-selecting: %s
-position: (%d, %d) 
-</user-cursor>
-<user-input>
-%s
-</user-input>
+<meta>
+    <rules>
+    - **IMPORTANT**: record all updates in todo.md, separatings tasks into a short single sentence of what must be done
+    - **CRITICAL**: at the top of todo.md, update the metadata after each step to ensure the user knows what you are currently doing
+    - see the example todo.md format in the XML tag `todo-example`
+    - see the description of how to write the todo.md in the XML tag `todo-format`
+    - todo.md will go at the root of the active directory
+    - you are in the current file @%s
+    - you are only allowed to modify the current file and the files listed in the `files` tag.
+    - you may create any number of files as you see fit
+    - if you need to modify a file outside of the file list, request the user to approve beforehand
+    - the `files` XML tag contains a list of files to be modified or used as additional context
+    - don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
+    - use the data in the `<context>` XML tags to inform your decisions, look elsewhere if context is missing
+    - `user-cursor` XML tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
+    - **ALWAYS** assume that normal text outside of the `meta` XML tag is user input and represents the goal
+    </rules>
+    <user-cursor>
+    selecting: %s
+    position: (%d, %d)
+    </user-cursor>
+    <todo-example>
+    ---
+    status: <CODING|TESTING|DEBUGGING|WAITING|DONE>
+    ---
+    - [x] implement fooBar function
+    - [!] add unit tests
+    - [-] add logs to DB class
+    - [ ] fix race condition
+    </todo-example>
+    <todo-format>
+    # status
+    - `CODING`: when you are modifying files and writing code
+    - `TESTING`: when you are running test files to confirm your implementation
+    - `DEBUGGING`: when you have hit a roadblock and are adding logging statements to better understand the problem
+    - `WAITING`: when you require user input to complete a change
+    - `DONE`: when you have finished all tasks
+    # todos
+    `- [x]` means task complete
+    `- [!]` means task failed to complete
+    `- [-]` means task in progress
+    `- [ ]` means task not yet started
+    </todo-format>
+</meta>
     ]],
             file,
-            is_visual_mode,
-            sel_start,
-            sel_end,
+            ctx.sel_start ~= ctx.sel_end,
+            ctx.sel_start,
+            ctx.sel_end,
             ctx.input
         )
 

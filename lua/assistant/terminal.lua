@@ -1,10 +1,9 @@
 local M = {}
 
 local prompts = require("assistant.prompts")
-local textarea = require("ui.textarea")
-local resources = require("assistant.resources")
+-- local resources = require("assistant.resources")
 
-local state = { has_session = false }
+-- local state = { has_session = false }
 
 --[[
 -- PLAN --
@@ -15,28 +14,24 @@ local state = { has_session = false }
 -- - this allows us to know what it's working on... refreshing as we go
 --]]
 
-M.claude = function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local sidekick = require("sidekick.cli")
-    if state.has_session then
-        sidekick.send({
-            name = "claude",
-            msg = resources.active(bufnr),
-            focus = true,
-        })
-        return
-    end
+--- @class claude.msg_ctx
+--- @field req_bufnr integer
+--- @field sel_start integer
+--- @field sel_end integer
 
-    textarea.open({ prompt = "󰛄 Claude", height = 0.5, width = 0.55 }, function(input)
-        local status = vim.api.nvim_get_mode()
-        sidekick.send({
-            name = "claude",
-            msg = prompts.default({ mode = status.mode, req_bufnr = bufnr, input = table.concat(input, "\n") }),
-            focus = true,
-        })
-    end)
-
-    state.has_session = true
+--- @param ctx claude.msg_ctx
+M.msg_claude = function(ctx)
+    local status = vim.api.nvim_get_mode()
+    require("sidekick.cli").send({
+        name = "claude",
+        msg = prompts.default({
+            mode = status.mode,
+            req_bufnr = ctx.req_bufnr,
+            sel_start = ctx.sel_start,
+            sel_end = ctx.sel_end,
+        }),
+        focus = true,
+    })
 end
 
 return M

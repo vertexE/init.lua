@@ -163,11 +163,22 @@ M.status = function()
     return v_lines
 end
 
-local selection = function()
+-- format selection lines with XML tags. if lines are provided, use them; otherwise query buffer
+local sel_lines = function(bufnr, sel_start, sel_end, lines)
+    if not lines then
+        lines = vim.api.nvim_buf_get_lines(bufnr, sel_start - 1, sel_end, false)
+    end
+    local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
+    return string.format("<active-selection filetype='%s'>\n", ft)
+        .. table.concat(lines, "\n")
+        .. "\n</active-selection>"
+end
+
+--- @param bufnr ?integer
+local selection = function(bufnr)
+    bufnr = bufnr or 0
     local sel_start, sel_end = buf.active_selection()
-    local lines = vim.api.nvim_buf_get_lines(0, sel_start - 1, sel_end, false)
-    local ft = vim.api.nvim_get_option_value("filetype", { buf = 0 })
-    return string.format("<active-selection filetype='%s'>", ft) .. table.concat(lines, "\n") .. "</active-selection>"
+    return sel_lines(bufnr, sel_start, sel_end)
 end
 
 --- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"|"buffers"
@@ -177,13 +188,22 @@ M.toggle = function(rt)
     resources[rt] = not resources[rt]
 end
 
+--- @class resourceContext
+--- @field sel_start integer
+--- @field sel_end integer
+--- @field sel_lines ?string[]
+
 --- all active resources
 --- @param bufnr ?integer
+--- @param ctx ?resourceContext
 --- @return string
-M.active = function(bufnr)
+M.active = function(bufnr, ctx)
     local knowledge = ""
-    if resources.selection then
-        knowledge = knowledge .. selection()
+    if resources.selection and ctx then
+        -- use captured lines if provided, otherwise query buffer
+        knowledge = knowledge .. sel_lines(bufnr, ctx.sel_start, ctx.sel_end, ctx.sel_lines)
+    elseif resources.selection then
+        knowledge = knowledge .. selection(bufnr)
     end
     if resources.git_diff then
         knowledge = knowledge
