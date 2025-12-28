@@ -1,21 +1,27 @@
 local M = {}
 
 local git_common = require("vcs.git_common")
+local resources = require("assistant.resources")
 
 local FIFO_PIPE_UPDATE_TIME = 3000
 
 local cache = {
     spotify = "No track currently playing",
+    claude = "",
     tools = {},
+    git_branch = "",
 }
 
 local valid = {
     spotify = true,
     tools = false,
+    claude = false,
+    git_branch = false,
 }
 
 local loading = {
     spotify = false,
+    claude = false,
 }
 
 --- @param vlines table<table<string,string>>
@@ -66,6 +72,48 @@ end
 M.spotify = function()
     local segments = spotify()
     return vlines_to_inline_hl(segments)
+end
+
+local claude = function()
+    local hl_no_bg = cache.claude == "PROMPT" and "StatusLineRedTextNoBg"
+        or (cache.claude == "WORKING" and "StatusLineYellowTextNoBg" or "StatusLineGreenTextNoBg")
+    local hl_bg = cache.claude == "PROMPT" and "StatusLineRedTextWithBg"
+        or (cache.claude == "WORKING" and "StatusLineYellowTextWithBg" or "StatusLineGreenTextWithBg")
+
+    return {
+        { "", hl_no_bg },
+        { "󰛄 claude ", hl_bg },
+        { "", hl_no_bg },
+    }
+end
+
+M.claude = function()
+    if resources.agent_name() == "Copilot" then
+        return vlines_to_inline_hl({
+            { "", "StatusLineGreenTextNoBg" },
+            { "  copilot ", "StatusLineGreenTextWithBg" },
+            { "", "StatusLineGreenTextNoBg" },
+        })
+    end
+
+    if valid.claude then
+        return vlines_to_inline_hl(claude())
+    end
+
+    if not loading.claude then
+        vim.system({ "cat", vim.env.HOME .. "/.claude.status" }, { text = true }, function(result)
+            if result.code == 0 and #result.stdout > 0 then
+                cache.claude = vim.trim(result.stdout)
+            else
+                cache.claude = ""
+            end
+            valid.claude = true
+            loading.claude = false
+        end)
+        loading.claude = true
+    end
+
+    return vlines_to_inline_hl(claude())
 end
 
 local mode_map = {
@@ -187,7 +235,12 @@ M.time = function()
 end
 
 M.git_branch = function()
-    local local_branch = git_common.head_branch_name()
+    -- Cache git branch to avoid blocking main thread
+    if not valid.git_branch then
+        cache.git_branch = git_common.head_branch_name()
+        valid.git_branch = true
+    end
+    local local_branch = cache.git_branch
     return vlines_to_inline_hl({
         { "", "StatusLineGreenTextNoBg" },
         { #local_branch > 0 and (" " .. local_branch) or "!git", "StatusLineGreenTextWithBg" },
@@ -198,7 +251,8 @@ end
 M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        "%{%v:lua.require'ui.statusline'.spotify()%}",
+        "%{%v:lua.require'ui.statusline'.claude()%}",
+        -- "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",
         "%{%v:lua.require'ui.statusline'.tabs()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",
@@ -232,10 +286,11 @@ M.setup = function()
 
     local invalidate_group = vim.api.nvim_create_augroup("user.statusline.invalidate", { clear = true })
 
-    vim.api.nvim_create_autocmd("LspAttach", {
+    vim.api.nvim_create_autocmd({ "LspAttach", "BufEnter" }, {
         group = invalidate_group,
         callback = function()
             valid.tools = false
+            valid.git_branch = false
         end,
     })
 
@@ -245,6 +300,16 @@ M.setup = function()
         FIFO_PIPE_UPDATE_TIME,
         vim.schedule_wrap(function()
             valid.spotify = false
+        end)
+    )
+
+    -- Invalidate claude cache every 5 seconds
+    local claude_timer = vim.uv.new_timer()
+    claude_timer:start(
+        0,
+        5000,
+        vim.schedule_wrap(function()
+            valid.claude = false
         end)
     )
 end

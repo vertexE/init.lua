@@ -103,3 +103,57 @@ If you want to use dap, you will need the debugger tools, such as
 "vertexE/hacked.nvim",
 ```
 
+## Claude Integration
+
+### claude settings
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo PROMPT > ~/.claude.status"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo PROMPT > ~/.claude.status"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo WORKING > ~/.claude.status"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo COMPLETE > ~/.claude.status"
+          }
+        ]
+      }
+    ]
+  }
+}
+```

@@ -64,11 +64,6 @@ local claude = {
             [[
 <meta>
     <rules>
-    - **IMPORTANT**: record all updates in todo.md, separatings tasks into a short single sentence of what must be done
-    - **CRITICAL**: at the top of todo.md, update the metadata after each step to ensure the user knows what you are currently doing
-    - see the example todo.md format in the XML tag `todo-example`
-    - see the description of how to write the todo.md in the XML tag `todo-format`
-    - todo.md will go at the root of the active directory
     - you are in the current file @%s
     - you are only allowed to modify the current file and the files listed in the `files` tag.
     - you may create any number of files as you see fit
@@ -83,28 +78,6 @@ local claude = {
     selecting: %s
     position: (%d, %d)
     </user-cursor>
-    <todo-example>
-    ---
-    status: <CODING|TESTING|DEBUGGING|WAITING|DONE>
-    ---
-    - [x] implement fooBar function
-    - [!] add unit tests
-    - [-] add logs to DB class
-    - [ ] fix race condition
-    </todo-example>
-    <todo-format>
-    # status
-    - `CODING`: when you are modifying files and writing code
-    - `TESTING`: when you are running test files to confirm your implementation
-    - `DEBUGGING`: when you have hit a roadblock and are adding logging statements to better understand the problem
-    - `WAITING`: when you require user input to complete a change
-    - `DONE`: when you have finished all tasks
-    # todos
-    `- [x]` means task complete
-    `- [!]` means task failed to complete
-    `- [-]` means task in progress
-    `- [ ]` means task not yet started
-    </todo-format>
 </meta>
     ]],
             file,

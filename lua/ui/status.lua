@@ -51,7 +51,7 @@ local draw = function()
             "WinSeparator",
         },
     })
-    table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, assistant.agent()))
+    table.insert(v_lines, { { "│ ", "WinSeparator" }, { " 󰫣  context", "MiniIconsOrange" } })
 
     for _, v_line in ipairs(assistant.status()) do
         table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
