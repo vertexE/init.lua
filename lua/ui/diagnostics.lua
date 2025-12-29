@@ -56,8 +56,9 @@ end
 --- Build virt_text for multi-colored diagnostic dots
 --- @param diagnostics_for_line vim.Diagnostic[] diagnostics on the line
 --- @param highest_severity string "Error" | "Warn" | "Info" | "Hint"
+--- @param no_arrow ?boolean whether to also include   in the virtual text
 --- @return table<table<string>> virt_text array
-local build_dot_vtext = function(diagnostics_for_line, highest_severity)
+local build_dot_vtext_summary = function(diagnostics_for_line, highest_severity, no_arrow)
     local counts = { Error = 0, Warn = 0, Info = 0, Hint = 0 }
     for _, diag in ipairs(diagnostics_for_line) do
         local severity_word = severity_to_word[diag.severity]
@@ -67,11 +68,13 @@ local build_dot_vtext = function(diagnostics_for_line, highest_severity)
     local text_hl = string.format("Diagnostic%sTextWithBg", highest_severity)
     local border_hl = string.format("Diagnostic%sTextNoBg", highest_severity)
 
-    local vtext = {
-        { "     ", "TextDimmer" },
-        { "", border_hl },
-        { " ", text_hl },
-    }
+    local vtext = {}
+    if no_arrow == nil or not no_arrow then
+        table.insert(vtext, { "     ", "TextDimmer" })
+    end
+
+    table.insert(vtext, { "", border_hl })
+    table.insert(vtext, { " ", text_hl })
 
     local bg_suffix = "On" .. highest_severity .. "Bg"
 
@@ -96,7 +99,25 @@ local build_dot_vtext = function(diagnostics_for_line, highest_severity)
     return vtext
 end
 
-local draw_diagnostics_summary = function(bufnr, diagnostics)
+--- diagnostics for the current file
+--- @param bufnr integer
+--- @return table virtual_text
+M.file_summary = function(bufnr)
+    local diagnostics = vim.diagnostic.get(bufnr)
+    if #diagnostics == 0 then
+        return {}
+    end
+
+    table.sort(diagnostics, function(diagA, diagB)
+        return diagA.severity < diagB.severity
+    end)
+    --- @type vim.Diagnostic
+    local diagnostic = diagnostics[1]
+    local severity = severity_to_word[diagnostic.severity]
+    return build_dot_vtext_summary(diagnostics, severity, true)
+end
+
+local draw_line_diagnostics_summary = function(bufnr, diagnostics)
     local diagnostics_by_ln = tbl.group_by_selector(diagnostics, function(diagnostic)
         return diagnostic.lnum
     end)
@@ -111,7 +132,7 @@ local draw_diagnostics_summary = function(bufnr, diagnostics)
         --- @type vim.Diagnostic
         local diagnostic = diagnostics_for_line[1]
         local severity = severity_to_word[diagnostic.severity]
-        local dot_vtext = build_dot_vtext(diagnostics_for_line, severity)
+        local dot_vtext = build_dot_vtext_summary(diagnostics_for_line, severity)
 
         vline_by_lnum[lnum] = {}
         for _, vtext_elem in ipairs(dot_vtext) do
@@ -214,7 +235,7 @@ local draw_diagnostics = function(bufnr)
     end
 
     if #other_diagnostics > 0 then
-        draw_diagnostics_summary(bufnr, other_diagnostics)
+        draw_line_diagnostics_summary(bufnr, other_diagnostics)
         return
     end
 end

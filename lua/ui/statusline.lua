@@ -2,6 +2,7 @@ local M = {}
 
 local git_common = require("vcs.git_common")
 local resources = require("assistant.resources")
+local diagnostics = require("ui.diagnostics")
 
 local FIFO_PIPE_UPDATE_TIME = 3000
 
@@ -116,6 +117,10 @@ M.claude = function()
     return vlines_to_inline_hl(claude())
 end
 
+M.diagnostics = function()
+    return vlines_to_inline_hl(diagnostics.file_summary(0))
+end
+
 local mode_map = {
     ["n"] = "NORMAL",
     ["no"] = "OP-PENDING",
@@ -191,8 +196,12 @@ M.tools = function()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local vlines = {
         { "", "StatusLineGreenTextNoBg" },
-        { "", "StatusLineGreenTextWithBg" },
     }
+    if #clients > 0 then
+        table.insert(vlines, { "", "StatusLineGreenTextWithBg" })
+    else
+        table.insert(vlines, { "󰔟", "StatusLineGreenTextWithBg" })
+    end
     for _, client in ipairs(clients) do
         local lsp_name = " " .. client.name
         table.insert(vlines, { lsp_name, "StatusLineGreenTextWithBg" })
@@ -206,7 +215,7 @@ M.tools = function()
 end
 
 M.tabs = function()
-    local active_tabpage = vim.api.nvim_tabpage_get_number(0)
+    local active_tabpage = vim.api.nvim_get_current_tabpage()
     local tabs = vim.api.nvim_list_tabpages()
 
     local vlines = {}
@@ -252,6 +261,7 @@ M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
         "%{%v:lua.require'ui.statusline'.claude()%}",
+        "%{%v:lua.require'ui.statusline'.diagnostics()%}",
         -- "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",
         "%{%v:lua.require'ui.statusline'.tabs()%}",

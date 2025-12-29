@@ -23,11 +23,12 @@ local dependencies = {
     { "saghen/blink.cmp", { dependency = true }, version = vim.version.range("1.*") },
     { "rafamadriz/friendly-snippets", { dependency = true } },
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
+    { "hedyhli/outline.nvim", require("plugins.outline") },
     -- syntax & appearance
     { "nvim-treesitter/nvim-treesitter-textobjects", require("plugins.treesitter"), version = "main" },
     { "nvim-treesitter/nvim-treesitter", dependency = true, version = "main" },
     { "nvim-treesitter/nvim-treesitter-context", dependency = true },
-    -- custom UI
+    -- UI
     -- colorscheme
     { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
     -- debugger
@@ -81,5 +82,3 @@ require("ui.statusline").setup()
 require("ui.winbar").setup()
 
 require("assistant").setup()
-
-require("ui.status").toggle_split()

@@ -12,21 +12,10 @@ local state = {
     winr = -1,
 }
 
-local diagnostic_icon_error = "✘"
-local diagnostic_icon_warn = ""
-local diagnostic_icon_info = "󰭺"
-local diagnostic_icon_hint = ""
-
-local diagnostic_hl_error = "DiagnosticError"
-local diagnostic_hl_warn = "DiagnosticWarn"
-local diagnostic_hl_info = "DiagnosticInfo"
-local diagnostic_hl_hint = "DiagnosticHint"
-
 local draw = function()
     vim.api.nvim_win_set_width(state.winr, STATUS_WIN_WIDTH)
 
     local ns = vim.api.nvim_create_namespace("user.status.window")
-    local cursor_bufnr = vim.api.nvim_get_current_buf()
     vim.api.nvim_buf_clear_namespace(state.bufnr, ns, 0, -1)
 
     local v_lines = {}
@@ -56,36 +45,6 @@ local draw = function()
     for _, v_line in ipairs(assistant.status()) do
         table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
     end
-
-    table.insert(v_lines, {
-        {
-            "╰───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    local error_cnt = #vim.diagnostic.get(cursor_bufnr, { severity = vim.diagnostic.severity.ERROR })
-    local warn_cnt = #vim.diagnostic.get(cursor_bufnr, { severity = vim.diagnostic.severity.WARN })
-    local info_cnt = #vim.diagnostic.get(cursor_bufnr, { severity = vim.diagnostic.severity.INFO })
-    local hint_cnt = #vim.diagnostic.get(cursor_bufnr, { severity = vim.diagnostic.severity.HINT })
-    local total = error_cnt + warn_cnt + info_cnt + hint_cnt
-
-    table.insert(v_lines, {
-        {
-            "╭───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    table.insert(v_lines, {
-        { "│ ", "WinSeparator" },
-        { total == 0 and " 󰄳  " or " ", "MiniIconsGreen" },
-        { total == 0 and "- passing checks" or "", "Comment" },
-        { error_cnt > 0 and string.format("%d %s ", error_cnt, diagnostic_icon_error) or "", diagnostic_hl_error },
-        { warn_cnt > 0 and string.format("%d %s ", warn_cnt, diagnostic_icon_warn) or "", diagnostic_hl_warn },
-        { info_cnt > 0 and string.format("%d %s ", info_cnt, diagnostic_icon_info) or "", diagnostic_hl_info },
-        { hint_cnt > 0 and string.format("%d %s ", hint_cnt, diagnostic_icon_hint) or "", diagnostic_hl_hint },
-    })
 
     table.insert(v_lines, {
         {

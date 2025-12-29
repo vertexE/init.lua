@@ -174,9 +174,11 @@ vim.keymap.set("n", "<leader>ap", function()
     require("assistant.llm").create_plan()
 end)
 
-vim.keymap.set("n", "<leader>o", function()
+vim.keymap.set("n", "<leader>s", function()
     status.toggle_split()
 end)
+
+vim.keymap.set("n", "<leader>o", "<CMD>topleft Outline!<CR>")
 
 vim.keymap.set("n", "<leader>sP", function()
     vim.system({ "sh", "-c", "echo pause > /tmp/fifoplayer-control" })
@@ -195,34 +197,6 @@ vim.keymap.set({ "x", "n" }, "<leader>ex", function()
     local content = code_extract.as_html(0, start_line - 1, end_line)
     vim.fn.setreg("*", content)
     vim.notify("copied code as html", vim.log.levels.INFO)
-end)
-
-vim.keymap.set({ "n" }, "ZQ", function()
-    local windows = vim.api.nvim_tabpage_list_wins(0)
-    local active_winr = vim.api.nvim_get_current_win()
-    local splits = vim.iter(windows)
-        :filter(function(window)
-            return not float.is_floating_win(window)
-        end)
-        :totable()
-    local is_cursor_in_split = vim.iter(splits):find(function(split_winr)
-        return split_winr == active_winr
-    end)
-    local tabs = vim.api.nvim_list_tabpages()
-
-    local should_close_tab = #splits == 2 and is_cursor_in_split and status.is_open()
-    local no_name = vim.api.nvim_buf_get_name(0) == ""
-
-    if #tabs == 1 and should_close_tab then
-        vim.cmd("quit")
-        vim.cmd("quit")
-    elseif #tabs > 1 and should_close_tab then
-        vim.cmd("tabclose")
-    elseif no_name then
-        vim.cmd("quit!")
-    else
-        vim.cmd("quit")
-    end
 end)
 
 vim.keymap.set("n", "]d", function()

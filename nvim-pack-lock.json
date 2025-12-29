@@ -69,6 +69,11 @@
       "rev": "3458dcd",
       "src": "https://github.com/vertexE/multibuffer.nvim"
     },
+    "neo-tree.nvim": {
+      "rev": "f3df514fff2bdd4318127c40470984137f87b62e",
+      "src": "https://github.com/nvim-neo-tree/neo-tree.nvim",
+      "version": "3.0.0 - 4.0.0"
+    },
     "noice.nvim": {
       "rev": "7bfd942",
       "src": "https://github.com/folke/noice.nvim"
@@ -122,6 +127,10 @@
     "one-small-step-for-vimkind": {
       "rev": "87eeca2",
       "src": "https://github.com/jbyuki/one-small-step-for-vimkind"
+    },
+    "outline.nvim": {
+      "rev": "1967ef50036b0b1eac4977aeede55915a741afe0",
+      "src": "https://github.com/hedyhli/outline.nvim"
     },
     "plenary.nvim": {
       "rev": "b9fd522",
