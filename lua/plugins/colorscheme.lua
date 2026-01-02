@@ -107,6 +107,9 @@ local M = {
                     ["DiagnosticHintTextNoBg"] = { fg = "#354137" },
                     ["DiagnosticHintTextWithBg"] = { fg = "#89B483", bg = "#354137", italic = true },
 
+                    ["OutlineGuides"] = { link = "TextDimmer" },
+                    ["OutlineFoldMarker"] = { link = "TextDimmer" },
+
                     -- Multi-dot diagnostic highlights (for displaying multiple diagnostic types on same line)
                     -- Error background combinations
                     ["DiagnosticErrorDotOnErrorBg"] = { fg = "#EA6963", bg = "#4A3030", italic = true },
@@ -216,7 +219,7 @@ local M = {
                     Define = { fg = colors.mauve },
                     Conditional = { fg = colors.red },
                     Repeat = { fg = colors.red },
-                    Keyword = { fg = colors.red },
+                    Keyword = { fg = colors.red, italic = true },
                     Typedef = { fg = colors.red },
                     Exception = { fg = colors.red },
                     Statement = { fg = colors.red },
@@ -260,8 +263,8 @@ local M = {
                     TSFunction = { fg = colors.green },
                     TSFunctionCall = { fg = colors.green },
                     TSInclude = { fg = colors.red },
-                    TSKeyword = { fg = colors.red },
-                    TSKeywordFunction = { fg = colors.red },
+                    TSKeyword = { fg = colors.red, italic = true },
+                    TSKeywordFunction = { fg = colors.red, italic = true },
                     TSKeywordOperator = { fg = colors.peach },
                     TSKeywordReturn = { fg = colors.red },
                     TSLabel = { fg = colors.peach },

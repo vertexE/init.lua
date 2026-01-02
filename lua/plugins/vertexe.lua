@@ -7,7 +7,7 @@ local M = {
     },
     config = function()
         require("hacked.clipboard").setup()
-        require("hacked.todo").setup()
+        -- require("hacked.todo").setup()
 
         vim.keymap.set("n", "<leader>to", function()
             vim.cmd("e .nvim_todo.md")

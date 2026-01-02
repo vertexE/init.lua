@@ -86,7 +86,7 @@ M.line = function()
 
     local commit_symbol = ""
     blame_win = vim.api.nvim_open_win(blame_bufnr, false, {
-        title = "git blame",
+        title = "",
         border = "rounded",
         relative = "cursor",
         row = 0,
@@ -95,6 +95,8 @@ M.line = function()
         width = 40,
     })
     vim.wo[blame_win].number = false
+    vim.wo[blame_win].relativenumber = false
+    vim.wo[blame_win].signcolumn = "no"
 
     vim.keymap.set("n", "<enter>", function()
         vim.system({ "gh", "browse", blame.commit }):wait()
@@ -114,13 +116,13 @@ M.line = function()
     local ns_id = vim.api.nvim_create_namespace("git.blame.hover")
     vim.api.nvim_buf_set_extmark(blame_bufnr, ns_id, 0, 0, {
         virt_text = {
-            { " ", "TodoFgTODO" },
-            { blame.author .. " ", "TodoFgTODO" },
-            { blame.date .. " " .. blame.time, "Comment" },
+            { " ", "MiniIconsGreen" },
+            { blame.author .. " ", "String" },
+            { blame.date .. " " .. blame.time, "StatusLineGreenTextNoBg" },
         },
         virt_lines = {
             { { message, "Comment" } },
-            { { commit_symbol .. " " .. blame.commit, "TodoFgTODO" } },
+            { { commit_symbol .. " " .. blame.commit, "MiniIconsGreen" } },
         },
         virt_text_pos = "overlay",
     })

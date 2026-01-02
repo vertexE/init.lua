@@ -7,7 +7,7 @@ local code_extract = require("treesitter.extract")
 local status = require("ui.status")
 
 local buf = require("buf")
-local float = require("ui.floats")
+-- local float = require("ui.floats")
 
 -- movement
 vim.keymap.set("n", "<c-y>", "<c-y><c-y><c-y>", { desc = "scroll up" })

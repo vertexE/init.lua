@@ -1,10 +1,10 @@
+local buf = require("buf")
+
 --- @type PackSpec
 local M = {
     config = function()
         local gitsigns = require("gitsigns")
-        gitsigns.setup({
-            numhl = true,
-        })
+        gitsigns.setup({})
 
         vim.keymap.set("n", "<leader>hd", function()
             gitsigns.diffthis()
@@ -49,6 +49,12 @@ local M = {
 
         vim.keymap.set("n", "<leader>hr", function()
             gitsigns.reset_hunk()
+            vim.notify("gitsigns: reset hunk!")
+        end, { desc = "gitsigns: Reset hunk" })
+
+        vim.keymap.set("x", "<leader>hr", function()
+            local sel_start, sel_end = buf.active_selection()
+            gitsigns.reset_hunk({ sel_start, sel_end })
             vim.notify("gitsigns: reset hunk!")
         end, { desc = "gitsigns: Reset hunk" })
     end,

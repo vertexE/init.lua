@@ -10,10 +10,19 @@ local M = {
                 },
             },
             outline_items = {
+                auto_set_cursor = false,
                 show_symbol_details = false,
             },
             preview_window = {
-                auto_preview = true,
+                auto_preview = false,
+            },
+            guides = {
+                enabled = true,
+                markers = {
+                    bottom = "└",
+                    middle = "├",
+                    vertical = " ",
+                },
             },
         })
     end,

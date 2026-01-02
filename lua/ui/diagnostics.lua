@@ -159,7 +159,8 @@ local draw_diagnostics_on_line = function(bufnr, diagnostics, cl_zero)
     local line = vim.api.nvim_buf_get_lines(bufnr, cl_zero, cl_zero + 1, false)[1]
     local total_lines = vim.api.nvim_buf_line_count(bufnr)
     if line then
-        line_len = #line
+        local _, tab_count = string.gsub(line, "\t", "")
+        line_len = #line + (tab_count * 4)
     end
 
     -- 1 determine the width of my message
