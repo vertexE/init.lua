@@ -5,7 +5,7 @@ local M = {
         require("outline").setup({
             position = "left",
             symbols = {
-                filter = { "Function" },
+                filter = { "Function", "Method", "StaticMethod", "Class", "Enum", "Interface" },
             },
             symbol_folding = {
                 auto_unfold = {
