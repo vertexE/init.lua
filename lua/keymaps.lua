@@ -178,7 +178,10 @@ vim.keymap.set("n", "<leader>s", function()
     status.toggle_split()
 end)
 
-vim.keymap.set("n", "<leader>o", "<CMD>topleft Outline!<CR>")
+vim.keymap.set("n", "<leader>O", "<CMD>topleft Outline!<CR>")
+vim.keymap.set("n", "<leader>o", function()
+    require("navigation.bufs").open()
+end)
 
 vim.keymap.set("n", "<leader>sP", function()
     vim.system({ "sh", "-c", "echo pause > /tmp/fifoplayer-control" })

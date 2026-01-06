@@ -4,21 +4,24 @@ local ns = vim.api.nvim_create_namespace("user.codelens.references")
 
 local draw_extmarks = function(bufnr, results)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+    local buf_line_count = vim.api.nvim_buf_line_count(bufnr)
 
     if bufnr ~= vim.api.nvim_get_current_buf() then
         return
     end
 
     for _, item in ipairs(results) do
-        vim.api.nvim_buf_set_extmark(bufnr, ns, item.lnum - 1, 0, {
-            virt_text = {
-                { "", "CodeLensSeparator" },
-                { "󰌹 ", "CodeLensContentIcon" },
-                { item.count > 0 and tostring(item.count) or "no usage", "CodeLensContent" },
-                { "", "CodeLensSeparator" },
-            },
-            virt_text_pos = "eol",
-        })
+        if item.lnum <= buf_line_count then
+            vim.api.nvim_buf_set_extmark(bufnr, ns, item.lnum - 1, 0, {
+                virt_text = {
+                    { "", "CodeLensSeparator" },
+                    { "󰌹 ", "CodeLensContentIcon" },
+                    { item.count > 0 and tostring(item.count) or "no usage", "CodeLensContent" },
+                    { "", "CodeLensSeparator" },
+                },
+                virt_text_pos = "eol",
+            })
+        end
     end
 end
 

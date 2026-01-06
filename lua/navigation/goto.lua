@@ -134,8 +134,18 @@ M.menu = function()
     })
     vim.api.nvim_set_option_value("buftype", "nofile", { buf = float_buf, scope = "local" })
     vim.wo[float_winr].signcolumn = "yes"
+    vim.wo[float_winr].cursorline = true
+    vim.cmd("hi Cursor blend=100")
 
     vim.cmd("edit " .. filepath())
+
+    vim.api.nvim_create_autocmd({ "WinClosed", "WinLeave" }, {
+        group = vim.api.nvim_create_augroup("user.nav.goto.cursor", { clear = true }),
+        once = true,
+        callback = function()
+            vim.cmd("hi Cursor blend=0")
+        end,
+    })
 
     vim.api.nvim_create_autocmd({ "BufWritePost" }, {
         buffer = float_buf,

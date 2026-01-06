@@ -22,6 +22,7 @@ end
 local IGNORE_NOTIFICATIONS = {
     "lua_ls",
     "textDocument/documentSymbol",
+    "No document symbols found"
 }
 
 --- @type PackSpec
