@@ -118,6 +118,7 @@ M.file_summary = function(bufnr)
 end
 
 local draw_line_diagnostics_summary = function(bufnr, diagnostics)
+    local buf_line_cnt = vim.api.nvim_buf_line_count(bufnr)
     local diagnostics_by_ln = tbl.group_by_selector(diagnostics, function(diagnostic)
         return diagnostic.lnum
     end)
@@ -141,11 +142,13 @@ local draw_line_diagnostics_summary = function(bufnr, diagnostics)
     end
 
     for lnum, vline in pairs(vline_by_lnum) do
-        vim.api.nvim_buf_set_extmark(bufnr, ns, lnum, 0, {
-            virt_text = vline,
-            virt_text_pos = "eol",
-            priority = 100,
-        })
+        if lnum < buf_line_cnt then
+            vim.api.nvim_buf_set_extmark(bufnr, ns, lnum, 0, {
+                virt_text = vline,
+                virt_text_pos = "eol",
+                priority = 100,
+            })
+        end
     end
 end
 

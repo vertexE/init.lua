@@ -312,7 +312,7 @@ M.status_tray = function()
                 state.bufnr = bufnr
                 state.winr = winr
                 vim.wo[winr].winbar =
-                    "%#StatuslineSeparatorLsp#   s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull %#StatusLineSeparator#"
+                    "%#CodeLensContent#   s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull %#CodeLensSeparator#"
                 redraw = false
 
                 vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {

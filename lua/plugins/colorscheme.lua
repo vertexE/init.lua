@@ -4,6 +4,7 @@ local M = {
 
         require("catppuccin").setup({
             flavour = "mocha",
+            transparent_background = true,
             color_overrides = {
                 macchiato = {
                     -- Simplified warm accents (brighter, more contrast)
@@ -45,6 +46,34 @@ local M = {
                     mantle = "#111d1f", -- darker forest
                     crust = "#0d1517", -- almost black with green
                 },
+                frappe = {
+                    rosewater = "#ff5572",
+                    flamingo = "#ff5572",
+                    red = "#ff5572",
+                    maroon = "#ff5572",
+                    pink = "#FF13F0",
+                    mauve = "#FF13F0",
+                    peach = "#ff9900",
+                    yellow = "#ffee55",
+                    green = "#00FF9C",
+                    teal = "#25D88A",
+                    sky = "#25D88A",
+                    sapphire = "#25D88A",
+                    blue = "#ff9900",
+                    lavender = "#55b4ff",
+                    text = "#ebdbb2",
+                    subtext1 = "#d5c4a1",
+                    subtext0 = "#bdae93",
+                    overlay2 = "#a89984",
+                    overlay1 = "#928374",
+                    overlay0 = "#595959",
+                    surface2 = "#4d4d4d",
+                    surface1 = "#404040",
+                    surface0 = "#292929",
+                    base = "#1d2021",
+                    mantle = "#191b1c",
+                    crust = "#141617",
+                },
                 mocha = {
                     rosewater = "#ea6962",
                     flamingo = "#ea6962",
@@ -79,7 +108,7 @@ local M = {
                     ["HighlightYank"] = { bg = colors.overlay2 },
                     ["LineNr"] = { fg = colors.overlay0 },
                     ["TabLineFill"] = { bg = Color:from_hex(colors.base):hex() },
-                    ["WinBar"] = { bg = colors.base },
+                    ["WinBar"] = { bg = "none" }, -- bg = colors.base
                     ["WinSeparator"] = { fg = colors.surface1 },
                     ["StatusLine"] = { bg = "" }, -- Color:from_hex(colors.crust):lighten(4):hex()
                     ["StatusLineNC"] = { bg = "" },
@@ -157,8 +186,8 @@ local M = {
                     ["TextDimmest"] = { fg = Color:from_hex("#928375"):darken(33):hex() },
                     CmpItemMenu = { fg = colors.surface2 },
                     CursorLineNr = { fg = colors.text },
-                    NormalFloat = { bg = Color:from_hex(colors.crust):lighten(3):hex() },
-                    FloatBorder = { bg = Color:from_hex(colors.crust):lighten(3):hex(), fg = colors.surface0 },
+                    NormalFloat = { bg = "none" }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
+                    FloatBorder = { bg = "none", fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
                     FloatTitle = { bg = Color:from_hex(colors.crust):lighten(3):hex(), fg = colors.green },
                     BlinkCmpMenuBorder = { fg = colors.surface0 },
                     CursorLine = { bg = "#303030" },
