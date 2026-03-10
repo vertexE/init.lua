@@ -128,6 +128,7 @@ local draw_menu = function(bufnr)
                 { #relative > 0 and relative .. "/" or "", "TextDim" },
                 { name, "Text" },
                 { modified, "MiniIconsOrange" },
+                { " ", "Comment" },
             }, diagnostics),
         })
     end
