@@ -98,8 +98,8 @@ local M = {
                     surface2 = "#4d4d4d",
                     surface1 = "#404040",
                     surface0 = "#292929",
-                    base = "#080502", -- #1d2021 -- #130E06
-                    mantle = "#13110f",
+                    base = "#191919",
+                    mantle = "#121212",
                     crust = "#141617",
                 },
             },

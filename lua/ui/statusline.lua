@@ -222,12 +222,12 @@ M.tabs = function()
 
     for i, tab in ipairs(tabs) do
         if tab == active_tabpage then
-            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
-            table.insert(vlines, { "", "StatusLineGreenTextWithBg" })
-            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+            table.insert(vlines, { "", "StatusLineYellowTextNoBg" })
+            table.insert(vlines, { "▼", "StatusLineYellowTextWithBg" })
+            table.insert(vlines, { "", "StatusLineYellowTextNoBg" })
         else
             table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
-            table.insert(vlines, { "", "StatusLineGreenTextWithBg" })
+            table.insert(vlines, { " ", "StatusLineGreenTextWithBg" })
             table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
         end
 

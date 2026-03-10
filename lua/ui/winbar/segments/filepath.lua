@@ -18,7 +18,7 @@ local file_path = function()
 
     local virtual_path = {
         { string.format(" %s", project), "DropBarIconUISeparator" },
-        { "  ", "DropBarIconUISeparator" },
+        { " 󰅂 ", "DropBarIconUISeparator" },
     }
 
     for i, segment in ipairs(segments) do
@@ -28,7 +28,7 @@ local file_path = function()
             table.insert(virtual_path, { vim.bo.modified and " ● " or "   ", "MiniIconsOrange" })
         else
             table.insert(virtual_path, { string.format("%s", segment), "DropBarIconUISeparator" })
-            table.insert(virtual_path, { "  ", "DropBarIconUISeparator" })
+            table.insert(virtual_path, { " 󰅂 ", "DropBarIconUISeparator" })
         end
     end
 

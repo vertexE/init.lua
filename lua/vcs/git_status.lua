@@ -106,7 +106,7 @@ local change_type_virtual = function(type)
     elseif type == "deleted" then
         return { " ", "MiniIconsRed" }
     elseif type == "modified" then
-        return { " ", "MiniIconsOrange" }
+        return { " ", "MiniIconsOrange" }
     elseif type == "renamed" then
         return { " ", "Comment" }
     elseif type == "conflict" then
