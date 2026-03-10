@@ -79,6 +79,14 @@ local M = {
             snacks.picker.files({ layout = { preset = "vscode" } })
         end)
 
+        vim.keymap.set("n", "<leader>fe", function()
+            snacks.picker.diagnostics()
+        end)
+
+        vim.keymap.set("n", "<leader>fg", function()
+            snacks.picker.grep()
+        end)
+
         vim.keymap.set("n", "<leader>fs", function()
             snacks.picker.lsp_workspace_symbols()
         end)
