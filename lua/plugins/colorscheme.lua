@@ -4,7 +4,7 @@ local M = {
 
         require("catppuccin").setup({
             flavour = "mocha",
-            transparent_background = true,
+            -- transparent_background = true,
             color_overrides = {
                 macchiato = {
                     -- Simplified warm accents (brighter, more contrast)
@@ -98,8 +98,8 @@ local M = {
                     surface2 = "#4d4d4d",
                     surface1 = "#404040",
                     surface0 = "#292929",
-                    base = "#1d2021",
-                    mantle = "#191b1c",
+                    base = "#080502", -- #1d2021 -- #130E06
+                    mantle = "#13110f",
                     crust = "#141617",
                 },
             },
@@ -186,9 +186,13 @@ local M = {
                     ["TextDimmest"] = { fg = Color:from_hex("#928375"):darken(33):hex() },
                     CmpItemMenu = { fg = colors.surface2 },
                     CursorLineNr = { fg = colors.text },
-                    NormalFloat = { bg = "none" }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
-                    FloatBorder = { bg = "none", fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
-                    FloatTitle = { bg = Color:from_hex(colors.crust):lighten(3):hex(), fg = colors.green },
+                    NormalFloat = { bg = colors.mantle }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
+                    FloatBorder = { bg = colors.mantle, fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
+                    FloatTitle = {
+                        bg = Color:from_hex(colors.crust):lighten(3):hex(),
+                        fg = colors.green,
+                        style = { "bold" },
+                    },
                     BlinkCmpMenuBorder = { fg = colors.surface0 },
                     CursorLine = { bg = "#303030" },
                     Visual = { bg = "#303030" },
