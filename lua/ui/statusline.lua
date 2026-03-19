@@ -222,13 +222,13 @@ M.tabs = function()
 
     for i, tab in ipairs(tabs) do
         if tab == active_tabpage then
-            table.insert(vlines, { "", "StatusLineYellowTextNoBg" })
-            table.insert(vlines, { "▼", "StatusLineYellowTextWithBg" })
-            table.insert(vlines, { "", "StatusLineYellowTextNoBg" })
-        else
             table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
-            table.insert(vlines, { " ", "StatusLineGreenTextWithBg" })
+            table.insert(vlines, { "▼", "StatusLineGreenTextWithBg" })
             table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+        else
+            table.insert(vlines, { "", "CodeLensSeparator" })
+            table.insert(vlines, { " ", "CodeLensContentIcon" })
+            table.insert(vlines, { "", "CodeLensSeparator" })
         end
 
         if i < #tabs then

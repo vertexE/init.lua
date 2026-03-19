@@ -327,7 +327,7 @@ M.status_tray = function()
             draw_tray(state.bufnr, state.winr, changes)
             vim.b.minicursorword_disable = true
             if not redraw then
-                vim.api.nvim_win_set_cursor(state.winr, { 7, 0 })
+                vim.api.nvim_win_set_cursor(state.winr, { 4, 0 })
 
                 vim.keymap.set({ "n", "x" }, "s", function()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())

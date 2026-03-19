@@ -22,7 +22,7 @@ end
 local IGNORE_NOTIFICATIONS = {
     "lua_ls",
     "textDocument/documentSymbol",
-    "No document symbols found"
+    "No document symbols found",
 }
 
 --- @type PackSpec
@@ -53,6 +53,9 @@ local M = {
                 end,
             },
         })
+
+        vim.keymap.set("n", "<leader>fN", require("mini.notify").show_history, { desc = "mini.notify: show history" })
+
         require("mini.icons").setup()
         require("mini.cursorword").setup({ delay = 500 })
         require("mini.ai").setup()

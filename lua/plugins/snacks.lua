@@ -44,10 +44,23 @@ local M = {
             statuscolumn = {},
             picker = {
                 ui_select = true,
+                ignore = { "node_modules" },
                 win = {
                     input = {
                         keys = {
                             ["<c-g>"] = { "grep_selection", mode = { "i", "n" } },
+                            ["<m-p>"] = { "focus_preview", mode = { "i", "n" } },
+                        },
+                    },
+                    list = {
+                        keys = {
+                            ["<m-p>"] = { "focus_preview", mode = { "i", "n" } },
+                        },
+                    },
+                    preview = {
+                        keys = {
+                            ["<m-i>"] = { "focus_input", mode = { "i", "n" } },
+                            ["<m-l>"] = { "focus_list", mode = { "i", "n" } },
                         },
                     },
                 },
@@ -102,10 +115,6 @@ local M = {
             snacks.picker.icons()
         end, { desc = "snacks: find icon" })
 
-        vim.keymap.set("n", "<leader>fN", function()
-            snacks.picker.notifications()
-        end, { desc = "snacks: notification history" })
-
         vim.keymap.set("n", "<leader>gi", function()
             if status.is_open() then
                 status.toggle_split()
@@ -121,11 +130,7 @@ local M = {
         end, { desc = "snacks: declarations" })
 
         vim.keymap.set("n", "gr", function()
-            snacks.picker.lsp_references({
-                layout = {
-                    preset = "ivy",
-                },
-            })
+            snacks.picker.lsp_references({})
         end, { desc = "snacks: references" })
 
         vim.keymap.set("n", "gi", function()
@@ -143,10 +148,30 @@ local M = {
             snacks.picker.git_diff({ layout = { preset = "sidebar" } })
         end, { desc = "snacks: git diff" })
 
+        vim.keymap.set("n", "<leader>fq", function()
+            snacks.picker.qflist()
+        end)
+
         vim.keymap.set("n", "gd", function()
+            --- @type table<string,table<integer,boolean>>
+            local item_ln_set = {}
             snacks.picker.lsp_definitions({
-                layout = {
-                    preset = "ivy",
+                filter = {
+                    filter = function(item, filter)
+                        if item_ln_set[item.file] ~= nil and #item.pos > 0 and item_ln_set[item.file][item.pos[1]] then
+                            return false
+                        elseif item_ln_set[item.file] ~= nil and #item.pos > 0 then
+                            item_ln_set[item.file][item.pos[1]] = true
+                        else
+                            item_ln_set[item.file] = { [item.pos[1]] = true }
+                        end
+
+                        if string.match(item.file, "react/index.d.ts") ~= nil then
+                            return false
+                        end
+
+                        return filter(item)
+                    end,
                 },
             })
         end, { desc = "snacks: lsp_definitions" })

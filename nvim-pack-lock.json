@@ -1,5 +1,9 @@
 {
   "plugins": {
+    "99": {
+      "rev": "ec9872f7df7f4eb8b319719c1c253eb3ea8877ed",
+      "src": "https://github.com/ThePrimeagen/99"
+    },
     "CopilotChat.nvim": {
       "rev": "ecea24a9a067c6f176b8e13eb11251c739caf055",
       "src": "https://github.com/CopilotC-Nvim/CopilotChat.nvim"
