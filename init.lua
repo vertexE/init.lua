@@ -13,6 +13,7 @@ local dependencies = {
     { "nvim-mini/mini.nvim", require("plugins.mini") },
     { "folke/snacks.nvim", require("plugins.snacks") },
     { "lewis6991/gitsigns.nvim", require("plugins.git") },
+    { "esmuellert/codediff.nvim", { cmd = "CodeDiff" } },
 
     -- lsp
     { "neovim/nvim-lspconfig", require("plugins.lsp") },
