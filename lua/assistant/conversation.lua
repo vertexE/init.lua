@@ -116,6 +116,8 @@ local open_conversation = function(conversation, forward_to_agent)
 
     vim.keymap.set("n", "q", close_all, { buffer = chat_bufnr })
     vim.keymap.set("n", "q", close_all, { buffer = textarea_bufnr })
+    vim.keymap.set("n", "<esc>", close_all, { buffer = chat_bufnr })
+    vim.keymap.set("n", "<esc>", close_all, { buffer = textarea_bufnr })
     vim.keymap.set({ "n", "i" }, "<tab>", toggle_focus, { buffer = chat_bufnr })
     vim.keymap.set({ "n", "i" }, "<tab>", toggle_focus, { buffer = textarea_bufnr })
 
