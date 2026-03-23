@@ -20,6 +20,7 @@ local draw_extmarks = function(bufnr, results)
                     { "", "CodeLensSeparator" },
                 },
                 virt_text_pos = "eol",
+                priority = 200,
             })
         end
     end

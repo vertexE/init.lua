@@ -146,6 +146,7 @@ M.create_conversation = function(session_id, buf, row, on_submit)
             { "", "CodeLensSeparator" },
         },
         virt_text_pos = "eol",
+        priority = 300,
     })
     --- @type llm.Conversation
     local conversation = {
