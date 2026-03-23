@@ -11,6 +11,8 @@ local floats = require("ui.floats")
 --- @field prompt ?string
 --- @field height ?integer
 --- @field width ?integer
+--- @field row ?integer
+--- @field col ?integer
 --- @field content ?string
 
 --- @alias TextareaCallback fun(input: string[])
@@ -20,10 +22,12 @@ local floats = require("ui.floats")
 ---@param callback TextareaCallback
 M.open = function(opts, callback)
     opts = opts or {}
-    local bufnr = floats.center({
+    local bufnr = floats.open({
         title = opts.prompt,
         height = opts.height or 0.10,
         width = opts.width or 0.4,
+        row = opts.row,
+        col = opts.col,
         bo = { filetype = "markdown", buftype = "nowrite" },
         wo = { wrap = true, number = false, relativenumber = false },
         close_on_q = true,

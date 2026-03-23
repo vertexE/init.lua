@@ -1,6 +1,7 @@
 local M = {}
 
 local buf = require("buf")
+local ids = require("ids")
 local request = require("assistant.request")
 local plan = require("assistant.plan")
 
@@ -38,6 +39,8 @@ local resource_state = {
     active_bufs = {},
     --- @type llm.Agent -- default agent to use for inline requests
     agent = "Claude",
+    --- @type table<string> list of conversation session IDs to include in context
+    conversations = {},
 }
 
 local active_bufs_summary = function()
@@ -179,7 +182,7 @@ local selection = function(bufnr)
     return sel_lines(bufnr, sel_start, sel_end)
 end
 
---- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"|"buffers"
+--- @alias resourceType "blocks"|"selection"|"lsp_diagnostics"|"git_diff"|"buffers"|"conversations"
 
 ---@param rt resourceType
 M.toggle = function(rt)
@@ -288,6 +291,12 @@ M.next_agent = function()
     else
         resource_state.agent = "Copilot"
     end
+end
+
+M.create_conversation = function()
+    local next_id = ids.uuid()
+    table.insert(resource_state.conversations, next_id)
+    return next_id
 end
 
 return M

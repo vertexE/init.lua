@@ -167,18 +167,23 @@ position: (%d, %d)
         return prompt_header
     end,
 
-    --- @param _ ?prompt.context
+    --- @param ctx prompt.context
     --- @return string
-    ask = function(_)
-        return [[
+    ask = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        return string.format(
+            [[
 <rules>
+- you are current in the file @%s
 - answer the following question(s)
 - keep it short, to the point, and use markdown standards.
 - instead of suggesting any edits, provide examples
 - encourage an environment of learning
 - use `files` tag as hints of which files to read to answer the question
 </rules>
-        ]]
+        ]],
+            file
+        )
     end,
 }
 
@@ -215,7 +220,7 @@ M.generate = function(ctx)
     return ""
 end
 
---- @param ctx ?prompt.context
+--- @param ctx prompt.context
 --- @return string
 M.ask = function(ctx)
     if resources.agent_name() == "Copilot" then

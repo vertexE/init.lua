@@ -1,5 +1,6 @@
 local M = {}
 
+local ids = require("ids")
 local fs = require("fs")
 local buf = require("buf")
 local resources = require("assistant.resources")
@@ -9,7 +10,7 @@ local inline = require("ui.inline")
 local loader = require("ui.loader")
 local parsers = require("assistant.parsers")
 local plan = require("assistant.plan")
-local splits = require("ui.splits")
+local conversation = require("assistant.conversation")
 
 local CMD_PREFIX = "<user-request>"
 local CMD_POSTFIX = "</user-request>\n"
@@ -24,16 +25,19 @@ local state = {
     history = "",
     winr = -1,
     bufnr = -1,
+    conversations = {},
 }
 
 --- @class llm.PromptCfg
 --- @field session_id ?string
+--- @field resume ?boolean
 
 --- prompt selected agent
 --- @param prompt string
 --- @param resolve fun(result:string)
 --- @param opts ?llm.PromptCfg
 local prompt_agent = function(prompt, resolve, opts)
+    -- TODO: eventually remove Copilot support as I now only use claude
     if resources.agent_name() == "Copilot" then
         require("CopilotChat").ask(prompt, {
             headless = true,
@@ -56,9 +60,13 @@ local prompt_agent = function(prompt, resolve, opts)
         end
 
         if opts and opts.session_id then
+            table.insert(cmd, "--session-id")
+            table.insert(cmd, opts.session_id)
+        end
+
+        if opts and opts.session_id and opts.resume then
             table.insert(cmd, "--resume")
             table.insert(cmd, opts.session_id)
-            vim.notify(string.format("(assistant): starting plan with session_id %s", opts.session_id))
         end
 
         vim.system(
@@ -76,24 +84,12 @@ local prompt_agent = function(prompt, resolve, opts)
     end
 end
 
---- Extract session_id from Claude CLI JSON output
---- @param output string
---- @return string|nil
-local extract_session_id = function(output)
-    for line in output:gmatch("[^\r\n]+") do
-        local session_id = line:match('"session_id"%s*:%s*"([^"]+)"')
-        if session_id then
-            return session_id
-        end
-    end
-    return nil
-end
-
 M.create_plan = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
         return
     end
+    local session_id = ids.uuid()
 
     state.active_action = "plan"
     local requesting_bufnr = vim.api.nvim_get_current_buf()
@@ -102,11 +98,6 @@ M.create_plan = function()
     plan.create_plan(function(goal, _plan)
         vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
         prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(result)
-            local session_id = extract_session_id(result)
-            if not session_id then
-                vim.notify("(assistant): failed to extract session_id from plan")
-                return
-            end
             _plan.status = "reviewable"
             _plan.session_id = session_id
 
@@ -127,7 +118,7 @@ M.create_plan = function()
                     vim.cmd.tabclose()
                 end, { buffer = bufnr })
             end)
-        end)
+        end, { session_id = session_id })
     end)
 end
 
@@ -152,12 +143,13 @@ M.execute_plan = function()
 
     selected_plan.status = "executing"
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+    vim.notify(string.format("(assistant): starting plan!"))
     prompt_agent("execute the plan", function(_)
         vim.notify("(assistant): plan completed")
         selected_plan.status = "completed"
         vim.cmd.checktime({ mods = { silent = true } })
         vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    end, { session_id = selected_plan.session_id })
+    end, { session_id = selected_plan.session_id, resume = true })
 end
 
 M.generate = function()
@@ -184,7 +176,7 @@ M.generate = function()
                 return
             end
 
-            local req_id = request.start({ requesting_file })
+            local req_id = request.start(resources.active_files())
             vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
             local ns_id = loader.start(requesting_bufnr, _start, _end, should_replace)
             vim.defer_fn(function() -- timeout
@@ -241,61 +233,34 @@ M.modify = function()
 end
 
 M.ask = function()
-    state.active_action = "ask"
-    local knowledge = resources.active()
-    local prompt_header = prompts.ask()
-    inline.cursor({ title = { string.format("%s Ask", resources.agent_icon()), "MiniIconsPurple" } }, function(input)
-        if input == nil or #input == 0 then
-            return
-        end
-        local prompt = vim.fn.join(input, "\n")
-        prompt_agent(
-            ((resources.agent_name() == "Claude" and state.resume_conversation) and "" or prompt_header)
-                .. "<question>"
-                .. prompt
-                .. "</question>"
-                .. knowledge
-                .. (resources.agent_name() == "Copilot" and state.history or ""),
-            function(response)
-                if not vim.api.nvim_win_is_valid(state.winr) then
-                    local bufnr, winr = splits.horizontal(response, {
-                        enter = true,
-                        height = 0.22,
-                        wo = { number = false, wrap = true },
-                        split = "below",
-                        bo = { filetype = "markdown" },
-                    })
-                    state.winr = winr
-                    state.bufnr = bufnr
+    local requesting_bufnr = vim.api.nvim_get_current_buf()
+    local status = vim.api.nvim_get_mode()
+    local row = vim.api.nvim_win_get_cursor(0)[1] - 1 -- 0-based for extmarks
 
-                    vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
-                        group = vim.api.nvim_create_augroup("user.copilot.ask", { clear = true }),
-                        buffer = bufnr,
-                        once = true,
-                        callback = function()
-                            state.history = ""
-                            state.resume_conversation = true
-                        end,
-                        desc = "clear history on buf delete",
-                    })
-                else
-                    vim.api.nvim_buf_set_lines(state.bufnr, 0, -1, false, vim.split(response, "\n"))
-                end
+    -- re-open existing conversation at this line if one exists
+    local existing = conversation.find_by_buf_line(requesting_bufnr, row)
+    if existing then
+        conversation.open_by_buf_line(requesting_bufnr, row)
+        return
+    end
 
-                if resources.agent_name() == "Copilot" then
-                    state.history = "<previous-question>"
-                        .. prompt
-                        .. "</previous-question>"
-                        .. "<copilot-response>"
-                        .. response
-                        .. "</copilot-response>"
-                        .. state.history
-                elseif resources.agent_name() == "Claude" then
-                    state.resume_conversation = true
-                end
-            end
-        )
-    end)
+    local session_id = resources.create_conversation()
+    local prompt_header = prompts.ask({ req_bufnr = requesting_bufnr, mode = status.mode })
+    local is_first_message = true
+
+    local on_submit = function(prompt)
+        state.active_action = "ask"
+        state.resume_conversation = false -- use session_id resumption, not --continue
+        local opts = { session_id = session_id, resume = not is_first_message }
+        local header = is_first_message and prompt_header or ""
+        is_first_message = false
+        local context = resources.active(requesting_bufnr)
+        prompt_agent(header .. context .. CMD_PREFIX .. prompt .. CMD_POSTFIX, function(response)
+            conversation.push_message(session_id, response, "claude")
+        end, opts)
+    end
+
+    conversation.create_conversation(session_id, requesting_bufnr, row, on_submit)
 end
 
 return M

@@ -5,10 +5,12 @@ M.is_floating_win = function(winr)
     return cfg.relative ~= "" or cfg.external
 end
 
---- @class CenterOpts
+--- @class FloatOpts
 --- @field title string
---- @field height ?number percent of editor
---- @field width ?number percent of editor
+--- @field height ?number percent of editor or number of rows
+--- @field width ?number percent of editor or number of columns
+--- @field row ?number
+--- @field col ?number
 --- @field max_width ?number max total cols
 --- @field max_height ?number max total rows
 --- @field close_on_q ?boolean
@@ -17,7 +19,7 @@ end
 --- @field bufnr ?integer
 --- @field border ?string
 
-local center_opts = {
+local default_float_opts = {
     title = "",
     height = 0.32,
     width = 0.5,
@@ -28,36 +30,42 @@ local center_opts = {
     border = "rounded",
 }
 
---- @param opts ?CenterOpts
+--- @param opts ?FloatOpts
 --- @return integer bufnr,integer winr
-M.center = function(opts)
+M.open = function(opts)
     opts = opts or {}
     local bufnr = (opts.bufnr and opts.bufnr > 0) and opts.bufnr or vim.api.nvim_create_buf(true, true)
     local editor_width = vim.o.columns
     local editor_height = vim.o.lines
-    local width = math.floor((opts.width or center_opts.width) * editor_width)
+    local width = math.floor((opts.width or default_float_opts.width) * editor_width)
     width = opts.max_width and math.min(width, opts.max_width) or width
-    local height = math.floor((opts.height or center_opts.height) * editor_height)
+    local height = math.floor((opts.height or default_float_opts.height) * editor_height)
     height = opts.max_height and math.min(height, opts.max_height) or height
-    local row = (editor_height - height) / 2
-    local col = (editor_width - width) / 2
+    if opts.height >= 1 then
+        height = opts.height
+    end
+    if opts.width >= 1 then
+        width = opts.width
+    end
+    local row = opts.row or (editor_height - height) / 2
+    local col = opts.col or (editor_width - width) / 2
 
     local winr = vim.api.nvim_open_win(bufnr, true, {
-        title = opts.title or center_opts.title,
+        title = opts.title or default_float_opts.title,
         relative = "editor",
         row = row,
         col = col,
         width = width,
         height = height,
         style = "minimal",
-        border = opts.border or center_opts.border,
+        border = opts.border or default_float_opts.border,
     })
 
-    for buf_opt, setting in pairs(opts.bo or center_opts.bo) do
+    for buf_opt, setting in pairs(opts.bo or default_float_opts.bo) do
         vim.api.nvim_set_option_value(buf_opt, setting, { buf = bufnr })
     end
 
-    for win_opt, setting in pairs(opts.wo or center_opts.wo) do
+    for win_opt, setting in pairs(opts.wo or default_float_opts.wo) do
         vim.api.nvim_set_option_value(win_opt, setting, { win = winr })
     end
 

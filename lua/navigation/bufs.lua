@@ -138,7 +138,7 @@ end
 
 M.open = function()
     local target_winr = vim.api.nvim_get_current_win()
-    local draw_bufnr, _ = float.center({
+    local draw_bufnr, _ = float.open({
         title = " Buffers",
         height = 0.4,
         width = math.max(longest_buf_name() / vim.o.columns, 0.4),

@@ -1,4 +1,4 @@
-local git_tray = require("vcs.git_status")
+local git_tray = require("vcs.git_tray")
 local git_blame = require("vcs.git_blame")
 local git_open = require("vcs.git_open")
 

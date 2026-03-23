@@ -21,9 +21,21 @@
       "rev": "5e5a14e",
       "src": "https://github.com/vertexE/chat-context-ui.nvim"
     },
+    "codediff.nvim": {
+      "rev": "93cd80c56f71af4671388c568a37d4c84c3ddefa",
+      "src": "https://github.com/esmuellert/codediff.nvim"
+    },
     "conform.nvim": {
       "rev": "086a40dc7ed8242c03be9f47fbcee68699cc2395",
       "src": "https://github.com/stevearc/conform.nvim"
+    },
+    "delta.lua": {
+      "rev": "51eb4f27fd4bff4268dac8b77f8c69ec25af2a67",
+      "src": "https://github.com/kokusenz/delta.lua"
+    },
+    "deltaview.nvim": {
+      "rev": "d9a530e7b55d035a5341efaba65b47a6d893bc43",
+      "src": "https://github.com/kokusenz/deltaview.nvim"
     },
     "fold.nvim": {
       "rev": "244763c",
