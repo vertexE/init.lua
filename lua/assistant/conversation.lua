@@ -66,7 +66,7 @@ local open_conversation = function(conversation, forward_to_agent)
     local editor_height = vim.o.lines
 
     local width = math.floor(0.8 * editor_width)
-    local chat_height = math.floor(0.35 * editor_height)
+    local chat_height = math.floor(0.55 * editor_height)
     local textarea_height = math.floor(0.10 * editor_height)
     local col = math.floor((editor_width - width) / 2)
     -- center the stacked pair vertically (1 row gap between them)

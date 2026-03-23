@@ -257,6 +257,7 @@ M.ask = function()
         local context = resources.active(requesting_bufnr)
         prompt_agent(header .. context .. CMD_PREFIX .. prompt .. CMD_POSTFIX, function(response)
             conversation.push_message(session_id, response, "claude")
+            vim.notify("llm: claude has answered your question!")
         end, opts)
     end
 

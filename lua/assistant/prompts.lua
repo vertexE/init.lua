@@ -181,7 +181,7 @@ position: (%d, %d)
 - answer the following question(s)
 - keep it short, to the point, and use markdown standards.
 - instead of suggesting any edits, provide examples
-- encourage an environment of learning
+- prefer explaining *why* over *what*
 - use `files` tag as hints of which files to read to answer the question
 </rules>
         ]],
