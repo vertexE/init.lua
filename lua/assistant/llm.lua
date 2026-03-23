@@ -245,7 +245,7 @@ M.ask = function()
     end
 
     local session_id = resources.create_conversation()
-    local prompt_header = prompts.ask({ req_bufnr = requesting_bufnr, mode = status.mode })
+    local prompt_header = prompts.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row })
     local is_first_message = true
 
     local on_submit = function(prompt)

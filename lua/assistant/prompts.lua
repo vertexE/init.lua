@@ -9,6 +9,7 @@ local buf = require("buf")
 --- @field input ?string
 --- @field sel_start ?integer
 --- @field sel_end ?integer
+--- @field cursor_row ?integer
 
 local copilot = {
     --- @param ctx prompt.context
@@ -175,6 +176,8 @@ position: (%d, %d)
             [[
 <rules>
 - you are current in the file @%s
+- the 0-indexed cursor position is %d 
+- a -1 index means cursor position is unknown
 - answer the following question(s)
 - keep it short, to the point, and use markdown standards.
 - instead of suggesting any edits, provide examples
@@ -182,7 +185,8 @@ position: (%d, %d)
 - use `files` tag as hints of which files to read to answer the question
 </rules>
         ]],
-            file
+            file,
+            ctx.cursor_row or -1
         )
     end,
 }
