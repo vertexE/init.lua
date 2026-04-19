@@ -77,6 +77,10 @@
       "rev": "44d1e90e1f66e077268191e3ee9d2ac97cc18e65",
       "src": "https://github.com/williamboman/mason.nvim"
     },
+    "mfd.nvim": {
+      "rev": "a33f2140d8c4b89e5126579663d2b73dad6b6c29",
+      "src": "https://github.com/kungfusheep/mfd.nvim"
+    },
     "mini.nvim": {
       "rev": "9d359222b3643f1fccbd8f3180445842e1cae00b",
       "src": "https://github.com/nvim-mini/mini.nvim"
@@ -151,6 +155,10 @@
     "plenary.nvim": {
       "rev": "b9fd522",
       "src": "https://github.com/nvim-lua/plenary.nvim"
+    },
+    "rose-pine": {
+      "rev": "9504524e5ed0e326534698f637f9d038ba4cd0ee",
+      "src": "https://github.com/rose-pine/neovim"
     },
     "rustaceanvim": {
       "rev": "88575b9",
