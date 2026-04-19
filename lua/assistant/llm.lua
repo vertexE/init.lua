@@ -59,13 +59,11 @@ local prompt_agent = function(prompt, resolve, opts)
             table.insert(cmd, "json")
         end
 
-        if opts and opts.session_id then
-            table.insert(cmd, "--session-id")
-            table.insert(cmd, opts.session_id)
-        end
-
         if opts and opts.session_id and opts.resume then
             table.insert(cmd, "--resume")
+            table.insert(cmd, opts.session_id)
+        elseif opts and opts.session_id then
+            table.insert(cmd, "--session-id")
             table.insert(cmd, opts.session_id)
         end
 

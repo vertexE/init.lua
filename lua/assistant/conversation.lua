@@ -32,20 +32,21 @@ local draw = function(conversation)
     vim.api.nvim_buf_clear_namespace(conversation.chat_buf, ns_chat, 0, -1)
     --- [[ example conversation
     ---
-    --- ┃ (LLM) > Good morning! Welcome to my bla bla baln.
+    --- ┃ (You) > I want to know how to add two numbers.
     ---
-    --- ┃ (You) > I want to know how
+    --- ┃ (LLM) > For two numbers, use `x + y`
     ---
     --- ]]
     for _, message in ipairs(conversation.messages) do
         local row = vim.api.nvim_buf_line_count(conversation.chat_buf)
-        vim.api.nvim_buf_set_lines(
-            conversation.chat_buf,
-            -1,
-            -1,
-            false,
-            vim.split(string.rep(" ", 10) .. message.content, "\n")
-        )
+        local lines = vim.split(vim.trim(message.content) .. "\n", "\n")
+        for i = 2, #lines do
+            if not lines[i]:match("^```") then
+                lines[i] = string.rep(" ", 10) .. lines[i]
+            end
+        end
+        local first_line = lines[1]:match("^```") and lines[1] or (string.rep(" ", 10) .. lines[1])
+        vim.api.nvim_buf_set_lines(conversation.chat_buf, -1, -1, false, { first_line, unpack(lines, 2) })
         local is_claude = message.source == "claude"
         vim.api.nvim_buf_set_extmark(conversation.chat_buf, ns_chat, row, 0, {
             virt_text = {
@@ -82,7 +83,7 @@ local open_conversation = function(conversation, forward_to_agent)
         col = col,
         close_on_q = false,
         bo = { filetype = "markdown" },
-        wo = { wrap = true, number = false, relativenumber = false },
+        wo = { wrap = true, number = false, relativenumber = false, conceallevel = 1 },
     })
 
     local textarea_bufnr, textarea_winr = floats.open({
