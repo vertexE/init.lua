@@ -15,6 +15,7 @@ local conversation = require("assistant.conversation")
 local CMD_PREFIX = "<user-request>"
 local CMD_POSTFIX = "</user-request>\n"
 local CLAUDE_PLANS_DIR = "~/.claude/plans"
+local CLAUDE_CACHE = ".claude-cache/"
 
 --- @alias llm.Action "generate"|"ask"|"modify"|"plan"
 
@@ -80,6 +81,53 @@ local prompt_agent = function(prompt, resolve, opts)
             end)
         )
     end
+end
+
+M.completion = function()
+    if resources.agent_name() ~= "Claude" then
+        vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
+        return
+    end
+
+    local _start, _end = buf.active_selection()
+    if not vim.fn.isdirectory(CLAUDE_CACHE) then
+        vim.fn.mkdir(CLAUDE_CACHE)
+    end
+
+    local file_id = ids.uuid()
+    local file_name = string.format("change-%s", file_id)
+    local requesting_bufnr = vim.api.nvim_get_current_buf()
+    local status = vim.api.nvim_get_mode()
+    local prompt = prompts.completion({
+        mode = status.mode,
+        write_to = CLAUDE_CACHE .. file_name,
+        req_bufnr = requesting_bufnr,
+        sel_start = _start,
+        sel_end = _end,
+    })
+
+    state.active_action = "generate"
+    local ns_id = loader.start(requesting_bufnr, _start, _end, true)
+    prompt_agent(prompt, function(_)
+        vim.notify("󰛄 editing completed", vim.log.levels.INFO)
+        vim.cmd.checktime({ mods = { silent = true } })
+        local replace_start = loader.location(requesting_bufnr, ns_id)
+        local offset = _end - _start + 1 -- inclusive selection end
+        loader.stop(ns_id)
+
+        local content, err = fs.read(CLAUDE_CACHE .. file_name)
+        if err ~= nil or content == nil then
+            vim.notify(err or "(assistant): cannot read Claude Cache", vim.log.levels.ERROR)
+            return
+        end
+        vim.api.nvim_buf_set_lines(
+            requesting_bufnr,
+            replace_start,
+            replace_start + offset,
+            false,
+            vim.split(content, "\n")
+        )
+    end)
 end
 
 M.create_plan = function()

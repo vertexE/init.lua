@@ -4,6 +4,9 @@ local M = {}
 --- @type table<integer,integer>
 local active_loaders = {}
 
+--- @type table<integer,integer>
+local ns_to_extmark_id = {}
+
 --- dist to first non whitespace char
 --- @param s ?string
 --- @return integer
@@ -20,7 +23,7 @@ M.start = function(bufnr, start_row, end_row, apply_ghost)
     local loader_id = #active_loaders
     local ns_id = vim.api.nvim_create_namespace("user_loader_vt_" .. loader_id)
     local lines = vim.api.nvim_buf_get_lines(bufnr, start_row - 1, end_row, false)
-    vim.api.nvim_buf_set_extmark(bufnr, ns_id, start_row - 1, 0, {
+    local ext_id = vim.api.nvim_buf_set_extmark(bufnr, ns_id, start_row - 1, 0, {
         virt_lines = {
             {
                 { string.rep(" ", dist_to_non_whitespace(lines[1])), "Comment" },
@@ -29,6 +32,7 @@ M.start = function(bufnr, start_row, end_row, apply_ghost)
         },
         virt_lines_above = true,
     })
+    ns_to_extmark_id[ns_id] = ext_id
 
     if apply_ghost then
         for i, line in ipairs(lines) do
@@ -42,6 +46,18 @@ M.start = function(bufnr, start_row, end_row, apply_ghost)
     active_loaders[ns_id] = bufnr
 
     return ns_id
+end
+
+--- get the line number of an active loader
+--- @return integer the line number, 0-indexed
+M.location = function(buf, ns)
+    if ns_to_extmark_id[ns] == nil then
+        vim.notify("(loader): failed to lookup extmark ID by ns ID", vim.log.levels.ERROR)
+        return -1
+    end
+
+    local row = vim.api.nvim_buf_get_extmark_by_id(buf, ns, ns_to_extmark_id[ns], {})[1]
+    return row
 end
 
 --- @param ns integer

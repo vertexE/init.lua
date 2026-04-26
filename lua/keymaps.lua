@@ -116,6 +116,10 @@ vim.keymap.set({ "n", "x" }, "<localleader>g", function()
     require("assistant.llm").generate()
 end, { desc = "llm: inline code generation" })
 
+vim.keymap.set("x", "<c-cr>", function()
+    require("assistant.llm").completion()
+end, { desc = "llm: inline completion" })
+
 vim.keymap.set({ "n" }, "<localleader>a", function()
     require("assistant.resources").next_agent()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })

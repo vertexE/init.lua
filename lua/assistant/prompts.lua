@@ -10,6 +10,7 @@ local buf = require("buf")
 --- @field sel_start ?integer
 --- @field sel_end ?integer
 --- @field cursor_row ?integer
+--- @field write_to ?string file path to write to instead
 
 local copilot = {
     --- @param ctx prompt.context
@@ -189,7 +190,49 @@ position: (%d, %d)
             ctx.cursor_row or -1
         )
     end,
+
+    --- @param ctx prompt.context
+    --- @return string
+    completion = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        local lines = vim.api.nvim_buf_get_lines(ctx.req_bufnr, ctx.sel_start - 1, ctx.sel_end, false)
+
+        return string.format(
+            [[
+<context>
+- you are currently in the file @%s
+- the 0-indexed cursor position is %d 
+</context>
+<rules>
+- **CRITICAL**: Read the code in the selection, this code is in the current file. Find any code comments and attempt to complete the code as specified. 
+- **CRITICAL**: ONLY READ the current file, YOU MUST WRITE THE NEW CODE BLOCK TO @%s
+- **CRITICAL**: ONLY EDIT the current code block, DO NOT edit anywhere else. If the change requires imports or other edits, the user will take care of that.
+- The new code block should match the same indentation level as the old code block.
+- Your job is to make @%s look exactly like what we would replace `<selection>` with, so if you need to delete everything the file would be empty 
+</rules>
+<selection>
+%s
+</selection>
+        ]],
+            file,
+            ctx.sel_start - 1,
+            ctx.write_to,
+            ctx.write_to,
+            table.concat(lines, "\n")
+        )
+    end,
 }
+
+--- @param ctx prompt.context
+--- @return string
+M.completion = function(ctx)
+    if resources.agent_name() ~= "Claude" then
+        vim.notify("unsupported agent", vim.log.levels.WARN)
+        return ""
+    end
+
+    return claude.completion(ctx)
+end
 
 --- @param ctx prompt.context
 --- @return string
