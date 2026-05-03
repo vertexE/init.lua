@@ -1,6 +1,6 @@
 local M = {}
 
-local prompts = require("assistant.prompts")
+local rules = require("assistant.rules")
 -- local resources = require("assistant.resources")
 
 -- local state = { has_session = false }
@@ -24,7 +24,7 @@ M.msg_claude = function(ctx)
     local status = vim.api.nvim_get_mode()
     require("sidekick.cli").send({
         name = "claude",
-        msg = prompts.default({
+        msg = rules.default({
             mode = status.mode,
             req_bufnr = ctx.req_bufnr,
             sel_start = ctx.sel_start,

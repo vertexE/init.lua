@@ -113,11 +113,11 @@ vim.keymap.set("n", "<c-4>", function()
 end, { desc = "quick goto file 4" })
 
 vim.keymap.set({ "n", "x" }, "<localleader>g", function()
-    require("assistant.llm").generate()
+    require("assistant.actions").generate()
 end, { desc = "llm: inline code generation" })
 
-vim.keymap.set("x", "<c-cr>", function()
-    require("assistant.llm").completion()
+vim.keymap.set("x", "<c-space>", function()
+    require("assistant.actions").completion()
 end, { desc = "llm: inline completion" })
 
 vim.keymap.set({ "n" }, "<localleader>a", function()
@@ -167,18 +167,18 @@ vim.keymap.set({ "n", "x" }, "<localleader>o", function()
 end, { desc = "" })
 
 vim.keymap.set({ "n", "x" }, "<localleader>c", function()
-    require("assistant.llm").ask()
+    require("assistant.actions").ask()
 end, { desc = "llm: ask agent a question" })
 
 vim.keymap.set("n", "<leader>ae", function()
-    require("assistant.llm").execute_plan()
+    require("assistant.actions").execute_plan()
 end)
 
 vim.keymap.set("n", "<leader>ap", function()
-    require("assistant.llm").create_plan()
+    require("assistant.actions").create_plan()
 end)
 
-vim.keymap.set("n", "<leader>s", function()
+vim.keymap.set("n", "<leader>S", function()
     status.toggle_split()
 end)
 

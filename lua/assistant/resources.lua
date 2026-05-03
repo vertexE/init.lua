@@ -294,7 +294,7 @@ M.next_agent = function()
 end
 
 M.create_conversation = function()
-    local next_id = ids.uuid()
+    local next_id = ids.uuidv4()
     table.insert(resource_state.conversations, next_id)
     return next_id
 end

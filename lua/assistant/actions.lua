@@ -4,13 +4,16 @@ local ids = require("ids")
 local fs = require("fs")
 local buf = require("buf")
 local resources = require("assistant.resources")
-local prompts = require("assistant.prompts")
+local rules = require("assistant.rules")
 local request = require("assistant.request")
 local inline = require("ui.inline")
 local loader = require("ui.loader")
 local parsers = require("assistant.parsers")
 local plan = require("assistant.plan")
 local conversation = require("assistant.conversation")
+
+local PromptBuilder = require("assistant.prompt_builder")
+local agents = require("assistant.agents")
 
 local CMD_PREFIX = "<user-request>"
 local CMD_POSTFIX = "</user-request>\n"
@@ -94,21 +97,29 @@ M.completion = function()
         vim.fn.mkdir(CLAUDE_CACHE)
     end
 
-    local file_id = ids.uuid()
+    local file_id = ids.uuidv4()
     local file_name = string.format("change-%s", file_id)
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local status = vim.api.nvim_get_mode()
-    local prompt = prompts.completion({
-        mode = status.mode,
-        write_to = CLAUDE_CACHE .. file_name,
-        req_bufnr = requesting_bufnr,
-        sel_start = _start,
-        sel_end = _end,
-    })
 
+    -- TODO: legacy
     state.active_action = "generate"
+
     local ns_id = loader.start(requesting_bufnr, _start, _end, true)
-    prompt_agent(prompt, function(_)
+
+    local prompt = PromptBuilder:new()
+        :with_permissions({ "write" })
+        :with_strategy(agents.claude)
+        :with_rules(rules.completion({
+            mode = status.mode,
+            write_to = CLAUDE_CACHE .. file_name,
+            req_bufnr = requesting_bufnr,
+            sel_start = _start,
+            sel_end = _end,
+        }))
+        :build()
+
+    prompt:run(function(_)
         vim.notify("󰛄 editing completed", vim.log.levels.INFO)
         vim.cmd.checktime({ mods = { silent = true } })
         local replace_start = loader.location(requesting_bufnr, ns_id)
@@ -130,20 +141,21 @@ M.completion = function()
     end)
 end
 
+--- @deprecated
 M.create_plan = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
         return
     end
-    local session_id = ids.uuid()
+    local session_id = ids.uuidv4()
 
     state.active_action = "plan"
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local status = vim.api.nvim_get_mode()
-    local prompt_header = prompts.plan({ mode = status.mode, req_bufnr = requesting_bufnr })
+    local prompt_header = rules.plan({ mode = status.mode, req_bufnr = requesting_bufnr })
     plan.create_plan(function(goal, _plan)
         vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-        prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(result)
+        prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(_)
             _plan.status = "reviewable"
             _plan.session_id = session_id
 
@@ -169,6 +181,7 @@ M.create_plan = function()
 end
 
 --- execute the active plan
+--- @deprecated
 M.execute_plan = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
@@ -198,14 +211,15 @@ M.execute_plan = function()
     end, { session_id = selected_plan.session_id, resume = true })
 end
 
+--- @deprecated prefer completion instead
 M.generate = function()
     state.active_action = "generate"
     local requesting_bufnr = vim.api.nvim_get_current_buf()
-    local requesting_file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(requesting_bufnr), ":.")
+    -- local requesting_file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(requesting_bufnr), ":.")
     local status = vim.api.nvim_get_mode()
     local should_replace = status.mode == "v" or status.mode == "V" or status.mode == "^V"
     local sel_start, sel_end = buf.active_selection()
-    local prompt_header = prompts.generate({ mode = status.mode, req_bufnr = requesting_bufnr })
+    local prompt_header = rules.generate({ mode = status.mode, req_bufnr = requesting_bufnr })
 
     local _start, _end
     if should_replace then
@@ -252,32 +266,6 @@ M.generate = function()
     )
 end
 
-M.modify = function()
-    state.active_action = "modify"
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("(assistant) modify is only supported by Claude", vim.log.levels.WARN)
-        return
-    end
-    local requesting_bufnr = vim.api.nvim_get_current_buf()
-    local status = vim.api.nvim_get_mode()
-    local prompt_header = prompts.modify({ mode = status.mode, req_bufnr = requesting_bufnr })
-
-    inline.cursor({ title = { string.format("%s Modify", resources.agent_icon()), "MiniIconsPurple" } }, function(input)
-        if input == nil or #input == 0 then
-            return
-        end
-        local prompt_cmd = CMD_PREFIX .. vim.fn.join(input, "\n") .. CMD_POSTFIX
-
-        local req_id = request.start(resources.active_files())
-        prompt_agent(prompt_header .. prompt_cmd, function(_)
-            -- TODO: add in the unlock files here...
-            vim.notify("󰛄 feature completed", vim.log.levels.INFO)
-            vim.cmd.checktime({ mods = { silent = true } })
-            request.complete(req_id)
-        end)
-    end)
-end
-
 M.ask = function()
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local status = vim.api.nvim_get_mode()
@@ -291,20 +279,21 @@ M.ask = function()
     end
 
     local session_id = resources.create_conversation()
-    local prompt_header = prompts.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row })
-    local is_first_message = true
 
-    local on_submit = function(prompt)
-        state.active_action = "ask"
-        state.resume_conversation = false -- use session_id resumption, not --continue
-        local opts = { session_id = session_id, resume = not is_first_message }
-        local header = is_first_message and prompt_header or ""
-        is_first_message = false
+    local prompt = PromptBuilder:new()
+        :with_permissions({})
+        :with_strategy(agents.claude)
+        :with_rules(rules.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row }))
+        :build()
+
+    local on_submit = function(task)
         local context = resources.active(requesting_bufnr)
-        prompt_agent(header .. context .. CMD_PREFIX .. prompt .. CMD_POSTFIX, function(response)
+
+        prompt:set_task(task .. "\n" .. context)
+        prompt:run(function(response)
             conversation.push_message(session_id, response, "claude")
-            vim.notify("llm: claude has answered your question!")
-        end, opts)
+            vim.notify("(assistant): claude has answered your question!")
+        end)
     end
 
     conversation.create_conversation(session_id, requesting_bufnr, row, on_submit)
