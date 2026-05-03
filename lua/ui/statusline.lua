@@ -77,9 +77,9 @@ end
 
 local claude = function()
     local hl_no_bg = cache.claude == "PROMPT" and "StatusLineRedTextNoBg"
-        or (cache.claude == "WORKING" and "StatusLineYellowTextNoBg" or "StatusLineGreenTextNoBg")
+        or (cache.claude == "WORKING" and "StatusLineYellowTextNoBg" or "CodeLensSeparator")
     local hl_bg = cache.claude == "PROMPT" and "StatusLineRedTextWithBg"
-        or (cache.claude == "WORKING" and "StatusLineYellowTextWithBg" or "StatusLineGreenTextWithBg")
+        or (cache.claude == "WORKING" and "StatusLineYellowTextWithBg" or "CodeLensContentIcon")
 
     return {
         { "", hl_no_bg },
@@ -195,19 +195,19 @@ M.tools = function()
 
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     local vlines = {
-        { "", "StatusLineGreenTextNoBg" },
+        { "", "CodeLensSeparator" },
     }
     if #clients > 0 then
-        table.insert(vlines, { "", "StatusLineGreenTextWithBg" })
+        table.insert(vlines, { "", "CodeLensContentIcon" })
     else
-        table.insert(vlines, { "󰔟", "StatusLineGreenTextWithBg" })
+        table.insert(vlines, { "󰔟", "CodeLensContentIcon" })
     end
     for _, client in ipairs(clients) do
         local lsp_name = " " .. client.name
-        table.insert(vlines, { lsp_name, "StatusLineGreenTextWithBg" })
+        table.insert(vlines, { lsp_name, "CodeLensContentIcon" })
     end
 
-    table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+    table.insert(vlines, { "", "CodeLensSeparator" })
     cache.tools = vlines
     valid.tools = true
 
@@ -222,9 +222,9 @@ M.tabs = function()
 
     for i, tab in ipairs(tabs) do
         if tab == active_tabpage then
-            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
-            table.insert(vlines, { "▼", "StatusLineGreenTextWithBg" })
-            table.insert(vlines, { "", "StatusLineGreenTextNoBg" })
+            table.insert(vlines, { "", "CodeLensSeparator" })
+            table.insert(vlines, { "▼", "CodeLensContentIcon" })
+            table.insert(vlines, { "", "CodeLensSeparator" })
         else
             table.insert(vlines, { "", "CodeLensSeparator" })
             table.insert(vlines, { " ", "CodeLensContentIcon" })
@@ -251,9 +251,9 @@ M.git_branch = function()
     end
     local local_branch = cache.git_branch
     return vlines_to_inline_hl({
-        { "", "StatusLineGreenTextNoBg" },
-        { #local_branch > 0 and (" " .. local_branch) or "!git", "StatusLineGreenTextWithBg" },
-        { "", "StatusLineGreenTextNoBg" },
+        { "", "CodeLensSeparator" },
+        { #local_branch > 0 and (" " .. local_branch) or "!git", "CodeLensContentIcon" },
+        { "", "CodeLensSeparator" },
     })
 end
 

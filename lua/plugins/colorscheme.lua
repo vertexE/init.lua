@@ -2,190 +2,35 @@ local M = {
     config = function()
         local Color = require("color")
 
-        if true then
-            require("rose-pine").setup({
-                variant = "auto", -- auto, main, moon, or dawn
-                -- NOTE: Highlight groups are extended (merged) by default. Disable this
-                -- per group via `inherit = false`
-                highlight_groups = {
-                    ["HighlightYank"] = { bg = "highlight_med" },
-                    ["LineNr"] = { fg = "muted" },
-                    ["TabLineFill"] = { bg = "base" },
-                    ["WinBar"] = { bg = "none" },
-                    ["WinSeparator"] = { fg = "highlight_high" },
-                    ["StatusLine"] = { bg = "NONE" },
-                    ["StatusLineNC"] = { bg = "NONE" },
-                    ["CommentItalic"] = { fg = "muted", italic = true },
-                    ["CommentBg"] = { bg = "base", bold = true, fg = "subtle" },
-                    ["StatusLineSeparator"] = { fg = Color:from_hex("#faf4ed"):darken(8):hex() },
-                    ["Folded"] = { link = "TextDimmer" },
-                    ["MsgArea"] = { link = "TextDim" },
-                    ["ModeMsg"] = { link = "TextDim" },
-                    ["CodeLensSeparator"] = { fg = "highlight_low" },
-                    ["CodeLensContentIcon"] = { fg = "pine", bg = "highlight_low" },
-                    ["CodeLensContent"] = { fg = "muted", bg = "highlight_low", italic = true },
-                    ["StatusLineGreenTextNoBg"] = { link = "DiagnosticInfoTextNoBg" },
-                    ["StatusLineGreenTextWithBg"] = { link = "DiagnosticInfoTextWithBg" },
-                    ["StatusLineYellowTextNoBg"] = { link = "DiagnosticWarnTextNoBg" },
-                    ["StatusLineYellowTextWithBg"] = { link = "DiagnosticWarnTextWithBg" },
-                    ["StatusLineRedTextNoBg"] = { link = "DiagnosticErrorTextNoBg" },
-                    ["StatusLineRedTextWithBg"] = { link = "DiagnosticErrorTextWithBg" },
-                    -- dawn: light tinted backgrounds, palette fg colors
-                    ["DiagnosticInfoTextNoBg"] = { fg = "#d8e8ec" },
-                    ["DiagnosticInfoTextWithBg"] = { fg = "#286983", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticErrorTextNoBg"] = { fg = "#f5e4e8" },
-                    ["DiagnosticErrorTextWithBg"] = { fg = "#b4637a", bg = "#f5e4e8", italic = true },
-                    ["DiagnosticWarnTextNoBg"] = { fg = "#f7eedc" },
-                    ["DiagnosticWarnTextWithBg"] = { fg = "#ea9d34", bg = "#f7eedc", italic = true },
-                    ["DiagnosticHintTextNoBg"] = { fg = "#d8e8ec" },
-                    ["DiagnosticHintTextWithBg"] = { fg = "#56949f", bg = "#d8e8ec", italic = true },
-
-                    ["OutlineGuides"] = { link = "TextDimmer" },
-                    ["OutlineFoldMarker"] = { link = "TextDimmer" },
-
-                    -- Multi-dot diagnostic highlights (for displaying multiple diagnostic types on same line)
-                    -- Error background combinations
-                    ["DiagnosticErrorDotOnErrorBg"] = { fg = "#b4637a", bg = "#f5e4e8", italic = true },
-                    ["DiagnosticWarnDotOnErrorBg"] = { fg = "#ea9d34", bg = "#f5e4e8", italic = true },
-                    ["DiagnosticInfoDotOnErrorBg"] = { fg = "#286983", bg = "#f5e4e8", italic = true },
-                    ["DiagnosticHintDotOnErrorBg"] = { fg = "#56949f", bg = "#f5e4e8", italic = true },
-
-                    -- Warn background combinations
-                    ["DiagnosticErrorDotOnWarnBg"] = { fg = "#b4637a", bg = "#f7eedc", italic = true },
-                    ["DiagnosticWarnDotOnWarnBg"] = { fg = "#ea9d34", bg = "#f7eedc", italic = true },
-                    ["DiagnosticInfoDotOnWarnBg"] = { fg = "#286983", bg = "#f7eedc", italic = true },
-                    ["DiagnosticHintDotOnWarnBg"] = { fg = "#56949f", bg = "#f7eedc", italic = true },
-
-                    -- Info background combinations
-                    ["DiagnosticErrorDotOnInfoBg"] = { fg = "#b4637a", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticWarnDotOnInfoBg"] = { fg = "#ea9d34", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticInfoDotOnInfoBg"] = { fg = "#286983", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticHintDotOnInfoBg"] = { fg = "#56949f", bg = "#d8e8ec", italic = true },
-
-                    -- Hint background combinations
-                    ["DiagnosticErrorDotOnHintBg"] = { fg = "#b4637a", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticWarnDotOnHintBg"] = { fg = "#ea9d34", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticInfoDotOnHintBg"] = { fg = "#286983", bg = "#d8e8ec", italic = true },
-                    ["DiagnosticHintDotOnHintBg"] = { fg = "#56949f", bg = "#d8e8ec", italic = true },
-
-                    ["StatusLineSeparatorContent"] = {
-                        fg = "subtle",
-                        bg = Color:from_hex("#faf4ed"):darken(8):hex(),
-                    },
-                    ["StatuslineSeparatorLsp"] = {
-                        fg = "muted",
-                        bg = Color:from_hex("#faf4ed"):darken(8):hex(),
-                    },
-                    ["NormalMode"] = { fg = "#56949f" }, -- foam
-                    ["ReplaceMode"] = { fg = "#b4637a" }, -- love
-                    ["CommandMode"] = { fg = "#ea9d34" }, -- gold
-                    ["PendingMode"] = { fg = "#d7827e" }, -- rose
-                    ["InsertMode"] = { fg = "#286983" }, -- pine
-                    ["VisualMode"] = { fg = "#907aa9" }, -- iris
-                },
-            })
-
-            vim.cmd("colorscheme rose-pine-dawn")
-            return
-        end
-
         require("catppuccin").setup({
             flavour = "macchiato",
             -- transparent_background = true,
             color_overrides = {
-                -- macchiato = {
-                --     -- Simplified warm accents (brighter, more contrast)
-                --     rosewater = "#e0c4ab", -- lighter earthy tan
-                --     flamingo = "#e0c4ab", -- merged with rosewater
-                --     pink = "#d9b5a3", -- brighter dusty rose-brown
-                --     mauve = "#b8a692", -- lighter earthy taupe
-                --     red = "#e09a82", -- brighter terracotta/clay
-                --     maroon = "#e09a82", -- merged with red
-                --     peach = "#e5b580", -- brighter sandy brown
-                --     yellow = "#dac9a5", -- lighter wheat/sand
-                --
-                --     -- Green/blue palette - brighter pine forest
-                --     green = "#8db599", -- brighter sage pine
-                --     teal = "#7ba38e", -- brighter forest teal
-                --     sky = "#7ba38e", -- merged with teal
-                --     sapphire = "#6a9485", -- brighter evergreen
-                --     blue = "#6a9485", -- merged with sapphire
-                --     lavender = "#9aac9d", -- lighter misty pine
-                --
-                --     -- Text hierarchy - higher contrast
-                --     text = "#e5ede7", -- brighter off-white with green hint
-                --     subtext1 = "#c8d4ca", -- lighter muted sage
-                --     subtext0 = "#acbcb0", -- lighter pale pine
-                --
-                --     -- Surfaces - more defined steps
-                --     -- overlay2 = "#8a9891",
-                --     -- overlay1 = "#727c75",
-                --     -- overlay0 = "#5c665f",
-                --     overlay2 = "#9aaa9f", -- brightened
-                --     overlay1 = "#849188", -- brightened (line numbers)
-                --     overlay0 = "#6e7973", -- brightened
-                --     surface2 = "#455049",
-                --     surface1 = "#313b36",
-                --     surface0 = "#232d28",
-                --
-                --     -- Backgrounds - your requested green hints
-                --     base = "#152326", -- deep forest base
-                --     mantle = "#111d1f", -- darker forest
-                --     crust = "#0d1517", -- almost black with green
-                -- },
-                frappe = {
-                    rosewater = "#ff5572",
-                    flamingo = "#ff5572",
-                    red = "#ff5572",
-                    maroon = "#ff5572",
-                    pink = "#FF13F0",
-                    mauve = "#FF13F0",
-                    peach = "#ff9900",
-                    yellow = "#ffee55",
-                    green = "#00FF9C",
-                    teal = "#25D88A",
-                    sky = "#25D88A",
-                    sapphire = "#25D88A",
-                    blue = "#ff9900",
-                    lavender = "#55b4ff",
-                    text = "#ebdbb2",
-                    subtext1 = "#d5c4a1",
-                    subtext0 = "#bdae93",
-                    overlay2 = "#a89984",
-                    overlay1 = "#928374",
-                    overlay0 = "#595959",
-                    surface2 = "#4d4d4d",
-                    surface1 = "#404040",
-                    surface0 = "#292929",
-                    base = "#1d2021",
-                    mantle = "#191b1c",
-                    crust = "#141617",
-                },
                 macchiato = {
-                    rosewater = "#ea6962",
-                    flamingo = "#ea6962",
-                    red = "#ea6962",
+                    rosewater = "#66292F",
+                    flamingo = "#8A4B53",
+                    red = "#BF472C",
                     maroon = "#ea6962",
-                    pink = "#d3869b",
-                    mauve = "#d3869b",
-                    peach = "#e78a4e",
-                    yellow = "#d8a657",
-                    green = "#a9b665",
-                    teal = "#89b482",
-                    sky = "#89b482",
-                    sapphire = "#89b482",
-                    blue = "#7daea3",
-                    lavender = "#7daea3",
-                    text = "#ebdbb2",
-                    subtext1 = "#d5c4a1",
-                    subtext0 = "#bdae93",
-                    overlay2 = "#a89984",
-                    overlay1 = "#928374",
-                    overlay0 = "#595959",
-                    surface2 = "#4d4d4d",
-                    surface1 = "#404040",
-                    surface0 = "#292929",
-                    base = "#191919",
+                    pink = "#8B3040",
+                    mauve = "#C4622D",
+                    peach = "#D47D49",
+                    yellow = "#F2A766",
+                    green = "#F2A766",
+                    teal = "#A67458",
+                    sky = "#A67458",
+                    sapphire = "#A67458",
+                    blue = "#D47D49",
+                    lavender = "#E0CCAE",
+                    text = "#F2DDBC",
+                    subtext1 = "#E0CCAE",
+                    subtext0 = "#A67458",
+                    overlay2 = "#a4896f",
+                    overlay1 = "#A4895C",
+                    overlay0 = "#6B4035",
+                    surface2 = "#3d231a",
+                    surface1 = "#291916",
+                    surface0 = "#1F1311",
+                    base = "#0F0908",
                     mantle = "#121212",
                     crust = "#141617",
                 },
@@ -259,7 +104,7 @@ local M = {
                         fg = "#928375",
                         bg = Color:from_hex(colors.base):lighten(8):hex(),
                     },
-                    ["NormalMode"] = { fg = "#7daea4" },
+                    ["NormalMode"] = { fg = "#F2A766" },
                     ["ReplaceMode"] = { fg = "#ea6963" },
                     ["CommandMode"] = { fg = "#e78a4f" },
                     ["PendingMode"] = { fg = "#D8A658" },
