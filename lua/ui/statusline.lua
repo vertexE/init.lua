@@ -40,10 +40,10 @@ local spotify = function()
     if valid.spotify then
         return #cache.spotify > 0
                 and {
-                    { "", "StatusLineGreenTextNoBg" },
-                    { "󰓇  ", "StatusLineGreenTextWithBg" },
-                    { cache.spotify, "StatusLineGreenTextWithBg" },
-                    { "", "StatusLineGreenTextNoBg" },
+                    { "", "CodeLensSeparator" },
+                    { "󰓇  ", "CodeLensContentIcon" },
+                    { cache.spotify, "CodeLensContentIcon" },
+                    { "", "CodeLensSeparator" },
                 }
             or {}
     end
@@ -62,10 +62,10 @@ local spotify = function()
 
     return #cache.spotify > 0
             and {
-                { "", "StatusLineGreenTextNoBg" },
-                { "󰓇  ", "StatusLineGreenTextWithBg" },
-                { cache.spotify, "StatusLineGreenTextWithBg" },
-                { "", "StatusLineGreenTextNoBg" },
+                { "", "CodeLensSeparator" },
+                { "󰓇  ", "CodeLensContentIcon" },
+                { cache.spotify, "CodeLensContentIcon" },
+                { "", "CodeLensSeparator" },
             }
         or {}
 end
@@ -260,9 +260,9 @@ end
 M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        "%{%v:lua.require'ui.statusline'.claude()%}",
+        -- "%{%v:lua.require'ui.statusline'.claude()%}",
         "%{%v:lua.require'ui.statusline'.diagnostics()%}",
-        -- "%{%v:lua.require'ui.statusline'.spotify()%}",
+        "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",
         "%{%v:lua.require'ui.statusline'.tabs()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",

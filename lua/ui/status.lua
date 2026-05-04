@@ -2,14 +2,20 @@ local M = {}
 
 local splits = require("ui.splits")
 local tbl = require("tbl")
-local git_common = require("vcs.git_common")
 local assistant = require("assistant.resources")
+local agents = require("assistant.agents")
+local symbols = require("symbols")
+
+local animation_frame_index = 1
+local frames = symbols.braille_spinner_frames
 
 local STATUS_WIN_WIDTH = 30
 
 local state = {
     bufnr = -1,
     winr = -1,
+    -- whether the draw loop is running
+    is_draw_loop_running = false,
 }
 
 local draw = function()
@@ -26,12 +32,11 @@ local draw = function()
         },
     })
 
-    local git_root = git_common.git_root()
     table.insert(v_lines, {
         { "│ ", "WinSeparator" },
         { "   ", "MiniIconsGreen" },
         { "editing ", "Comment" },
-        { git_root, "MiniIconsOrange" },
+        { vim.fn.fnamemodify(vim.fn.getcwd(), ":t"), "MiniIconsOrange" },
     })
 
     table.insert(v_lines, {
@@ -96,24 +101,23 @@ local draw = function()
         },
     })
 
-    table.insert(v_lines, {
-        { "│ ", "WinSeparator" },
-        { " 󰫣 ", "MiniIconsGreen" },
-        { " - llm plans", "Comment" },
-    })
-
-    table.insert(v_lines, {
-        {
-            "├───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    local plans_vlines = assistant.plans()
-    if #plans_vlines > 0 then
-        for _, v_line in ipairs(plans_vlines) do
-            table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
-        end
+    local agent_sessions = agents.list_agents("ACTIVE")
+    if #agent_sessions > 0 then
+        table.insert(v_lines, {
+            { "│ ", "WinSeparator" },
+            { string.format(" %s ", frames[animation_frame_index % #frames + 1]), "MiniIconsGreen" },
+            {
+                #agent_sessions == 1 and " - 1 session active" or string.format("%d sessions active", #agent_sessions),
+                "Comment",
+            },
+        })
+        animation_frame_index = animation_frame_index + 1
+    else
+        table.insert(v_lines, {
+            { "│ ", "WinSeparator" },
+            { " 󰫣 ", "MiniIconsGreen" },
+            { " - 0 sessions active", "Comment" },
+        })
     end
 
     table.insert(v_lines, {
@@ -130,6 +134,43 @@ local draw = function()
         virt_lines = remaining,
         virt_text_pos = "overlay",
     })
+end
+
+local should_run_draw_loop = function()
+    return #agents.list_agents("ACTIVE") > 0 and M.is_open()
+end
+
+local draw_loop = function()
+    if state.is_draw_loop_running then
+        --- ensure we only have 1 draw_loop
+        return
+    end
+
+    state.is_draw_loop_running = true
+
+    local timer = vim.loop.new_timer()
+    if not timer then
+        state.is_draw_loop_running = false
+        vim.notify("ui.status: failed to create draw_loop timer", vim.log.levels.ERROR)
+        return
+    end
+
+    timer:start(
+        0,
+        100,
+        vim.schedule_wrap(function()
+            if not should_run_draw_loop() then
+                timer:stop()
+                timer:close()
+                state.is_draw_loop_running = false
+                if M.is_open() then
+                    draw()
+                end
+                return
+            end
+            draw()
+        end)
+    )
 end
 
 M.is_open = function()
@@ -191,6 +232,18 @@ M.toggle_split = function()
             end
         end,
     })
+
+    vim.api.nvim_create_autocmd({ "User" }, {
+        pattern = "AgentStatusChange",
+        group = vim.api.nvim_create_augroup("user.status.agents", { clear = true }),
+        callback = function()
+            if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
+                -- draw loop for agent status changes
+                draw_loop()
+            end
+        end,
+    })
+
     draw()
 end
 

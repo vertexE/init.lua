@@ -25,6 +25,17 @@ M.rounded_border = function()
     }
 end
 
+M.braille_spinner_frames = {
+    "⣾",
+    "⣽",
+    "⣻",
+    "⢿",
+    "⡿",
+    "⣟",
+    "⣯",
+    "⣷",
+}
+
 local lsp_diagnostic_symbols = { Error = "", Warn = "", Hint = "", Info = "󰭺" }
 
 local severity_to_word = {

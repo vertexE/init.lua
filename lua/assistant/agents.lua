@@ -20,15 +20,28 @@ end
 --- @type table<string,Agent>
 local active_sessions = {}
 
--- TODO: we can add an M.list_agents func for "resources" to use
--- this can be consumed by "ui.status" to show running agents...
--- can add spinners on the bottom using "ui.loader"
+--- @param filter "INACTIVE"|"ACTIVE"|nil
+--- @return Agent[]
+M.list_agents = function(filter)
+    return vim.iter(vim.tbl_values(active_sessions))
+        :filter(function(agent)
+            return filter == nil or agent.status == filter
+        end)
+        :totable()
+end
 
 --- @param prompt Prompt
 --- @param resolve fun(s:string)
 M.claude = function(prompt, resolve)
+    local cmd = {
+        "claude",
+        "-p",
+        -- nil check, if there exists an active session then ignore_rules = true
+        prompt:as_string(active_sessions[prompt.session_id] ~= nil),
+        "--allowedTools",
+        '"Bash(git diff:*)"',
+    }
     local agent = active_sessions[prompt.session_id] or Agent:new(prompt)
-    local cmd = { "claude", "-p", prompt:as_string(agent ~= nil), "--allowedTools", '"Bash(git diff:*)"' }
 
     if active_sessions[prompt.session_id] then
         table.insert(cmd, "--resume")
@@ -48,6 +61,8 @@ M.claude = function(prompt, resolve)
     end
 
     agent.status = "ACTIVE"
+    vim.api.nvim_exec_autocmds("User", { pattern = "AgentStatusChange" })
+
     vim.system(
         cmd,
         { text = true },

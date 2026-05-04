@@ -1,5 +1,7 @@
 local M = {}
 
+local symbols = require("symbols")
+
 --- @class ui.loader
 --- @field bufnr integer
 --- @field extmark_id integer
@@ -26,19 +28,15 @@ local dist_to_non_whitespace = function(s)
     return _end and _end or 0
 end
 
-local frames = {
-    "⣾",
-    "⣽",
-    "⣻",
-    "⢿",
-    "⡿",
-    "⣟",
-    "⣯",
-    "⣷",
-}
+local frames = symbols.braille_spinner_frames
 
 local draw_loop = function(bufnr, ns_id, start_row, line)
     local timer = vim.loop.new_timer()
+    if not timer then
+        vim.notify("ui.loader: failed to create draw_loop timer", vim.log.levels.ERROR)
+        return
+    end
+
     timer:start(
         0,
         100,
