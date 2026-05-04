@@ -121,13 +121,13 @@ local M = {
                     NormalFloat = { bg = colors.base }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
                     FloatBorder = { bg = "NONE", fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
                     FloatTitle = {
-                        bg = Color:from_hex(colors.crust):lighten(3):hex(),
+                        bg = "NONE", -- colors.surface0,
                         fg = colors.green,
                         style = { "bold" },
                     },
                     BlinkCmpMenuBorder = { fg = colors.surface0, bg = "NONE" },
-                    CursorLine = { bg = "#303030" },
-                    Visual = { bg = "#303030" },
+                    CursorLine = { bg = colors.surface0 },
+                    Visual = { bg = colors.surface0 },
                     BlinkCmpMenuSelection = { bg = "#303030" },
                     Pmenu = { bg = "NONE", fg = "" },
                     PmenuSel = { bg = colors.surface0, fg = colors.green },
