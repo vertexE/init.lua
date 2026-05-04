@@ -118,18 +118,18 @@ local M = {
                     ["TextDimmest"] = { fg = Color:from_hex("#928375"):darken(33):hex() },
                     CmpItemMenu = { fg = colors.surface2 },
                     CursorLineNr = { fg = colors.text },
-                    NormalFloat = { bg = colors.mantle }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
-                    FloatBorder = { bg = colors.mantle, fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
+                    NormalFloat = { bg = colors.base }, -- bg = Color:from_hex(colors.crust):lighten(3):hex()
+                    FloatBorder = { bg = "NONE", fg = colors.surface0 }, -- bg = Color:from_hex(colors.crust):lighten(3):hex(),
                     FloatTitle = {
                         bg = Color:from_hex(colors.crust):lighten(3):hex(),
                         fg = colors.green,
                         style = { "bold" },
                     },
-                    BlinkCmpMenuBorder = { fg = colors.surface0 },
+                    BlinkCmpMenuBorder = { fg = colors.surface0, bg = "NONE" },
                     CursorLine = { bg = "#303030" },
                     Visual = { bg = "#303030" },
                     BlinkCmpMenuSelection = { bg = "#303030" },
-                    Pmenu = { bg = colors.mantle, fg = "" },
+                    Pmenu = { bg = "NONE", fg = "" },
                     PmenuSel = { bg = colors.surface0, fg = colors.green },
                     GitSignsChange = { fg = colors.peach },
                     -- LineNr = { fg = colors.overlay0 },
