@@ -5,6 +5,7 @@ Using a custom catppuccin theme with [Maple Mono](https://github.com/subframe753
 ### Prerequisites
 
 - install nvim, for macOS you can run `brew install neovim`
+- ghostty theme [here](https://github.com/studio1804/ghostty-theme)
    
 ### Debugging
 
