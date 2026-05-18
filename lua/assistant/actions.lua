@@ -85,12 +85,14 @@ M.ask = function()
         return
     end
 
-    local session_id = resources.create_conversation()
+    local conversation_id = resources.create_conversation()
+    local session_id = resources.agent_name() == "Claude" and ids.uuidv4() or nil
 
     local prompt = PromptBuilder:new()
         :with_permissions({})
         :with_strategy(agents.claude)
         :with_rules(rules.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row }))
+        :with_session_id(session_id)
         :build()
 
     local on_submit = function(task)
@@ -98,12 +100,12 @@ M.ask = function()
 
         prompt:set_task(task .. "\n" .. context)
         prompt:run(function(response)
-            conversation.push_message(session_id, response, "claude")
+            conversation.push_message(conversation_id, response, "claude")
             vim.notify("(assistant): claude has answered your question!")
         end)
     end
 
-    conversation.create_conversation(session_id, requesting_bufnr, row, on_submit)
+    conversation.create_conversation(conversation_id, requesting_bufnr, row, on_submit)
 end
 
 return M

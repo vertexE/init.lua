@@ -1,6 +1,7 @@
 --- @class Prompt
+--- @field id string
 --- @field permissions AgentPermission[]
---- @field session_id string default randomly generated
+--- @field session_id string|nil
 --- @field exec_dir string default exec_dir is current dir
 --- @field rules string
 --- @field task string
@@ -8,15 +9,17 @@
 local Prompt = {}
 Prompt.__index = Prompt
 
+--- @param id string
 --- @param permissions AgentPermission[]
---- @param session_id string default randomly generated
+--- @param session_id string|nil
 --- @param exec_dir string default exec_dir is current dir
 --- @param rules string
 --- @param task string
 --- @param strategy AgentStrategy
 --- @return Prompt
-function Prompt:new(permissions, session_id, exec_dir, rules, task, strategy)
+function Prompt:new(id, permissions, session_id, exec_dir, rules, task, strategy)
     return setmetatable({
+        id = id,
         permissions = permissions,
         session_id = session_id,
         exec_dir = exec_dir,

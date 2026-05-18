@@ -4,6 +4,7 @@ local M = {}
 
 --- @class Agent
 --- @field prompt Prompt
+--- @field session_id string|nil
 --- @field status "INACTIVE"|"ACTIVE"
 local Agent = {}
 Agent.__index = Agent
@@ -13,17 +14,18 @@ Agent.__index = Agent
 function Agent:new(prompt)
     return setmetatable({
         prompt = prompt,
+        session_id = nil,
         status = "ACTIVE",
     }, self)
 end
 
 --- @type table<string,Agent>
-local active_sessions = {}
+local active_agents = {}
 
 --- @param filter "INACTIVE"|"ACTIVE"|nil
 --- @return Agent[]
 M.list_agents = function(filter)
-    return vim.iter(vim.tbl_values(active_sessions))
+    return vim.iter(vim.tbl_values(active_agents))
         :filter(function(agent)
             return filter == nil or agent.status == filter
         end)
@@ -33,23 +35,24 @@ end
 --- @param prompt Prompt
 --- @param resolve fun(s:string)
 M.claude = function(prompt, resolve)
+    local agent = active_agents[prompt.id] or Agent:new(prompt)
+    local session_id = agent.session_id
     local cmd = {
         "claude",
         "-p",
         -- nil check, if there exists an active session then ignore_rules = true
-        prompt:as_string(active_sessions[prompt.session_id] ~= nil),
+        prompt:as_string(session_id ~= nil),
         "--allowedTools",
         '"Bash(git diff:*)"',
     }
-    local agent = active_sessions[prompt.session_id] or Agent:new(prompt)
 
-    if active_sessions[prompt.session_id] then
+    if session_id then
         table.insert(cmd, "--resume")
-        table.insert(cmd, prompt.session_id)
-    else
-        active_sessions[prompt.session_id] = agent
+        table.insert(cmd, session_id)
+    elseif prompt.session_id then
         table.insert(cmd, "--session-id")
         table.insert(cmd, prompt.session_id)
+        agent.session_id = prompt.session_id
     end
 
     if vim.tbl_contains(prompt.permissions, permissions.WRITE) then
@@ -60,6 +63,8 @@ M.claude = function(prompt, resolve)
         table.insert(cmd, "plan")
     end
 
+    agent.prompt = prompt
+    active_agents[prompt.id] = agent
     agent.status = "ACTIVE"
     vim.api.nvim_exec_autocmds("User", { pattern = "AgentStatusChange" })
 

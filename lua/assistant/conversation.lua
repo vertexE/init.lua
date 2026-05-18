@@ -11,7 +11,7 @@ local floats = require("ui.floats")
 --- @field source llm.MessageSource
 
 --- @class llm.Conversation
---- @field session_id string
+--- @field conversation_id string
 --- @field buf integer
 --- @field extmark_id integer ID for extmark when the conversation was opened
 --- @field messages llm.Message[]
@@ -125,7 +125,7 @@ local open_conversation = function(conversation, forward_to_agent)
     vim.keymap.set({ "n" }, "<enter>", function()
         local lines = vim.api.nvim_buf_get_lines(textarea_bufnr, 0, -1, false)
         local prompt = table.concat(lines, "\n")
-        M.push_message(conversation.session_id, prompt, "user")
+        M.push_message(conversation.conversation_id, prompt, "user")
         -- TODO: add context (original buf)
         forward_to_agent(prompt)
         vim.api.nvim_buf_set_lines(textarea_bufnr, 0, -1, false, {})
@@ -137,11 +137,11 @@ local open_conversation = function(conversation, forward_to_agent)
     draw(conversation)
 end
 
---- @param session_id string conversation ID to open
+--- @param conversation_id string conversation ID to open
 --- @param buf integer buffer the conversation takes place
 --- @param row integer 0-indexed line position
 --- @param on_submit fun(prompt:string)
-M.create_conversation = function(session_id, buf, row, on_submit)
+M.create_conversation = function(conversation_id, buf, row, on_submit)
     local extmark_id = vim.api.nvim_buf_set_extmark(buf, ns, row, 0, {
         virt_text = {
             { "", "CodeLensSeparator" },
@@ -153,7 +153,7 @@ M.create_conversation = function(session_id, buf, row, on_submit)
     })
     --- @type llm.Conversation
     local conversation = {
-        session_id = session_id,
+        conversation_id = conversation_id,
         buf = buf,
         extmark_id = extmark_id,
         chat_buf = -1,
@@ -195,11 +195,11 @@ M.open_by_buf_line = function(buf, row)
     open_conversation(existing_conversation, existing_conversation.on_submit)
 end
 
---- @param session_id string conversation ID
+--- @param conversation_id string conversation ID
 --- @param msg string llm agent message to push to the conversation
 --- @param source llm.MessageSource llm agent message to push to the conversation
-M.push_message = function(session_id, msg, source)
-    local conversation = M.conversation(session_id)
+M.push_message = function(conversation_id, msg, source)
+    local conversation = M.conversation(conversation_id)
     if not conversation then
         vim.notify("llm: failed to find conversation", vim.log.levels.ERROR)
         return
@@ -211,11 +211,11 @@ M.push_message = function(session_id, msg, source)
 end
 
 --- lookup a conversation by conversation ID
---- @param session_id string conversation ID
+--- @param conversation_id string conversation ID
 --- @return llm.Conversation|nil
-M.conversation = function(session_id)
+M.conversation = function(conversation_id)
     return vim.iter(state.conversations):find(function(conversation)
-        return conversation.session_id == session_id
+        return conversation.conversation_id == conversation_id
     end)
 end
 

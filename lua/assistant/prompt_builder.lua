@@ -4,8 +4,9 @@ local uuid = require("ids")
 --- @alias AgentStrategy fun(agent:Prompt, resolve:fun(s:string))
 
 --- @class PromptBuilder
+--- @field id string|nil default randomly generated
 --- @field permissions AgentPermission[]|nil
---- @field session_id string|nil default randomly generated
+--- @field session_id string|nil
 --- @field exec_dir string|nil default exec_dir is current dir
 --- @field rules string|nil
 --- @field task string|nil
@@ -25,7 +26,7 @@ function PromptBuilder:with_permissions(permissions)
     return self
 end
 
---- @param session_id string
+--- @param session_id string|nil
 --- @return PromptBuilder
 function PromptBuilder:with_session_id(session_id)
     self.session_id = session_id
@@ -61,8 +62,9 @@ function PromptBuilder:with_rules(rules)
 end
 
 function PromptBuilder:build()
+    local id = self.id or uuid.uuidv4()
     local permissions = self.permissions or {}
-    local session_id = self.session_id or uuid.uuidv4()
+    local session_id = self.session_id
     local exec_dir = self.exec_dir or vim.fn.getcwd()
     local rules = self.rules or ""
     local task = self.task or ""
@@ -71,7 +73,7 @@ function PromptBuilder:build()
             vim.notify("(assistant): missing agent strategy in PromptBuilder", vim.log.levels.ERROR)
         end
 
-    return Prompt:new(permissions, session_id, exec_dir, rules, task, strategy)
+    return Prompt:new(id, permissions, session_id, exec_dir, rules, task, strategy)
 end
 
 return PromptBuilder

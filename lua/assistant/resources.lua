@@ -38,7 +38,7 @@ local resource_state = {
     active_bufs = {},
     --- @type llm.Agent -- default agent to use for inline requests
     agent = "Claude",
-    --- @type table<string> list of conversation session IDs to include in context
+    --- @type table<string> list of conversation IDs to include in context
     conversations = {},
 }
 
@@ -254,9 +254,9 @@ M.next_agent = function()
 end
 
 M.create_conversation = function()
-    local next_id = ids.uuidv4()
-    table.insert(resource_state.conversations, next_id)
-    return next_id
+    local conversation_id = ids.uuidv4()
+    table.insert(resource_state.conversations, conversation_id)
+    return conversation_id
 end
 
 return M
