@@ -23,6 +23,41 @@ local codex = {
 </rules>
         ]]
     end,
+
+    --- @param ctx prompt.context
+    --- @return string
+    completion = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+        local lines = vim.api.nvim_buf_get_lines(ctx.req_bufnr, ctx.sel_start - 1, ctx.sel_end, false)
+
+        return string.format(
+            [[
+<context>
+- you are currently in the file @%s
+- the 0-indexed cursor position is %d
+- the selected code is in the current file
+</context>
+<rules>
+- read the code in the selection and any comments inside it, then complete or rewrite that block accordingly
+- only read the current file for this task
+- only produce the replacement for the selected block
+- do not edit any other file contents
+- do not respond with markdown, explanations, or chat text
+- write the replacement block exactly to @%s
+- if the replacement should be empty, write an empty file to @%s
+- preserve indentation so the replacement can be inserted directly back into the buffer
+</rules>
+<selection>
+%s
+</selection>
+            ]],
+            file,
+            ctx.sel_start - 1,
+            ctx.write_to,
+            ctx.write_to,
+            table.concat(lines, "\n")
+        )
+    end,
 }
 
 local claude = {
@@ -65,28 +100,6 @@ local claude = {
         )
 
         return prompt_header .. knowledge
-    end,
-
-    --- @param ctx prompt.context
-    --- @return string
-    modify = function(ctx)
-        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
-        local knowledge = resources.active()
-        local prompt_header = string.format(
-            -- FIXME: maybe improve this
-            [[
-<rules>
-- you are in the current file @%s
-- don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
-- use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
-- `files` lists the files you are allowed to modify including the current file
-</rules>
-    ]],
-            file
-        )
-        prompt_header = prompt_header .. knowledge .. "\n\n"
-
-        return prompt_header
     end,
 
     --- @param ctx prompt.context
@@ -146,22 +159,14 @@ local claude = {
 --- @param ctx prompt.context
 --- @return string
 M.completion = function(ctx)
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("unsupported agent", vim.log.levels.WARN)
-        return ""
+    if resources.agent_name() == "Codex" then
+        return codex.completion(ctx)
+    elseif resources.agent_name() == "Claude" then
+        return claude.completion(ctx)
     end
 
-    return claude.completion(ctx)
-end
-
---- @param ctx prompt.context
---- @return string
-M.modify = function(ctx)
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("unsupported agent", vim.log.levels.WARN)
-        return ""
-    end
-    return claude.modify(ctx)
+    vim.notify("unsupported agent", vim.log.levels.WARN)
+    return ""
 end
 
 --- @param ctx prompt.context

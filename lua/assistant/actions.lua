@@ -11,7 +11,7 @@ local conversation = require("assistant.conversation")
 local PromptBuilder = require("assistant.prompt_builder")
 local agents = require("assistant.agents")
 
-local CLAUDE_CACHE = ".claude-cache/"
+local AGENT_CACHE = ".agent-cache/"
 
 local state = {
     resume_conversation = true,
@@ -30,18 +30,20 @@ local provider_message_source = function()
 end
 
 M.completion = function()
-    if resources.agent_name() ~= "Claude" then
+    local agent_name = resources.agent_name()
+    if agent_name ~= "Claude" and agent_name ~= "Codex" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
         return
     end
 
     local _start, _end = buf.active_selection()
-    if not vim.fn.isdirectory(CLAUDE_CACHE) then
-        vim.fn.mkdir(CLAUDE_CACHE)
+    if not vim.fn.isdirectory(AGENT_CACHE) then
+        vim.fn.mkdir(AGENT_CACHE)
     end
 
     local file_id = ids.uuidv4()
     local file_name = string.format("change-%s", file_id)
+    local cache_path = AGENT_CACHE .. file_name
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local status = vim.api.nvim_get_mode()
 
@@ -49,10 +51,10 @@ M.completion = function()
 
     local prompt = PromptBuilder:new()
         :with_permissions({ "write" })
-        :with_strategy(agents.claude)
+        :with_strategy(provider_strategy())
         :with_rules(rules.completion({
             mode = status.mode,
-            write_to = CLAUDE_CACHE .. file_name,
+            write_to = cache_path,
             req_bufnr = requesting_bufnr,
             sel_start = _start,
             sel_end = _end,
@@ -66,11 +68,15 @@ M.completion = function()
         local offset = _end - _start + 1 -- inclusive selection end
         loader.stop(ns_id)
 
-        local content, err = fs.read(CLAUDE_CACHE .. file_name)
+        local content, err = fs.read(cache_path)
         if err ~= nil or content == nil then
-            vim.notify(err or "(assistant): cannot read Claude Cache", vim.log.levels.ERROR)
+            vim.notify(
+                err or string.format("(assistant): %s did not write completion output", agent_name),
+                vim.log.levels.ERROR
+            )
             return
         end
+
         vim.api.nvim_buf_set_lines(
             requesting_bufnr,
             replace_start,
