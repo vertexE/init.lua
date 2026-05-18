@@ -9,7 +9,6 @@ local request = require("assistant.request")
 local inline = require("ui.inline")
 local loader = require("ui.loader")
 local parsers = require("assistant.parsers")
-local plan = require("assistant.plan")
 local conversation = require("assistant.conversation")
 
 local PromptBuilder = require("assistant.prompt_builder")
@@ -17,10 +16,9 @@ local agents = require("assistant.agents")
 
 local CMD_PREFIX = "<user-request>"
 local CMD_POSTFIX = "</user-request>\n"
-local CLAUDE_PLANS_DIR = "~/.claude/plans"
 local CLAUDE_CACHE = ".claude-cache/"
 
---- @alias llm.Action "generate"|"ask"|"modify"|"plan"
+--- @alias llm.Action "generate"|"ask"|"modify"
 
 local state = {
     --- @type llm.Action|nil
@@ -56,11 +54,6 @@ local prompt_agent = function(prompt, resolve, opts)
         elseif state.active_action == "generate" or state.active_action == "modify" then
             table.insert(cmd, "--permission-mode")
             table.insert(cmd, "acceptEdits")
-        elseif state.active_action == "plan" then
-            table.insert(cmd, "--permission-mode")
-            table.insert(cmd, "plan")
-            table.insert(cmd, "--output-format")
-            table.insert(cmd, "json")
         end
 
         if opts and opts.session_id and opts.resume then
@@ -139,76 +132,6 @@ M.completion = function()
             vim.split(content, "\n")
         )
     end)
-end
-
---- @deprecated
-M.create_plan = function()
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
-        return
-    end
-    local session_id = ids.uuidv4()
-
-    state.active_action = "plan"
-    local requesting_bufnr = vim.api.nvim_get_current_buf()
-    local status = vim.api.nvim_get_mode()
-    local prompt_header = rules.plan({ mode = status.mode, req_bufnr = requesting_bufnr })
-    plan.create_plan(function(goal, _plan)
-        vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-        prompt_agent(CMD_PREFIX .. goal .. CMD_POSTFIX .. prompt_header, function(_)
-            _plan.status = "reviewable"
-            _plan.session_id = session_id
-
-            vim.notify(string.format("(assistant): plan is ready for review"), vim.log.levels.INFO)
-            vim.cmd.tabnew()
-            vim.cmd.edit({ args = { fs.last_modified_file_in_dir(CLAUDE_PLANS_DIR) } })
-
-            vim.schedule(function()
-                local bufnr = vim.api.nvim_get_current_buf()
-                vim.keymap.set("n", "q", function()
-                    vim.cmd.tabclose()
-                end, { buffer = bufnr })
-
-                vim.keymap.set("n", "<enter>", function()
-                    vim.notify("(assistant): approved plan!")
-                    _plan.status = "executable"
-                    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-                    vim.cmd.tabclose()
-                end, { buffer = bufnr })
-            end)
-        end, { session_id = session_id })
-    end)
-end
-
---- execute the active plan
---- @deprecated
-M.execute_plan = function()
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
-        return
-    end
-
-    state.active_action = "modify" -- uses the same permissions
-    local selected_plan = plan.active_plan()
-    if not selected_plan then
-        vim.notify("(assistant) no such plan exists", vim.log.levels.ERROR)
-        return
-    end
-
-    if selected_plan.status ~= "executable" then
-        vim.notify("(assistant) plan not in executable state", vim.log.levels.INFO)
-        return
-    end
-
-    selected_plan.status = "executing"
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    vim.notify(string.format("(assistant): starting plan!"))
-    prompt_agent("execute the plan", function(_)
-        vim.notify("(assistant): plan completed")
-        selected_plan.status = "completed"
-        vim.cmd.checktime({ mods = { silent = true } })
-        vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    end, { session_id = selected_plan.session_id, resume = true })
 end
 
 --- @deprecated prefer completion instead

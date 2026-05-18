@@ -170,14 +170,6 @@ vim.keymap.set({ "n", "x" }, "<localleader>c", function()
     require("assistant.actions").ask()
 end, { desc = "llm: ask agent a question" })
 
-vim.keymap.set("n", "<leader>ae", function()
-    require("assistant.actions").execute_plan()
-end)
-
-vim.keymap.set("n", "<leader>ap", function()
-    require("assistant.actions").create_plan()
-end)
-
 vim.keymap.set("n", "<leader>S", function()
     status.toggle_split()
 end)

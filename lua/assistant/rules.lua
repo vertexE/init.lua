@@ -94,25 +94,6 @@ local claude = {
 
     --- @param ctx prompt.context
     --- @return string
-    plan = function(ctx)
-        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
-        local knowledge = resources.active()
-        local prompt_header = string.format(
-            [[
-<rules>
-- you are in the current file @%s
-- do not include unnecessary details in the plan, keep it focused
-- output the outcome of planning (single short sentence specifying success, errors, confusion, etc.) once you are done
-</rules>
-        ]],
-            file
-        )
-
-        return prompt_header .. knowledge .. "\n\n"
-    end,
-
-    --- @param ctx prompt.context
-    --- @return string
     modify = function(ctx)
         local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
         local knowledge = resources.active()
@@ -232,16 +213,6 @@ M.completion = function(ctx)
     end
 
     return claude.completion(ctx)
-end
-
---- @param ctx prompt.context
---- @return string
-M.plan = function(ctx)
-    if resources.agent_name() ~= "Claude" then
-        vim.notify("unsupported agent", vim.log.levels.WARN)
-        return ""
-    end
-    return claude.plan(ctx)
 end
 
 --- @param ctx prompt.context
