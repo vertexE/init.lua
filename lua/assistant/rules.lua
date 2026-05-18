@@ -10,7 +10,7 @@ local resources = require("assistant.resources")
 --- @field cursor_row ?integer
 --- @field write_to ?string file path to write to instead
 
-local copilot = {
+local codex = {
     --- @param _ ?prompt.context
     --- @return string
     ask = function(_)
@@ -167,8 +167,8 @@ end
 --- @param ctx prompt.context
 --- @return string
 M.ask = function(ctx)
-    if resources.agent_name() == "Copilot" then
-        return copilot.ask(ctx)
+    if resources.agent_name() == "Codex" then
+        return codex.ask(ctx)
     elseif resources.agent_name() == "Claude" then
         return claude.ask(ctx)
     end

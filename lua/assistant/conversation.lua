@@ -3,8 +3,7 @@ local M = {}
 local ns = vim.api.nvim_create_namespace("llm.conversations.mark")
 local ns_chat = vim.api.nvim_create_namespace("llm.conversations.chat")
 local floats = require("ui.floats")
-
---- @alias llm.MessageSource "claude"|"user"
+--- @alias llm.MessageSource "claude"|"codex"|"user"
 
 --- @class llm.Message
 --- @field content string
@@ -14,6 +13,7 @@ local floats = require("ui.floats")
 --- @field conversation_id string
 --- @field buf integer
 --- @field extmark_id integer ID for extmark when the conversation was opened
+--- @field provider llm.MessageSource
 --- @field messages llm.Message[]
 --- @field chat_buf integer
 --- @field chat_win integer -- so we can control scrolling
@@ -24,6 +24,22 @@ local state = {
     --- @type llm.Conversation[]
     conversations = {},
 }
+
+--- @param provider llm.MessageSource
+--- @return string
+local provider_title = function(provider)
+    if provider == "codex" then
+        return " codex"
+    end
+
+    return "󰛄 claude"
+end
+
+--- @param source llm.MessageSource
+--- @return boolean
+local is_agent_message = function(source)
+    return source == "claude" or source == "codex"
+end
 
 --- @param conversation llm.Conversation
 local draw = function(conversation)
@@ -47,10 +63,13 @@ local draw = function(conversation)
         end
         local first_line = lines[1]:match("^```") and lines[1] or (string.rep(" ", 10) .. lines[1])
         vim.api.nvim_buf_set_lines(conversation.chat_buf, -1, -1, false, { first_line, unpack(lines, 2) })
-        local is_claude = message.source == "claude"
+        local is_provider = is_agent_message(message.source)
         vim.api.nvim_buf_set_extmark(conversation.chat_buf, ns_chat, row, 0, {
             virt_text = {
-                { is_claude and "┃ (LLM) >" or "┃ (You) > ", is_claude and "MiniIconsOrange" or "MiniIconsGreen" },
+                {
+                    is_provider and "┃ (LLM) >" or "┃ (You) > ",
+                    is_provider and "MiniIconsOrange" or "MiniIconsGreen",
+                },
             },
             virt_text_pos = "overlay",
         })
@@ -76,7 +95,7 @@ local open_conversation = function(conversation, forward_to_agent)
     local textarea_row = chat_row + chat_height + 2
 
     local chat_bufnr, chat_winr = floats.open({
-        title = "󰛄 claude",
+        title = provider_title(conversation.provider),
         height = chat_height,
         width = width,
         row = chat_row,
@@ -140,12 +159,13 @@ end
 --- @param conversation_id string conversation ID to open
 --- @param buf integer buffer the conversation takes place
 --- @param row integer 0-indexed line position
+--- @param provider llm.MessageSource
 --- @param on_submit fun(prompt:string)
-M.create_conversation = function(conversation_id, buf, row, on_submit)
+M.create_conversation = function(conversation_id, buf, row, provider, on_submit)
     local extmark_id = vim.api.nvim_buf_set_extmark(buf, ns, row, 0, {
         virt_text = {
             { "", "CodeLensSeparator" },
-            { "󰛄 claude", "CodeLensContentIcon" },
+            { provider_title(provider), "CodeLensContentIcon" },
             { "", "CodeLensSeparator" },
         },
         virt_text_pos = "eol",
@@ -155,6 +175,7 @@ M.create_conversation = function(conversation_id, buf, row, on_submit)
     local conversation = {
         conversation_id = conversation_id,
         buf = buf,
+        provider = provider,
         extmark_id = extmark_id,
         chat_buf = -1,
         chat_win = -1,

@@ -21,6 +21,14 @@ local state = {
     conversations = {},
 }
 
+local provider_strategy = function()
+    return resources.agent_name() == "Codex" and agents.codex or agents.claude
+end
+
+local provider_message_source = function()
+    return resources.agent_name() == "Codex" and "codex" or "claude"
+end
+
 M.completion = function()
     if resources.agent_name() ~= "Claude" then
         vim.notify("(assistant): unsupported agent", vim.log.levels.WARN)
@@ -86,11 +94,12 @@ M.ask = function()
     end
 
     local conversation_id = resources.create_conversation()
+    local provider = provider_message_source()
     local session_id = resources.agent_name() == "Claude" and ids.uuidv4() or nil
 
     local prompt = PromptBuilder:new()
         :with_permissions({})
-        :with_strategy(agents.claude)
+        :with_strategy(provider_strategy())
         :with_rules(rules.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row }))
         :with_session_id(session_id)
         :build()
@@ -100,12 +109,12 @@ M.ask = function()
 
         prompt:set_task(task .. "\n" .. context)
         prompt:run(function(response)
-            conversation.push_message(conversation_id, response, "claude")
-            vim.notify("(assistant): claude has answered your question!")
+            conversation.push_message(conversation_id, response, provider)
+            vim.notify(string.format("(assistant): %s has answered your question!", provider))
         end)
     end
 
-    conversation.create_conversation(conversation_id, requesting_bufnr, row, on_submit)
+    conversation.create_conversation(conversation_id, requesting_bufnr, row, provider, on_submit)
 end
 
 return M

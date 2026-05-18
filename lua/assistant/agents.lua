@@ -1,10 +1,14 @@
 local permissions = require("assistant.permissions")
+local parsers = require("assistant.parsers")
 
 local M = {}
 
+local CODEX_MODEL = "gpt-5.4"
+local CODEX_REASONING_EFFORT = "low"
+
 --- @class Agent
 --- @field prompt Prompt
---- @field session_id string|nil
+--- @field session_id string|nil provider session handle; Codex stores its `thread_id` here
 --- @field status "INACTIVE"|"ACTIVE"
 local Agent = {}
 Agent.__index = Agent
@@ -21,6 +25,43 @@ end
 
 --- @type table<string,Agent>
 local active_agents = {}
+
+--- @param agent Agent
+--- @param result vim.SystemCompleted
+--- @param provider string
+--- @param resolve fun(s:string)
+local complete_run = function(agent, result, provider, resolve)
+    if result.stdout and #result.stdout > 0 then
+        resolve(result.stdout)
+    elseif result.stderr and #result.stderr > 0 then
+        vim.notify(string.format("(%s): %s", provider, result.stderr), vim.log.levels.ERROR)
+    end
+
+    agent.status = "INACTIVE"
+end
+
+--- @param prompt Prompt
+--- @param cmd string[]
+--- @param resolve fun(s:string)
+--- @param provider string
+--- @return Agent
+local run_agent = function(prompt, cmd, resolve, provider)
+    local agent = active_agents[prompt.id] or Agent:new(prompt)
+    agent.prompt = prompt
+    active_agents[prompt.id] = agent
+    agent.status = "ACTIVE"
+    vim.api.nvim_exec_autocmds("User", { pattern = "AgentStatusChange" })
+
+    vim.system(
+        cmd,
+        { text = true, cwd = prompt.exec_dir },
+        vim.schedule_wrap(function(result)
+            complete_run(agent, result, provider, resolve)
+        end)
+    )
+
+    return agent
+end
 
 --- @param filter "INACTIVE"|"ACTIVE"|nil
 --- @return Agent[]
@@ -63,23 +104,45 @@ M.claude = function(prompt, resolve)
         table.insert(cmd, "plan")
     end
 
-    agent.prompt = prompt
-    active_agents[prompt.id] = agent
-    agent.status = "ACTIVE"
-    vim.api.nvim_exec_autocmds("User", { pattern = "AgentStatusChange" })
+    run_agent(prompt, cmd, resolve, "claude")
+end
 
-    vim.system(
-        cmd,
-        { text = true },
-        vim.schedule_wrap(function(result)
-            if result.stdout and #result.stdout > 0 then
-                resolve(result.stdout)
-            elseif result.stderr and #result.stderr > 0 then
-                vim.notify(string.format("(claude): %s", result.stderr), vim.log.levels.ERROR)
-            end
-            agent.status = "INACTIVE"
-        end)
-    )
+--- @param prompt Prompt
+--- @param resolve fun(s:string)
+M.codex = function(prompt, resolve)
+    local agent = active_agents[prompt.id] or Agent:new(prompt)
+    local session_id = agent.session_id or prompt.session_id
+    local cmd = {
+        "codex",
+        "exec",
+        "--json",
+        "-m",
+        CODEX_MODEL,
+        "-c",
+        string.format('reasoning_effort="%s"', CODEX_REASONING_EFFORT),
+    }
+
+    if session_id and #session_id > 0 then
+        table.insert(cmd, "resume")
+        table.insert(cmd, session_id)
+    end
+
+    table.insert(cmd, prompt:as_string(session_id ~= nil and #session_id > 0))
+
+    agent = run_agent(prompt, cmd, function(stdout)
+        local text, thread_id = parsers.codex_output(stdout)
+        if thread_id and #thread_id > 0 then
+            agent.session_id = thread_id
+            prompt.session_id = thread_id
+        end
+
+        if text and #text > 0 then
+            resolve(text)
+            return
+        end
+
+        resolve(stdout)
+    end, "codex")
 end
 
 return M

@@ -75,46 +75,20 @@ M.spotify = function()
     return vlines_to_inline_hl(segments)
 end
 
-local claude = function()
-    local hl_no_bg = cache.claude == "PROMPT" and "StatusLineRedTextNoBg"
-        or (cache.claude == "WORKING" and "StatusLineYellowTextNoBg" or "CodeLensSeparator")
-    local hl_bg = cache.claude == "PROMPT" and "StatusLineRedTextWithBg"
-        or (cache.claude == "WORKING" and "StatusLineYellowTextWithBg" or "CodeLensContentIcon")
-
-    return {
-        { "", hl_no_bg },
-        { "󰛄 claude ", hl_bg },
-        { "", hl_no_bg },
-    }
-end
-
 M.claude = function()
-    if resources.agent_name() == "Copilot" then
+    if resources.agent_name() == "Codex" then
         return vlines_to_inline_hl({
-            { "", "StatusLineGreenTextNoBg" },
-            { "  copilot ", "StatusLineGreenTextWithBg" },
-            { "", "StatusLineGreenTextNoBg" },
+            { "", "CodeLensSeparator" },
+            { "  codex ", "CodeLensContentIcon" },
+            { "", "CodeLensSeparator" },
+        })
+    elseif resources.agent_name() == "Claude" then
+        return vlines_to_inline_hl({
+            { "", "CodeLensSeparator" },
+            { "󰛄 claude ", "CodeLensContentIcon" },
+            { "", "CodeLensSeparator" },
         })
     end
-
-    if valid.claude then
-        return vlines_to_inline_hl(claude())
-    end
-
-    if not loading.claude then
-        vim.system({ "cat", vim.env.HOME .. "/.claude.status" }, { text = true }, function(result)
-            if result.code == 0 and #result.stdout > 0 then
-                cache.claude = vim.trim(result.stdout)
-            else
-                cache.claude = ""
-            end
-            valid.claude = true
-            loading.claude = false
-        end)
-        loading.claude = true
-    end
-
-    return vlines_to_inline_hl(claude())
 end
 
 M.diagnostics = function()
@@ -260,7 +234,7 @@ end
 M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        -- "%{%v:lua.require'ui.statusline'.claude()%}",
+        "%{%v:lua.require'ui.statusline'.claude()%}",
         "%{%v:lua.require'ui.statusline'.diagnostics()%}",
         "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",

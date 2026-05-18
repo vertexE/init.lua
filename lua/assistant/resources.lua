@@ -29,7 +29,7 @@ local resources = {
     buffers = false,
 }
 
---- @alias llm.Agent"Copilot"|"Claude"
+--- @alias llm.Agent "Claude"|"Codex"
 
 local resource_state = {
     --- @type table<string>
@@ -81,7 +81,7 @@ M.locked_files = function()
 end
 
 M.agent_icon = function()
-    return resource_state.agent == "Copilot" and " " or "󰛄 "
+    return resource_state.agent == "Codex" and " " or "󰛄 "
 end
 
 --- @return llm.Agent
@@ -92,7 +92,7 @@ end
 M.agent = function()
     return {
         {
-            resource_state.agent == "Copilot" and "  " or " 󰛄 ",
+            resource_state.agent == "Codex" and "  " or " 󰛄 ",
             "MiniIconsGreen",
         },
         { string.format(" %s", resource_state.agent), "Comment" },
@@ -167,11 +167,7 @@ M.active = function(bufnr, ctx)
         knowledge = knowledge .. selection(bufnr)
     end
     if resources.git_diff then
-        knowledge = knowledge
-            .. (
-                resource_state.agent == "Claude" and "\n include git diff in context"
-                or "\n #gitdiff:unstaged #gitdiff:staged"
-            )
+        knowledge = knowledge .. "\n include git diff in context"
     end
     if resources.lsp_diagnostics then
         knowledge = knowledge .. "<diagnostics>" .. diagnostics(bufnr) .. "</diagnostics>"
@@ -182,16 +178,10 @@ M.active = function(bufnr, ctx)
     if resources.buffers then
         local files = "\n"
         for _bufnr, _ in pairs(resource_state.active_bufs) do
-            local file = resource_state.agent == "Claude"
-                    and vim.fn.fnamemodify(vim.api.nvim_buf_get_name(_bufnr), ":.")
-                or string.format("#buffer:%d ", _bufnr)
+            local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(_bufnr), ":.")
             files = files .. file .. "\n"
         end
-        if resource_state.agent == "Claude" then
-            knowledge = knowledge .. "\n<files>\n" .. files .. "</files>\n"
-        else
-            knowledge = knowledge .. "\n" .. files
-        end
+        knowledge = knowledge .. "\n<files>\n" .. files .. "</files>\n"
     end
     return knowledge
 end
@@ -246,11 +236,12 @@ M.active_files = function()
 end
 
 M.next_agent = function()
-    if resource_state.agent == "Copilot" then
-        resource_state.agent = "Claude"
-    else
-        resource_state.agent = "Copilot"
+    if resource_state.agent == "Claude" then
+        resource_state.agent = "Codex"
+        return
     end
+
+    resource_state.agent = "Claude"
 end
 
 M.create_conversation = function()
