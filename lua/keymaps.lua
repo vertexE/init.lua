@@ -112,10 +112,6 @@ vim.keymap.set("n", "<c-4>", function()
     require("navigation.goto").quick_open(4)
 end, { desc = "quick goto file 4" })
 
-vim.keymap.set({ "n", "x" }, "<localleader>g", function()
-    require("assistant.actions").generate()
-end, { desc = "llm: inline code generation" })
-
 vim.keymap.set("x", "<c-space>", function()
     require("assistant.actions").completion()
 end, { desc = "llm: inline completion" })

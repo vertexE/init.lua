@@ -1,8 +1,6 @@
 local M = {}
 
 local resources = require("assistant.resources")
-local buf = require("buf")
-
 --- @class prompt.context
 --- @field mode string
 --- @field req_bufnr integer
@@ -13,29 +11,6 @@ local buf = require("buf")
 --- @field write_to ?string file path to write to instead
 
 local copilot = {
-    --- @param ctx prompt.context
-    --- @return string
-    generate = function(ctx)
-        local should_replace = ctx.mode == "v" or ctx.mode == "V" or ctx.mode == "^V"
-        local knowledge = resources.active()
-        local prompt_header = string.format(
-            [[
-<rules>
-- you must always respond in code.
-- if you want to include an explanation, you MUST use comments.
-- use the data in the <context> tags to inform your decisions
-- for replace mode, only re-create code in the tag <active-selection>, the rest of the data in <context> is for reference
-- for insert mode, all code in <context> is only for reference, do not include in output
-- we're in %s mode, 
-</rules>
-    ]],
-            should_replace and "replace" or "insert"
-        )
-        prompt_header = prompt_header .. knowledge .. "\n\n" .. "/COPILOT_GENERATE"
-
-        return prompt_header
-    end,
-
     --- @param _ ?prompt.context
     --- @return string
     ask = function(_)
@@ -116,42 +91,6 @@ local claude = {
 
     --- @param ctx prompt.context
     --- @return string
-    generate = function(ctx)
-        local is_visual_mode = ctx.mode == "v" or ctx.mode == "V" or ctx.mode == "^V"
-        local sel_start, sel_end = buf.active_selection()
-        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
-        local knowledge = resources.active()
-        local prompt_header = string.format(
-            [[
-<rules>
-- you are in the current file @%s
-- you are only allowed to modify the current file and the files listed in the `files` tag.
-- the `files` tag contains a list of files to be modified or used as additional context
-- don't explain in the response, instead use comment in your file edits (keep this as minimal as possible)
-- use the data in the <context> tags to inform your decisions, look elsewhere if context is missing
-- for replace mode, only modify in the bounds of the selection
-- if in insert mode, modify the file(s) to resolve the user's request
-- we're in %s mode, 
-- `user-cursor` tag describes where the cursor is, if it's selecting anything, and the position (selection-start,selection-end)
-</rules>
-<user-cursor>
-selecting: %s
-position: (%d, %d) 
-</user-cursor>
-    ]],
-            file,
-            is_visual_mode and "replace" or "insert",
-            is_visual_mode,
-            sel_start,
-            sel_end
-        )
-        prompt_header = prompt_header .. knowledge .. "\n\n"
-
-        return prompt_header
-    end,
-
-    --- @param ctx prompt.context
-    --- @return string
     ask = function(ctx)
         local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
         return string.format(
@@ -223,19 +162,6 @@ M.modify = function(ctx)
         return ""
     end
     return claude.modify(ctx)
-end
-
---- @param ctx prompt.context
---- @return string
-M.generate = function(ctx)
-    if resources.agent_name() == "Copilot" then
-        return copilot.generate(ctx)
-    elseif resources.agent_name() == "Claude" then
-        return claude.generate(ctx)
-    end
-
-    vim.notify("unsupported agent", vim.log.levels.WARN)
-    return ""
 end
 
 --- @param ctx prompt.context
