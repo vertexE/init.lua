@@ -119,6 +119,7 @@ end, { desc = "llm: inline completion" })
 vim.keymap.set({ "n" }, "<localleader>a", function()
     require("assistant.resources").next_agent()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
+    vim.cmd("redrawstatus")
 end, { desc = "llm: chang agent" })
 
 vim.keymap.set("n", "<localleader><localleader>s", function()

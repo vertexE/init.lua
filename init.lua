@@ -44,7 +44,6 @@ local dependencies = {
 
     -- AI
     { "folke/sidekick.nvim", require("plugins.ai") },
-    { "CopilotC-Nvim/CopilotChat.nvim", { dependency = true } },
     { "nvim-lua/plenary.nvim", { dependency = true } },
     -- personal plugins
     { "vertexE/fold.nvim", require("plugins.vertexe") },
