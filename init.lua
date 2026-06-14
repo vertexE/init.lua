@@ -26,11 +26,10 @@ local dependencies = {
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
     { "hedyhli/outline.nvim", require("plugins.outline") },
     -- syntax & appearance
-    { "nvim-treesitter/nvim-treesitter-textobjects", require("plugins.treesitter"), version = "main" },
-    { "nvim-treesitter/nvim-treesitter", dependency = true, version = "main" },
-    -- UI
-    -- colorscheme
-    { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
+    { "romus204/tree-sitter-manager.nvim", require("plugins.treesitter") },
+    -- UI / colorscheme
+    -- { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
+    { "rose-pine/neovim", require("plugins.colorscheme"), name = "rose-pine" },
     -- debugger
     { "rcarriga/nvim-dap-ui", require("plugins.dap") },
     { "nvim-neotest/nvim-nio", { dependency = true } },
