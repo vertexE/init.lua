@@ -63,7 +63,7 @@ vim.api.nvim_create_autocmd({ "ModeChanged" }, {
 vim.api.nvim_create_autocmd({ "TextYankPost" }, {
     pattern = { "*" },
     callback = function()
-        vim.hl.on_yank({ higroup = "HighlightYank" })
+        vim.hl.hl_op({ higroup = "HighlightYank", timeout = 100 })
     end,
     desc = "Highlight yanked text",
 })
