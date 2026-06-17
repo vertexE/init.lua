@@ -20,10 +20,9 @@ local rules = require("assistant.rules")
 --- @field sel_end integer
 
 --- @param ctx claude.msg_ctx
-M.msg_claude = function(ctx)
+M.msg_agent = function(ctx)
     local status = vim.api.nvim_get_mode()
     require("sidekick.cli").send({
-        name = "claude",
         msg = rules.default({
             mode = status.mode,
             req_bufnr = ctx.req_bufnr,

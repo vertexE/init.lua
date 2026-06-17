@@ -3,8 +3,9 @@ local M = {}
 local store = require("ui.winbar.store")
 local symbols = require("symbols")
 
+--- @param focused boolean
 --- @return table<table<string,string>>
-local file_path = function()
+local file_path = function(focused)
     local bufnr = vim.api.nvim_get_current_buf()
     local project = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
     local path = vim.fn.expand("%:.")
@@ -16,19 +17,20 @@ local file_path = function()
 
     local ft_decoration = symbols.file_icon(bufnr)
 
+    local hl = focused and "@character" or "SnacksPickerPathHidden"
     local virtual_path = {
-        { string.format(" %s", project), "DropBarIconUISeparator" },
-        { " 󰅂 ", "DropBarIconUISeparator" },
+        { string.format(" %s", project), hl },
+        { " 󰅂 ", hl },
     }
 
     for i, segment in ipairs(segments) do
         if i == #segments then
-            table.insert(virtual_path, { ft_decoration.icon, ft_decoration.hl })
-            table.insert(virtual_path, { string.format("%s", segment), "Text" })
+            table.insert(virtual_path, { ft_decoration.icon, focused and ft_decoration.hl or hl })
+            table.insert(virtual_path, { string.format("%s", segment), focused and "@keyword" or hl })
             table.insert(virtual_path, { vim.bo.modified and " ● " or "   ", "MiniIconsOrange" })
         else
-            table.insert(virtual_path, { string.format("%s", segment), "DropBarIconUISeparator" })
-            table.insert(virtual_path, { " 󰅂 ", "DropBarIconUISeparator" })
+            table.insert(virtual_path, { string.format("%s", segment), hl })
+            table.insert(virtual_path, { " 󰅂 ", hl })
         end
     end
 
@@ -40,8 +42,8 @@ M.setup = function()
         name = "filepath",
         type = "winbar",
         split = true,
-        content = function()
-            return file_path()
+        content = function(focused)
+            return file_path(focused)
         end,
     })
 end

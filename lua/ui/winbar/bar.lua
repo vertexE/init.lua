@@ -9,11 +9,11 @@ local ui = require("ui.winbar.draw")
 local EXCLUDE_FNAME = { "dbui", "COMMIT_EDITMSG" }
 
 M.draw_tabline = function()
-    return ui.winbar(store.content("tabline"))
+    return ui.winbar(store.content("tabline", false))
 end
 
 M.draw_winbar = function()
-    return ui.winbar(store.content("winbar"))
+    return ui.winbar(store.content("winbar", false))
 end
 
 M.draw_focused_winbar = function()

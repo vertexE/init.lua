@@ -5,7 +5,7 @@ local tbl = require("tbl")
 --- @class InlineOpts
 --- @field title ?string|table<string> virtual text title
 --- @field height ?number percent of editor
---- @field width ?number percent of editor
+--- @field width ?number floating window width
 --- @field close_on_q ?boolean
 --- @field bo ?table<string, any>
 --- @field wo ?table<string, any>
@@ -26,8 +26,9 @@ local inline_opts = {
 M.cursor = function(opts, callback)
     opts = opts or {}
     local requesting_bufnr = vim.api.nvim_get_current_buf()
+    local requesting_winr = vim.api.nvim_get_current_win()
     local bufnr = vim.api.nvim_create_buf(true, true)
-    local width = opts.width or inline_opts.width
+    local width = opts.width or vim.api.nvim_win_get_width(requesting_winr)
     local height = opts.height or inline_opts.height
     local pos = vim.fn.getpos(".")
     local line = pos[2]

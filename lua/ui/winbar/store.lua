@@ -15,7 +15,7 @@ local M = {}
 --- @field name statusbar.SegmentName
 --- @field split boolean
 --- @field type statusbar.SegmentType
---- @field content fun(): table<table<string>>
+--- @field content fun(focused: boolean): table<table<string>>
 
 --- @return statusbar.State
 local default_state = function()
@@ -29,13 +29,13 @@ local state = default_state()
 
 --- content ready to draw
 --- @param type statusbar.SegmentType
---- @param focused ?boolean if the cursor is focused in this win
+--- @param focused boolean if the cursor is focused in this win
 --- @return statusbar.Content[]
 M.content = function(type, focused)
     local content = {}
     for _, segment in ipairs(state.segments) do
         if segment.type == type then
-            table.insert(content, { display = segment.content(), split_next = segment.split })
+            table.insert(content, { display = segment.content(focused), split_next = segment.split })
         end
     end
     return content

@@ -35,7 +35,7 @@ local M = {
         end, { desc = "Sidekick Toggle Claude" })
 
         vim.keymap.set("t", "<c-cr>", function()
-            require("assistant.terminal").msg_claude({
+            require("assistant.terminal").msg_agent({
                 req_bufnr = state.req_bufnr,
                 sel_start = state.sel_start,
                 sel_end = state.sel_end,

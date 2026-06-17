@@ -4,6 +4,8 @@ local git_open = require("vcs.git_open")
 
 local code_extract = require("treesitter.extract")
 
+local comments = require("editor.comments")
+
 local status = require("ui.status")
 
 local buf = require("buf")
@@ -163,9 +165,9 @@ vim.keymap.set({ "n", "x" }, "<localleader>o", function()
     vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
 end, { desc = "" })
 
-vim.keymap.set({ "n", "x" }, "<localleader>c", function()
-    require("assistant.actions").ask()
-end, { desc = "llm: ask agent a question" })
+-- vim.keymap.set({ "n", "x" }, "<localleader>c", function()
+--     require("assistant.actions").ask()
+-- end, { desc = "llm: ask agent a question" })
 
 vim.keymap.set("n", "<leader>S", function()
     status.toggle_split()
@@ -228,3 +230,15 @@ vim.keymap.set("n", "[d", function()
         vim.notify("no next diagnostic")
     end
 end, { desc = "prev diagnostic" })
+
+vim.keymap.set("n", "<localleader>c", function()
+    comments.add()
+end, { desc = "add code comment" })
+
+vim.keymap.set("n", "<localleader>C", function()
+    comments.copy_to_clipboard()
+end, { desc = "add code comment" })
+
+vim.keymap.set("n", "<localleader>R", function()
+    comments.clear()
+end, { desc = "add code comment" })

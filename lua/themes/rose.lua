@@ -92,6 +92,7 @@ local rose_wood = function()
             LineNr = { fg = colors.overlay0 },
             TabLineFill = { bg = Color:from_hex(colors.base):hex() },
             WinBar = { bg = "NONE" },
+            WinBarNC = { bg = "NONE" },
             WinSeparator = { fg = colors.surface1 },
             StatusLine = { bg = "NONE" },
             StatusLineNC = { bg = "NONE" },
