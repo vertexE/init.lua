@@ -190,6 +190,10 @@ M.toggle_split = function()
         bo = { buflisted = false },
         split = "left_most",
         width = STATUS_WIN_WIDTH,
+        on_close = function()
+            state.bufnr = -1
+            state.winr = -1
+        end,
     })
     state.bufnr = bufnr
     state.winr = winr

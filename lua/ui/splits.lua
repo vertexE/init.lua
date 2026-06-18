@@ -77,6 +77,7 @@ end
 --- @field enter ?boolean whether to enter float, defaults to true
 --- @field close_on_q ?boolean
 --- @field split ?"left"|"right"|"left_most"
+--- @field on_close ?fun()
 
 --- @type ccc.VSplitOpts
 local vertical_defaults = {
@@ -153,6 +154,9 @@ M.vertical = function(content, opts)
     if opts.close_on_q then
         vim.keymap.set("n", "q", function()
             vim.api.nvim_buf_delete(opts.bufnr, { force = true })
+            if opts.on_close then
+                opts.on_close()
+            end
         end, { buffer = opts.bufnr })
     end
 
