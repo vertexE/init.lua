@@ -24,6 +24,7 @@ local default_opts = {
 
 --- @alias git.ChangeType "modified"|"renamed"|"added"|"deleted"|"conflict"
 --- @alias git.Stage "staged"|"untracked"|"working"|"partial"
+--- @alias git.TrayStage "untracked"|"unstaged"|"staged"
 
 --- @class git.State
 --- @field changes table<git.Change>
@@ -87,8 +88,14 @@ local git_reset = function(path)
     vim.system({ "git", "checkout", "HEAD", "--", path }):wait()
 end
 
-local git_diff = function(file, is_staged)
-    vim.fn.jobstart(is_staged and { "git", "diff", "--staged", file } or { "git", "diff", file }, { term = true })
+---@param stage git.TrayStage?
+local git_diff = function(file, stage)
+    vim.fn.jobstart(
+        stage == "staged" and { "git", "diff", "--staged", file }
+            or stage == "untracked" and { "git", "diff", "--no-index", "/dev/null", file }
+            or { "git", "diff", file },
+        { term = true }
+    )
     vim.cmd("startinsert")
 end
 
@@ -216,18 +223,26 @@ local draw_tray = function(bufnr, _, changes)
     extmarks.write_vlines_as_content(bufnr, ns, v_lines)
 end
 
---- checks if we're in the staged section
+--- get current tray section
 --- @param bufnr integer
---- @return boolean
-local in_staged = function(bufnr)
-    local cl = vim.fn.getpos(".")[2]
+--- @param winr integer
+--- @return git.TrayStage?
+local stage_at_cursor = function(bufnr, winr)
+    local cl = vim.api.nvim_win_get_cursor(winr)[1]
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local stage
     for i, line in ipairs(lines) do
-        if line:match("Staged") then
-            return i <= cl
+        if i > cl then
+            break
+        elseif line:match("Untracked") then
+            stage = "untracked"
+        elseif line:match("Unstaged") then
+            stage = "unstaged"
+        elseif line:match("Staged") then
+            stage = "staged"
         end
     end
-    return false
+    return stage
 end
 
 --- get the last word on the current line
@@ -371,9 +386,9 @@ M.status_tray = function()
                     local open_term = vim.loop.hrtime()
                     local file_paths = last_words_of_lines(buf.active_selection_lines())
                     if file_paths ~= nil and #file_paths > 0 then
-                        local is_staged = in_staged(state.bufnr)
-                        local bufnr = floats.open({ height = 0.80, width = 0.88 })
-                        git_diff(file_paths[1], is_staged)
+                        local stage = stage_at_cursor(state.bufnr, state.winr)
+                        local bufnr = floats.open({ height = 0.99, width = 0.99 })
+                        git_diff(file_paths[1], stage)
 
                         vim.api.nvim_create_autocmd("TermClose", {
                             once = true,
