@@ -1,7 +1,7 @@
 local Prompt = require("assistant.prompt")
 local uuid = require("ids")
 
---- @alias AgentStrategy fun(agent:Prompt, resolve:fun(s:string))
+--- @alias AgentStrategy fun(agent:Prompt, resolve:fun(s:string), reject?:fun(result:vim.SystemCompleted))
 
 --- @class PromptBuilder
 --- @field id string|nil default randomly generated

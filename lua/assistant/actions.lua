@@ -6,7 +6,9 @@ local buf = require("buf")
 local resources = require("assistant.resources")
 local rules = require("assistant.rules")
 local loader = require("ui.loader")
+local inline = require("ui.inline")
 local conversation = require("assistant.conversation")
+local worktrees = require("assistant.worktrees")
 
 local PromptBuilder = require("assistant.prompt_builder")
 local agents = require("assistant.agents")
@@ -121,6 +123,24 @@ M.ask = function()
     end
 
     conversation.create_conversation(conversation_id, requesting_bufnr, row, provider, on_submit)
+end
+
+M.add_worktree_task = function()
+    local requesting_bufnr = vim.api.nvim_get_current_buf()
+    local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+
+    inline.cursor({ title = "Worktree task" }, function(lines)
+        local request = table.concat(lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
+        if #request == 0 then
+            return
+        end
+
+        worktrees.add(request, { req_bufnr = requesting_bufnr, cursor_row = row })
+    end)
+end
+
+M.list_worktree_tasks = function()
+    require("assistant.picker.worktrees").open()
 end
 
 return M

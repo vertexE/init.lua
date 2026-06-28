@@ -51,8 +51,9 @@ end
 
 --- run the provided prompt against the agent
 --- @param resolve fun(s:string)
-function Prompt:run(resolve)
-    self.strategy(self, resolve)
+--- @param reject ?fun(result:vim.SystemCompleted)
+function Prompt:run(resolve, reject)
+    self.strategy(self, resolve, reject)
 end
 
 return Prompt

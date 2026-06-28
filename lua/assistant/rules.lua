@@ -58,6 +58,42 @@ local codex = {
             table.concat(lines, "\n")
         )
     end,
+
+    --- @param ctx prompt.context
+    --- @return string
+    worktree = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+
+        return string.format(
+            [[
+<context>
+- current file: @%s
+- current cursor row: %d
+</context>
+<rules>
+- attempt to complete the user's request to the best of your ability and knowledge
+- use the request and codebase to inform your decisions as much as possible, explore where you need to
+- if something is unknown, add a comment in the codebase where you are unsure and keep working
+- if you think you worked on something without enough context, also leave a comment there
+- always choose the simplest approach that solves the problem, do not go outside the scope of the request unless absolutely necessary
+- ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+- only modify what you touch, do not refactor / modify outside of the request
+- once you understand how to complete the task, begin the work -- you are in headless mode and the user cannot respond to questions
+</rules>
+<on-completion>
+your response after completing all the work should be something like
+```
+successfully completed <summary of requested task>. Assumptions
+- assumption 1
+- assumption 2
+- assumption 3
+```
+</on-completion>
+            ]],
+            file,
+            ctx.cursor_row or -1
+        )
+    end,
 }
 
 local claude = {
@@ -154,6 +190,30 @@ local claude = {
             table.concat(lines, "\n")
         )
     end,
+
+    --- @param ctx prompt.context
+    --- @return string
+    worktree = function(ctx)
+        local file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ctx.req_bufnr), ":.")
+
+        return string.format(
+            [[
+<context>
+- original file: @%s
+- original cursor row: %d
+</context>
+<rules>
+- make requested changes in repo files
+- edit files directly in this worktree
+- do not create commits
+- do not create patch files
+- keep response short
+</rules>
+            ]],
+            file,
+            ctx.cursor_row or -1
+        )
+    end,
 }
 
 --- @param ctx prompt.context
@@ -176,6 +236,19 @@ M.ask = function(ctx)
         return codex.ask(ctx)
     elseif resources.agent_name() == "Claude" then
         return claude.ask(ctx)
+    end
+
+    vim.notify("unsupported agent", vim.log.levels.WARN)
+    return ""
+end
+
+--- @param ctx prompt.context
+--- @return string
+M.worktree = function(ctx)
+    if resources.agent_name() == "Codex" then
+        return codex.worktree(ctx)
+    elseif resources.agent_name() == "Claude" then
+        return claude.worktree(ctx)
     end
 
     vim.notify("unsupported agent", vim.log.levels.WARN)

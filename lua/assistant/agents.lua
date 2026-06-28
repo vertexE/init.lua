@@ -30,11 +30,18 @@ local active_agents = {}
 --- @param result vim.SystemCompleted
 --- @param provider string
 --- @param resolve fun(s:string)
-local complete_run = function(agent, result, provider, resolve)
-    if result.stdout and #result.stdout > 0 then
+--- @param reject ?fun(result:vim.SystemCompleted)
+local complete_run = function(agent, result, provider, resolve, reject)
+    if result.code ~= 0 and reject then
+        reject(result)
+    elseif result.stdout and #result.stdout > 0 then
         resolve(result.stdout)
     elseif result.stderr and #result.stderr > 0 then
-        vim.notify(string.format("(%s): %s", provider, result.stderr), vim.log.levels.ERROR)
+        if reject then
+            reject(result)
+        else
+            vim.notify(string.format("(%s): %s", provider, result.stderr), vim.log.levels.ERROR)
+        end
     end
 
     agent.status = "INACTIVE"
@@ -43,9 +50,10 @@ end
 --- @param prompt Prompt
 --- @param cmd string[]
 --- @param resolve fun(s:string)
+--- @param reject ?fun(result:vim.SystemCompleted)
 --- @param provider string
 --- @return Agent
-local run_agent = function(prompt, cmd, resolve, provider)
+local run_agent = function(prompt, cmd, resolve, reject, provider)
     local agent = active_agents[prompt.id] or Agent:new(prompt)
     agent.prompt = prompt
     active_agents[prompt.id] = agent
@@ -56,7 +64,7 @@ local run_agent = function(prompt, cmd, resolve, provider)
         cmd,
         { text = true, cwd = prompt.exec_dir },
         vim.schedule_wrap(function(result)
-            complete_run(agent, result, provider, resolve)
+            complete_run(agent, result, provider, resolve, reject)
         end)
     )
 
@@ -75,7 +83,8 @@ end
 
 --- @param prompt Prompt
 --- @param resolve fun(s:string)
-M.claude = function(prompt, resolve)
+--- @param reject ?fun(result:vim.SystemCompleted)
+M.claude = function(prompt, resolve, reject)
     local agent = active_agents[prompt.id] or Agent:new(prompt)
     local session_id = agent.session_id
     local cmd = {
@@ -104,12 +113,13 @@ M.claude = function(prompt, resolve)
         table.insert(cmd, "plan")
     end
 
-    run_agent(prompt, cmd, resolve, "claude")
+    run_agent(prompt, cmd, resolve, reject, "claude")
 end
 
 --- @param prompt Prompt
 --- @param resolve fun(s:string)
-M.codex = function(prompt, resolve)
+--- @param reject ?fun(result:vim.SystemCompleted)
+M.codex = function(prompt, resolve, reject)
     local agent = active_agents[prompt.id] or Agent:new(prompt)
     local session_id = agent.session_id or prompt.session_id
     local cmd = {
@@ -142,7 +152,7 @@ M.codex = function(prompt, resolve)
         end
 
         resolve(stdout)
-    end, "codex")
+    end, reject, "codex")
 end
 
 return M
