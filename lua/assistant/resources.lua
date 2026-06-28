@@ -37,7 +37,7 @@ local resource_state = {
     --- @type table<integer,boolean>
     active_bufs = {},
     --- @type llm.Agent -- default agent to use for inline requests
-    agent = "Claude",
+    agent = "Codex",
     --- @type table<string> list of conversation IDs to include in context
     conversations = {},
 }

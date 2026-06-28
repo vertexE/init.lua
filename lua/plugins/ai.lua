@@ -31,7 +31,7 @@ local M = {
             local sel_start, sel_end = buf.active_selection()
             state.sel_start = sel_start
             state.sel_end = sel_end
-            require("sidekick.cli").toggle({ name = "claude", focus = true })
+            require("sidekick.cli").toggle({ name = "codex", focus = true })
         end, { desc = "Sidekick Toggle Claude" })
 
         vim.keymap.set("t", "<c-cr>", function()
