@@ -49,20 +49,22 @@ end
 
 --- @param prompt Prompt
 --- @param cmd string[]
+--- @param opts ?table<string,any>
 --- @param resolve fun(s:string)
 --- @param reject ?fun(result:vim.SystemCompleted)
 --- @param provider string
 --- @return Agent
-local run_agent = function(prompt, cmd, resolve, reject, provider)
+local run_agent = function(prompt, cmd, opts, resolve, reject, provider)
     local agent = active_agents[prompt.id] or Agent:new(prompt)
     agent.prompt = prompt
     active_agents[prompt.id] = agent
     agent.status = "ACTIVE"
     vim.api.nvim_exec_autocmds("User", { pattern = "AgentStatusChange" })
 
+    opts = vim.tbl_extend("force", { text = true, cwd = prompt.exec_dir }, opts or {})
     vim.system(
         cmd,
-        { text = true, cwd = prompt.exec_dir },
+        opts,
         vim.schedule_wrap(function(result)
             complete_run(agent, result, provider, resolve, reject)
         end)
@@ -113,7 +115,7 @@ M.claude = function(prompt, resolve, reject)
         table.insert(cmd, "plan")
     end
 
-    run_agent(prompt, cmd, resolve, reject, "claude")
+    run_agent(prompt, cmd, nil, resolve, reject, "claude")
 end
 
 --- @param prompt Prompt
@@ -132,14 +134,16 @@ M.codex = function(prompt, resolve, reject)
         string.format('reasoning_effort="%s"', CODEX_REASONING_EFFORT),
     }
 
+    local prompt_input = prompt:as_string(session_id ~= nil and #session_id > 0)
+
     if session_id and #session_id > 0 then
         table.insert(cmd, "resume")
         table.insert(cmd, session_id)
     end
 
-    table.insert(cmd, prompt:as_string(session_id ~= nil and #session_id > 0))
+    table.insert(cmd, "-")
 
-    agent = run_agent(prompt, cmd, function(stdout)
+    agent = run_agent(prompt, cmd, { stdin = prompt_input }, function(stdout)
         local text, thread_id = parsers.codex_output(stdout)
         if thread_id and #thread_id > 0 then
             agent.session_id = thread_id
