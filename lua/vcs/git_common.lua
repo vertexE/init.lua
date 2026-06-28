@@ -87,7 +87,10 @@ M.git_diff_head_to_patch = function(patch, opts)
 
     local patch_dir = vim.fn.fnamemodify(patch, ":h")
     if not vim.fn.isdirectory(patch_dir) then
-        vim.fn.mkdir(patch_dir, "p")
+        local ok_mkdir = vim.fn.mkdir(patch_dir, "p")
+        if ok_mkdir == 0 then
+            return false, string.format("could not create patch directory: %s", patch_dir)
+        end
     end
 
     local file = io.open(patch, "w")
