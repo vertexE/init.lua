@@ -42,8 +42,6 @@ M.tailwindcss = {
 
 M.basedpyright = {}
 
-M.copilot = {}
-
 M.lua_ls = {
     Lua = {
         workspace = { checkThirdParty = false },
