@@ -244,9 +244,9 @@ vim.keymap.set("n", "<localleader>R", function()
 end, { desc = "add code comment" })
 
 vim.keymap.set("n", "<localleader>r", function ()
-    require("assistant.actions").completion()
+    require("assistant.actions").add_worktree_task()
 end)
 
 vim.keymap.set("n", "<localleader>l", function ()
-    require("assistant.actions").completion()
+    require("assistant.actions").list_worktree_tasks()
 end)
