@@ -10,6 +10,25 @@ local run = function(cmd, opts)
     return false, (result.stderr and #result.stderr > 0) and result.stderr or result.stdout or "git command failed"
 end
 
+local write_patch = function(patch, content)
+    local patch_dir = vim.fn.fnamemodify(patch, ":h")
+    if not vim.fn.isdirectory(patch_dir) then
+        local ok_mkdir = vim.fn.mkdir(patch_dir, "p")
+        if ok_mkdir == 0 then
+            return false, string.format("could not create patch directory: %s", patch_dir)
+        end
+    end
+
+    local file = io.open(patch, "w")
+    if not file then
+        return false, string.format("could not open patch file: %s", patch)
+    end
+
+    file:write(content)
+    file:close()
+    return #content > 0, content
+end
+
 ---@param staged ?boolean whether to look at the staged diff instead
 M.git_stats = function(staged)
     local result =
@@ -79,28 +98,39 @@ M.git_index_all = function(opts)
     return run({ "git", "add", "-N", "." }, opts)
 end
 
+M.git_add_all = function(opts)
+    return run({ "git", "add", "-A" }, opts)
+end
+
+M.git_commit = function(message, opts)
+    local cmd = { "git", "commit" }
+
+    if opts and opts.no_verify then
+        table.insert(cmd, "--no-verify")
+    end
+
+    table.insert(cmd, "-m")
+    table.insert(cmd, message)
+
+    return run(cmd, opts)
+end
+
 M.git_diff_head_to_patch = function(patch, opts)
     local ok, diff = run({ "git", "diff", "HEAD" }, opts)
     if not ok then
         return false, diff
     end
 
-    local patch_dir = vim.fn.fnamemodify(patch, ":h")
-    if not vim.fn.isdirectory(patch_dir) then
-        local ok_mkdir = vim.fn.mkdir(patch_dir, "p")
-        if ok_mkdir == 0 then
-            return false, string.format("could not create patch directory: %s", patch_dir)
-        end
+    return write_patch(patch, diff)
+end
+
+M.git_staged_diff_to_patch = function(patch, opts)
+    local ok, diff = run({ "git", "diff", "--staged", "--binary" }, opts)
+    if not ok then
+        return false, diff
     end
 
-    local file = io.open(patch, "w")
-    if not file then
-        return false, string.format("could not open patch file: %s", patch)
-    end
-
-    file:write(diff)
-    file:close()
-    return #diff > 0, diff
+    return write_patch(patch, diff)
 end
 
 M.git_apply = function(patch, opts)

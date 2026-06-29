@@ -9,22 +9,16 @@ local loader = require("ui.loader")
 local inline = require("ui.inline")
 local conversation = require("assistant.conversation")
 local worktrees = require("assistant.worktrees")
+local config = require("assistant.config")
 
 local PromptBuilder = require("assistant.prompt_builder")
-local agents = require("assistant.agents")
 
 local AGENT_CACHE = ".agent-cache/"
 
-local state = {
-    resume_conversation = true,
-    history = "",
-    winr = -1,
-    bufnr = -1,
-    conversations = {},
-}
-
-local provider_strategy = function()
-    return resources.agent_name() == "Codex" and agents.codex or agents.claude
+local guard_agent_cache = function()
+    if not vim.fn.isdirectory(AGENT_CACHE) then
+        vim.fn.mkdir(AGENT_CACHE)
+    end
 end
 
 local provider_message_source = function()
@@ -39,9 +33,7 @@ M.completion = function()
     end
 
     local _start, _end = buf.active_selection()
-    if not vim.fn.isdirectory(AGENT_CACHE) then
-        vim.fn.mkdir(AGENT_CACHE)
-    end
+    guard_agent_cache()
 
     local file_id = ids.uuidv4()
     local file_name = string.format("change-%s", file_id)
@@ -53,7 +45,7 @@ M.completion = function()
 
     local prompt = PromptBuilder:new()
         :with_permissions({ "write" })
-        :with_strategy(provider_strategy())
+        :with_strategy(config.provider_strategy())
         :with_rules(rules.completion({
             mode = status.mode,
             write_to = cache_path,
@@ -107,7 +99,7 @@ M.ask = function()
 
     local prompt = PromptBuilder:new()
         :with_permissions({})
-        :with_strategy(provider_strategy())
+        :with_strategy(config.provider_strategy())
         :with_rules(rules.ask({ req_bufnr = requesting_bufnr, mode = status.mode, cursor_row = row }))
         :with_session_id(session_id)
         :build()
@@ -129,7 +121,8 @@ M.add_worktree_task = function()
     local requesting_bufnr = vim.api.nvim_get_current_buf()
     local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
-    inline.cursor({ title = "Worktree task" }, function(lines)
+    guard_agent_cache()
+    inline.cursor({ title = "󰫢 " }, function(lines)
         local request = table.concat(lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
         if #request == 0 then
             return

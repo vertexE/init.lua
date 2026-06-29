@@ -78,6 +78,7 @@ local codex = {
 - always choose the simplest approach that solves the problem, do not go outside the scope of the request unless absolutely necessary
 - ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 - only modify what you touch, do not refactor / modify outside of the request
+- do not create commits
 - once you understand how to complete the task, begin the work -- you are in headless mode and the user cannot respond to questions
 </rules>
 <on-completion>
@@ -199,16 +200,29 @@ local claude = {
         return string.format(
             [[
 <context>
-- original file: @%s
-- original cursor row: %d
+- current file: @%s
+- current cursor row: %d
 </context>
 <rules>
-- make requested changes in repo files
-- edit files directly in this worktree
+- attempt to complete the user's request to the best of your ability and knowledge
+- use the request and codebase to inform your decisions as much as possible, explore where you need to
+- if something is unknown, add a comment in the codebase where you are unsure and keep working
+- if you think you worked on something without enough context, also leave a comment there
+- always choose the simplest approach that solves the problem, do not go outside the scope of the request unless absolutely necessary
+- ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+- only modify what you touch, do not refactor / modify outside of the request
 - do not create commits
-- do not create patch files
-- keep response short
+- once you understand how to complete the task, begin the work -- you are in headless mode and the user cannot respond to questions
 </rules>
+<on-completion>
+your response after completing all the work should be something like
+```
+successfully completed <summary of requested task>. Assumptions
+- assumption 1
+- assumption 2
+- assumption 3
+```
+</on-completion>
             ]],
             file,
             ctx.cursor_row or -1
