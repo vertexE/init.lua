@@ -9,13 +9,10 @@ local pack = require("pack")
 
 local dependencies = {
     { "dstein64/vim-startuptime" },
-    -- common
     { "nvim-mini/mini.nvim", require("plugins.mini") },
     { "folke/snacks.nvim", require("plugins.snacks") },
     { "lewis6991/gitsigns.nvim", require("plugins.git") },
     { "esmuellert/codediff.nvim", { cmd = "CodeDiff" } },
-
-    -- lsp
     { "neovim/nvim-lspconfig", require("plugins.lsp") },
     { "williamboman/mason.nvim", { dependency = true } },
     { "mason-org/mason-lspconfig.nvim", { dependency = true } },
@@ -25,26 +22,17 @@ local dependencies = {
     { "rafamadriz/friendly-snippets", { dependency = true } },
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
     { "hedyhli/outline.nvim", require("plugins.outline") },
-    -- syntax & appearance
     { "romus204/tree-sitter-manager.nvim", require("plugins.treesitter") },
-    -- UI / colorscheme
-    -- { "catppuccin/nvim", require("plugins.colorscheme"), name = "catppuccin" },
     { "rose-pine/neovim", require("plugins.colorscheme"), name = "rose-pine" },
-    -- debugger
     { "rcarriga/nvim-dap-ui", require("plugins.dap") },
     { "nvim-neotest/nvim-nio", { dependency = true } },
     { "mfussenegger/nvim-dap", { dependency = true } },
     { "mfussenegger/nvim-dap-python", { dependency = true } },
     { "jbyuki/one-small-step-for-vimkind", { dependency = true } },
-    -- other developer tools
     { "mistweaverco/kulala.nvim", require("plugins.kulala") },
-    -- react support
     { "windwp/nvim-ts-autotag", require("plugins.react") },
-
-    -- AI
     { "folke/sidekick.nvim", require("plugins.ai") },
     { "nvim-lua/plenary.nvim", { dependency = true } },
-    -- personal plugins
     { "vertexE/fold.nvim", require("plugins.vertexe") },
     { "vertexE/multibuffer.nvim", { dependency = true } },
     { "vertexE/hacked.nvim", { dependency = true } },
