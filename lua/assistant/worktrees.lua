@@ -31,7 +31,8 @@ local fail = function(task, err)
 end
 
 local mkdir = function(path)
-    if not vim.fn.isdirectory(path) then
+    local stat = vim.uv.fs_stat(path)
+    if not stat or stat.type ~= "directory" then
         vim.fn.mkdir(path, "p")
     end
 end

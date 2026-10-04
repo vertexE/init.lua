@@ -173,7 +173,8 @@ end
 
 M.setup = function()
     local dir = vim.fn.expand(LOCATION)
-    if vim.fn.isdirectory(dir) == 0 then
+    local stat = vim.uv.fs_stat(dir)
+    if not stat or stat.type ~= "directory" then
         vim.fn.mkdir(dir, "p")
     end
 

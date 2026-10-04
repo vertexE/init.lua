@@ -12,7 +12,8 @@ end
 
 local write_patch = function(patch, content)
     local patch_dir = vim.fn.fnamemodify(patch, ":h")
-    if not vim.fn.isdirectory(patch_dir) then
+    local patch_dir_stat = vim.uv.fs_stat(patch_dir)
+    if not patch_dir_stat or patch_dir_stat.type ~= "directory" then
         local ok_mkdir = vim.fn.mkdir(patch_dir, "p")
         if ok_mkdir == 0 then
             return false, string.format("could not create patch directory: %s", patch_dir)
@@ -134,7 +135,7 @@ M.git_staged_diff_to_patch = function(patch, opts)
 end
 
 M.git_apply = function(patch, opts)
-    return run({ "git", "apply", patch }, opts)
+    return run({ "git", "apply", "--3way", patch }, opts)
 end
 
 M.git_worktree_remove = function(path, opts)

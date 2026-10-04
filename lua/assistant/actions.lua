@@ -6,7 +6,7 @@ local buf = require("buf")
 local resources = require("assistant.resources")
 local rules = require("assistant.rules")
 local loader = require("ui.loader")
-local inline = require("ui.inline")
+local textarea = require("ui.textarea")
 local conversation = require("assistant.conversation")
 local worktrees = require("assistant.worktrees")
 local config = require("assistant.config")
@@ -16,7 +16,8 @@ local PromptBuilder = require("assistant.prompt_builder")
 local AGENT_CACHE = ".agent-cache/"
 
 local guard_agent_cache = function()
-    if not vim.fn.isdirectory(AGENT_CACHE) then
+    local stat = vim.uv.fs_stat(AGENT_CACHE)
+    if not stat or stat.type ~= "directory" then
         vim.fn.mkdir(AGENT_CACHE)
     end
 end
@@ -122,7 +123,7 @@ M.add_worktree_task = function()
     local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 
     guard_agent_cache()
-    inline.cursor({ title = "󰫢 " }, function(lines)
+    textarea.open({ prompt = "󰫢 ", width = 0.70, height = 0.50, backdrop = true }, function(lines)
         local request = table.concat(lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
         if #request == 0 then
             return

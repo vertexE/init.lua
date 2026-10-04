@@ -3,7 +3,7 @@ local parsers = require("assistant.parsers")
 
 local M = {}
 
-local CODEX_MODEL = "gpt-5.4"
+local CODEX_MODEL = "gpt-5.5"
 local CODEX_REASONING_EFFORT = "low"
 
 --- @class Agent
