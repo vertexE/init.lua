@@ -1,0 +1,33 @@
+# Forest Canopy — matches lua/themes/rose.lua
+# Diff backgrounds preblended at 75% over #0D1915.
+[delta "forest-canopy"]
+    dark = true
+    true-color = always
+    syntax-theme = ansi
+
+    zero-style = syntax
+    minus-style = syntax "#462726"
+    minus-non-emph-style = minus-style
+    minus-emph-style = "#DEE5D2" "#6A3833" bold
+    minus-empty-line-marker-style = "#FFC0AD" "#462726"
+    plus-style = syntax "#254329"
+    plus-non-emph-style = plus-style
+    plus-emph-style = "#DEE5D2" "#3A5E35" bold
+    plus-empty-line-marker-style = "#D0F0A0" "#254329"
+
+    file-style = "#E3E7AE" bold
+    file-decoration-style = "#536D5E" ul
+    commit-style = "#8FB89E" bold
+    commit-decoration-style = "#30493B" box
+    hunk-header-style = file line-number "#BAC9AF"
+    hunk-header-file-style = "#CCD9B2" bold
+    hunk-header-line-number-style = "#E3E7AE"
+    hunk-header-decoration-style = "#30493B" box
+
+    line-numbers-left-style = "#536D5E"
+    line-numbers-right-style = "#536D5E"
+    line-numbers-zero-style = "#80977B"
+    line-numbers-minus-style = "#D98B78"
+    line-numbers-plus-style = "#B4CF80"
+    whitespace-error-style = "#0D1915" "#D98B78" reverse
+    blame-palette = "#0D1915" "#192B24" "#23382E" "#30493B"

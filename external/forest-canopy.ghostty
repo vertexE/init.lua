@@ -1,0 +1,24 @@
+# Forest Canopy — matches lua/themes/rose.lua
+background = #0D1915
+foreground = #DEE5D2
+cursor-color = #E3E7AE
+cursor-text = #0D1915
+selection-background = #30493B
+selection-foreground = #DEE5D2
+
+palette = 0=#192B24
+palette = 1=#D98B78
+palette = 2=#B4CF80
+palette = 3=#D2C58C
+palette = 4=#90B7AE
+palette = 5=#B8C992
+palette = 6=#8FB89E
+palette = 7=#BAC9AF
+palette = 8=#536D5E
+palette = 9=#FFC0AD
+palette = 10=#D0F0A0
+palette = 11=#E3E7AE
+palette = 12=#A6C9B5
+palette = 13=#CCD9B2
+palette = 14=#B0D2BD
+palette = 15=#DEE5D2
