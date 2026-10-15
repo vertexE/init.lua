@@ -1,0 +1,106 @@
+/* Forest Canopy — matches lua/themes/rose.lua. Select Dark base color scheme. */
+.theme-dark {
+    color-scheme: dark;
+
+    --color-base-00: #0d1915;
+    --color-base-05: #101e19;
+    --color-base-10: #192b24;
+    --color-base-20: #1d3028;
+    --color-base-25: #23382e;
+    --color-base-30: #30493b;
+    --color-base-35: #405c4d;
+    --color-base-40: #536d5e;
+    --color-base-50: #80977b;
+    --color-base-60: #99af97;
+    --color-base-70: #bac9af;
+    --color-base-100: #dee5d2;
+
+    --color-red: #d98b78;
+    --color-orange: #d2c58c;
+    --color-yellow: #e3e7ae;
+    --color-green: #b4cf80;
+    --color-cyan: #8fb89e;
+    --color-blue: #90b7ae;
+    --color-purple: #ccd9b2;
+    --color-pink: #b8c992;
+    --accent-h: 81;
+    --accent-s: 45%;
+    --accent-l: 66%;
+
+    --background-primary: #0d1915;
+    --background-primary-alt: #192b24;
+    --background-secondary: #0b1512;
+    --background-secondary-alt: #080f0d;
+    --background-modifier-hover: #23382e;
+    --background-modifier-active-hover: #30493b;
+    --background-modifier-border: #23382e;
+    --background-modifier-border-hover: #405c4d;
+    --background-modifier-border-focus: #8fb89e;
+    --background-modifier-error: #462726;
+    --background-modifier-success: #254329;
+    --background-modifier-cover: rgb(8 15 13 / 70%);
+
+    --text-normal: #dee5d2;
+    --text-muted: #99af97;
+    --text-faint: #80977b;
+    --text-on-accent: #0d1915;
+    --text-error: #ffc0ad;
+    --text-success: #d0f0a0;
+    --text-warning: #e1d39a;
+    --text-selection: #30493b;
+    --text-highlight-bg: rgb(227 231 174 / 20%);
+    --text-accent: #b4cf80;
+    --text-accent-hover: #e3e7ae;
+    --interactive-normal: #192b24;
+    --interactive-hover: #23382e;
+    --interactive-accent: #b4cf80;
+    --interactive-accent-hover: #c9d5a3;
+
+    --h1-color: #e3e7ae;
+    --h2-color: #ccd9b2;
+    --h3-color: #b4cf80;
+    --h4-color: #8fb89e;
+    --h5-color: #bac9af;
+    --h6-color: #99af97;
+    --bold-color: #ccd9b2;
+    --italic-color: #8fb89e;
+    --link-color: #b4cf80;
+    --link-color-hover: #e3e7ae;
+    --link-external-color: #90b7ae;
+    --link-external-color-hover: #a6c9b5;
+    --tag-color: #b8c992;
+    --tag-color-hover: #e3e7ae;
+    --tag-background: #192b24;
+    --tag-background-hover: #23382e;
+    --blockquote-border-color: #536d5e;
+    --blockquote-color: #bac9af;
+    --hr-color: #30493b;
+    --list-marker-color: #8fb89e;
+    --checkbox-color: #b4cf80;
+    --checkbox-color-hover: #c9d5a3;
+    --checkbox-marker-color: #0d1915;
+    --table-border-color: #30493b;
+    --table-header-background: #192b24;
+
+    --code-background: #192b24;
+    --code-normal: #dee5d2;
+    --code-comment: #80977b;
+    --code-function: #e3e7ae;
+    --code-keyword: #b4cf80;
+    --code-operator: #bac9af;
+    --code-property: #a1b792;
+    --code-punctuation: #80977b;
+    --code-string: #a6c9b5;
+    --code-tag: #ccd9b2;
+    --code-value: #d2c58c;
+
+    --nav-item-color: #99af97;
+    --nav-item-color-hover: #dee5d2;
+    --nav-item-color-active: #e3e7ae;
+    --nav-item-background-active: #23382e;
+    --graph-line: #30493b;
+    --graph-node: #8fb89e;
+    --graph-node-focused: #e3e7ae;
+    --graph-node-tag: #b4cf80;
+    --graph-node-attachment: #90b7ae;
+}
