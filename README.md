@@ -92,6 +92,10 @@ vertexE/multibuffer.nvim
 vertexE/hacked.nvim
 ```
 
+## Zellij
+
+useful cmd `zellij delete-session nvim-mux --force`
+
 ## Claude
 
 ### claude CLI hooks for statusline
