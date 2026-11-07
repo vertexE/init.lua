@@ -3,6 +3,16 @@ local M = {}
 local zellij = require("zellij.zellij")
 local timer
 local subscribers = {}
+local debounces = {}
+
+local function cancel_debounce(pane_id)
+    local debounce = debounces[pane_id]
+    if debounce then
+        debounce:stop()
+        debounce:close()
+        debounces[pane_id] = nil
+    end
+end
 
 local statuses = {
     Working = "working",
@@ -87,7 +97,8 @@ function M.start(opts)
             if panes then
                 for _, pane in ipairs(panes) do
                     local state = M.from_pane(pane)
-                    local finished = last_statuses[pane.pane_id] == "working" and state.status == "done"
+                    local previous_status = last_statuses[pane.pane_id]
+                    local finished = previous_status == "working" and state.status == "done"
                     last_statuses[pane.pane_id] = state.status
                     local alert = alerts[state.status]
                     if alert then
@@ -102,17 +113,26 @@ function M.start(opts)
                         local changed_ms = pane.attention.changed_ms
                         if events[state.status] ~= changed_ms then
                             events[state.status] = changed_ms
+                            cancel_debounce(pane.pane_id)
                             if (state.unread or finished) and not baseline then
-                                vim.notify(
-                                    ("%s · %s %s"):format(pane.directory, pane.command, message),
-                                    alert.level,
-                                    { title = "Zellij" }
-                                )
-                                if sound then
-                                    pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
-                                end
+                                debounces[pane.pane_id] = vim.defer_fn(function()
+                                    debounces[pane.pane_id] = nil
+                                    if timer ~= monitor then
+                                        return
+                                    end
+                                    vim.notify(
+                                        ("%s · %s %s"):format(pane.directory, pane.command, message),
+                                        alert.level,
+                                        { title = "Zellij" }
+                                    )
+                                    if sound then
+                                        pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
+                                    end
+                                end, 2000)
                             end
                         end
+                    else
+                        cancel_debounce(pane.pane_id)
                     end
                 end
                 baseline = false
@@ -125,6 +145,9 @@ function M.start(opts)
 end
 
 function M.stop()
+    for pane_id in pairs(debounces) do
+        cancel_debounce(pane_id)
+    end
     if timer then
         timer:stop()
         timer:close()

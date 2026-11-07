@@ -28,7 +28,7 @@ local forest_canopy = function()
         surface2 = "#30493B",
         surface1 = "#23382E",
         surface0 = "#192B24",
-        base = "#0D1915",
+        base = "#09110E",
         mantle = "#0B1512",
         crust = "#080F0D",
     }
@@ -68,7 +68,7 @@ local forest_canopy = function()
         dark_variant = "main", -- main, moon, or dawn
         palette = {
             main = {
-                _nc = colors.mantle,
+                _nc = colors.base,
                 base = colors.base,
                 surface = colors.surface0,
                 overlay = colors.surface1,
@@ -91,12 +91,12 @@ local forest_canopy = function()
         highlight_groups = {
             HighlightYank = { bg = colors.overlay2 },
             LineNr = { fg = colors.overlay0 },
-            TabLineFill = { bg = Color:from_hex(colors.base):hex() },
+            TabLineFill = { bg = colors.base },
             WinBar = { bg = colors.base, fg = colors.overlay1, inherit = false },
             WinBarNC = { bg = colors.base, fg = colors.overlay0, inherit = false },
             WinSeparator = { fg = colors.surface1 },
-            StatusLine = { bg = "NONE" },
-            StatusLineNC = { bg = "NONE" },
+            StatusLine = { bg = colors.base, inherit = false },
+            StatusLineNC = { bg = colors.base, inherit = false },
             CommentItalic = { fg = colors.overlay1, italic = true },
             CommentBg = { bg = colors.base, bold = true, fg = colors.overlay2 },
             StatusLineSeparator = { fg = Color:from_hex(colors.base):lighten(8):hex() },

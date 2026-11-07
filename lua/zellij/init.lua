@@ -17,7 +17,7 @@ local function spawn_terminal()
     terminal = Terminal:new({
         -- ToggleTerm takes a shell command. Session name is a fixed literal.
         cmd = "exec zellij attach --create nvim-mux",
-        direction = "float",
+        direction = "tab",
         display_name = zellij.session_name(),
         hidden = true,
         close_on_exit = true,
@@ -182,6 +182,7 @@ end
 
 function M.setup(opts)
     require("toggleterm").setup({
+        shade_terminals = false,
         float_opts = { border = "rounded" },
         highlights = {
             FloatBorder = { link = "FloatBorder" },

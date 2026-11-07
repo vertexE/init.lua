@@ -50,7 +50,7 @@ function M.pick(tabs, open_tab)
     snacks.picker.pick("zellij_tabs", {
         title = "Zellij · nvim-mux",
         items = items,
-        layout = { preset = "vscode" },
+        layout = { preset = "right", hidden = { "preview" } },
         sort = { fields = { "score:desc", "idx" } },
         format = function(item, picker)
             local glyph = (item.indicator == "orange" or item.indicator == "red") and notification_bell or bell
@@ -75,11 +75,12 @@ function M.pick(tabs, open_tab)
                     end))
                 end
             end
+            local row_highlight = item.indicator == "orange" and highlights.orange or nil
             return {
                 { glyph, highlight },
-                { " " .. single_line(item.pane.directory) .. " ", "MiniIconsGreen" },
-                { separator .. " ", "Comment" },
-                { single_line(item.pane.command), "MiniIconsGreen" },
+                { " " .. single_line(item.pane.directory) .. " ", row_highlight or "MiniIconsGreen" },
+                { separator .. " ", row_highlight or "Comment" },
+                { single_line(item.pane.command), row_highlight or "MiniIconsGreen" },
             }
         end,
         on_show = function(picker)
