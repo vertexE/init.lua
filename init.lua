@@ -11,6 +11,7 @@ local dependencies = {
     { "dstein64/vim-startuptime" },
     { "nvim-mini/mini.nvim", require("plugins.mini") },
     { "folke/snacks.nvim", require("plugins.snacks") },
+    { "akinsho/toggleterm.nvim", version = vim.version.range("2.*") },
     { "lewis6991/gitsigns.nvim", require("plugins.git") },
     { "esmuellert/codediff.nvim", { cmd = "CodeDiff" } },
     { "neovim/nvim-lspconfig", require("plugins.lsp") },
@@ -68,3 +69,4 @@ require("ui.statusline").setup()
 require("ui.winbar").setup()
 
 require("assistant").setup()
+require("zellij").setup()
