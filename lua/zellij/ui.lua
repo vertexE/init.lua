@@ -11,9 +11,11 @@ local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIc
 local label_highlight = "MiniIconsRed"
 local pulse_highlight = "ZellijPickerPulse"
 local cursor_highlight = "ZellijPickerHiddenCursor"
+local row_highlight = "ZellijPickerCurrentRow"
 local title = " 󱙝 " .. zellij.session_name() .. " "
 local left_keys, right_keys = "tsrag", "neiom"
 local ns = api.nvim_create_namespace("user.zellij.picker")
+local row_ns = api.nvim_create_namespace("user.zellij.picker.cursor")
 local active_win
 
 local function single_line(value)
@@ -53,18 +55,23 @@ function M.pick(tabs, open_tab)
     local items = vim.tbl_map(function(pane)
         return { pane = pane }
     end, tabs)
-    local labels, index = {}, 0
-    for _, group in ipairs(group_items(items)) do
-        for _, item in ipairs(group.items) do
-            local left = math.floor(index / #right_keys) + 1
-            local right = index % #right_keys + 1
-            if left <= #left_keys then
-                item.label = left_keys:sub(left, left) .. right_keys:sub(right, right)
-                labels[item.label] = item
+    local labels = {}
+    local function assign_labels()
+        labels = {}
+        local index = 0
+        for _, group in ipairs(group_items(items)) do
+            for _, item in ipairs(group.items) do
+                local left = math.floor(index / #right_keys) + 1
+                local right = index % #right_keys + 1
+                if left <= #left_keys then
+                    item.label = left_keys:sub(left, left) .. right_keys:sub(right, right)
+                    labels[item.label] = item
+                end
+                index = index + 1
             end
-            index = index + 1
         end
     end
+    assign_labels()
 
     local buf = api.nvim_create_buf(false, true)
     vim.b[buf].miniindentscope_disable = true
@@ -72,6 +79,20 @@ function M.pick(tabs, open_tab)
     local win, prefix, pulse
     local width, height
     local row_items = {}
+
+    local function underline_row()
+        local row = api.nvim_win_get_cursor(win)[1] - 1
+        local line = api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
+        local first = line:find("%S")
+        api.nvim_buf_clear_namespace(buf, row_ns, 0, -1)
+        if first then
+            api.nvim_buf_set_extmark(buf, row_ns, row, first - 1, {
+                end_col = #line,
+                hl_group = row_highlight,
+                priority = 200,
+            })
+        end
+    end
 
     local function layout()
         local columns = vim.o.columns
@@ -132,12 +153,21 @@ function M.pick(tabs, open_tab)
                 end
                 local label = item.label or "  "
                 local left, right = label:sub(1, 1), label:sub(2, 2)
-                add_row({
+                local chunks = {
                     { "  " .. left, label_highlight },
                     { right, label_highlight },
                     { " " .. glyph, indicator_hl },
                     { " " .. single_line(pane.command), indicator == "orange" and highlights.orange or "MiniIconsGreen" },
-                }, prefix == left and 2 or nil)
+                }
+                if pane.tab_tag then
+                    vim.list_extend(chunks, {
+                        { " " },
+                        { "", "CodeLensSeparator" },
+                        { single_line(pane.tab_tag), "CodeLensContentIcon" },
+                        { "", "CodeLensSeparator" },
+                    })
+                end
+                add_row(chunks, prefix == left and 2 or nil)
                 row_items[#lines] = item
                 if selected == item then
                     selected_row = #lines
@@ -167,6 +197,9 @@ function M.pick(tabs, open_tab)
                 api.nvim_buf_set_extmark(buf, ns, i - 1, span[1], { end_col = span[2], hl_group = span[3] })
             end
         end
+        if win then
+            underline_row()
+        end
     end
 
     draw()
@@ -174,7 +207,10 @@ function M.pick(tabs, open_tab)
     active_win = win
     vim.wo[win].wrap = false
     vim.wo[win].cursorline = true
-    api.nvim_win_set_cursor(win, { 2, 0 })
+    api.nvim_win_set_cursor(win, { 1, 0 })
+    api.nvim_set_hl(0, row_highlight, { underline = true, cterm = { underline = true } })
+    api.nvim_create_autocmd("CursorMoved", { buffer = buf, callback = underline_row })
+    underline_row()
 
     local saved_cursor
     local function hide_cursor()
@@ -269,6 +305,85 @@ function M.pick(tabs, open_tab)
     end)
     keymap("<Esc>", close)
     keymap("q", close)
+    local tagging = false
+    keymap(",t", function()
+        local item = row_items[api.nvim_win_get_cursor(win)[1]]
+        if tagging or not item then
+            return
+        end
+        local cancelled = "\n"
+        local ok, value = pcall(vim.fn.input, {
+            prompt = "Tag: ",
+            default = item.pane.tab_tag or "",
+            cancelreturn = cancelled,
+        })
+        if not ok or value == cancelled or not api.nvim_win_is_valid(win) then
+            return
+        end
+        local tag = vim.trim(single_line(value))
+        tag = tag ~= "" and tag or nil
+        local pane = item.pane
+        if tag == pane.tab_tag then
+            return
+        end
+
+        tagging = true
+        zellij.set_tab_tag(pane.tab_id, pane.tab_name, tag, function(name, err)
+            tagging = false
+            if err then
+                vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+            end
+            if not name or not api.nvim_win_is_valid(win) then
+                return
+            end
+            for _, current in ipairs(items) do
+                if current.pane.tab_id == pane.tab_id then
+                    current.pane.tab_name, current.pane.tab_tag = name, tag
+                end
+            end
+            prefix = nil
+            draw()
+            api.nvim_win_set_config(win, layout())
+        end)
+    end)
+    local creating = false
+    keymap(",a", function()
+        if creating then
+            return
+        end
+        local cwd = vim.fn.getcwd()
+        local ok, directory = pcall(vim.fn.input, { prompt = "Open: ", default = cwd, completion = "dir" })
+        if not ok or directory == "" then
+            return
+        end
+        directory = vim.fn.fnamemodify(directory, ":p")
+        creating = true
+        zellij.new_tab(directory, function(err)
+            if err then
+                creating = false
+                vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+                return
+            end
+            zellij.tabs(function(updated, query_err)
+                creating = false
+                if query_err then
+                    vim.notify(query_err.message, vim.log.levels.WARN, { title = "Zellij" })
+                    return
+                end
+                if not api.nvim_win_is_valid(win) then
+                    return
+                end
+                items = vim.tbl_map(function(pane)
+                    return { pane = pane }
+                end, updated)
+                prefix = nil
+                assign_labels()
+                draw()
+                api.nvim_win_set_config(win, layout())
+                sync_pulse()
+            end)
+        end)
+    end)
     keymap("<CR>", function()
         local item = row_items[api.nvim_win_get_cursor(win)[1]]
         if item then

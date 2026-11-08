@@ -83,6 +83,37 @@ function M.focus_tab(tab_id, callback)
     end)
 end
 
+function M.new_tab(cwd, callback)
+    action({ "new-tab", "--cwd", cwd, "--no-focus" }, function(_, err)
+        callback(err)
+    end)
+end
+
+local function split_tab_name(name)
+    local tag, title = name:match("^%[#([^%]]+)%] (.+)$")
+    if not tag then
+        return nil, name
+    end
+    return (tag:gsub("%%5D", "]"):gsub("%%25", "%%")), title
+end
+
+function M.set_tab_tag(tab_id, name, tag, callback)
+    local _, title = split_tab_name(name)
+    if tag then
+        local escaped = tag:gsub("%%", "%%25"):gsub("%]", "%%5D")
+        title = "[#" .. escaped .. "] " .. title
+    end
+    action({ "rename-tab-by-id", "--", tostring(tab_id), title }, function(_, err)
+        if err then
+            callback(nil, err)
+            return
+        end
+        action({ "save-session" }, function(_, save_err)
+            callback(title, save_err)
+        end)
+    end)
+end
+
 local function nonempty_string(value)
     return type(value) == "string" and value ~= "" and value or nil
 end
@@ -128,6 +159,7 @@ function M.panes(callback)
 
                 if pane.is_selectable and not pane.is_suppressed and not pane.exited then
                     local name = nonempty_string(pane.tab_name) or ("Tab #" .. (pane.tab_position + 1))
+                    local tag, title = split_tab_name(name)
                     local cwd = nonempty_string(pane.pane_cwd)
                     local raw_command = nonempty_string(pane.pane_command)
                     local executable = raw_command and raw_command:match("%S+")
@@ -137,8 +169,9 @@ function M.panes(callback)
                         tab_id = pane.tab_id,
                         tab_position = pane.tab_position,
                         tab_name = name,
+                        tab_tag = tag,
                         cwd = cwd,
-                        directory = nonempty_string(directory) or cwd or name,
+                        directory = nonempty_string(directory) or cwd or title,
                         raw_command = raw_command,
                         command = executable and vim.fn.fnamemodify(executable, ":t") or "shell",
                         is_focused = pane.is_focused,
