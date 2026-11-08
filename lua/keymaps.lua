@@ -231,9 +231,8 @@ vim.keymap.set("n", "[d", function()
     end
 end, { desc = "prev diagnostic" })
 
-vim.keymap.set("n", "<localleader>c", function()
-    comments.add()
-end, { desc = "add code comment" })
+vim.keymap.set({ "n", "x" }, "<localleader>c", comments.add, { desc = "add code comment" })
+vim.keymap.set("n", "<leader>fc", comments.pick, { desc = "find code comments" })
 
 vim.keymap.set("n", "<localleader>C", function()
     comments.copy_to_clipboard()

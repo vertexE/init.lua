@@ -21,6 +21,7 @@ local floats = require("ui.floats")
 ---comment
 ---@param opts ?TextareaOpts
 ---@param callback TextareaCallback
+---@return integer bufnr, integer winr
 M.open = function(opts, callback)
     opts = opts or {}
 
@@ -83,6 +84,8 @@ M.open = function(opts, callback)
         vim.api.nvim_buf_delete(bufnr, { force = true })
         callback(lines)
     end, { buffer = bufnr })
+
+    return bufnr, winr
 end
 
 return M

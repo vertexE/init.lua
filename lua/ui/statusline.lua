@@ -1,14 +1,12 @@
 local M = {}
 
 local git_common = require("vcs.git_common")
-local resources = require("assistant.resources")
 local diagnostics = require("ui.diagnostics")
 
 local FIFO_PIPE_UPDATE_TIME = 3000
 
 local cache = {
     spotify = "No track currently playing",
-    claude = "",
     tools = {},
     git_branch = "",
 }
@@ -16,13 +14,11 @@ local cache = {
 local valid = {
     spotify = true,
     tools = false,
-    claude = false,
     git_branch = false,
 }
 
 local loading = {
     spotify = false,
-    claude = false,
 }
 
 --- @param vlines table<table<string,string>>
@@ -75,20 +71,16 @@ M.spotify = function()
     return vlines_to_inline_hl(segments)
 end
 
-M.claude = function()
-    if resources.agent_name() == "Codex" then
-        return vlines_to_inline_hl({
-            { "", "CodeLensSeparator" },
-            { "  codex ", "CodeLensContentIcon" },
-            { "", "CodeLensSeparator" },
-        })
-    elseif resources.agent_name() == "Claude" then
-        return vlines_to_inline_hl({
-            { "", "CodeLensSeparator" },
-            { "󰛄 claude ", "CodeLensContentIcon" },
-            { "", "CodeLensSeparator" },
-        })
-    end
+M.directory = function()
+    local cwd = vim.fn.getcwd(-1, 0)
+    local name = vim.fn.fnamemodify(cwd, ":t")
+    local label = (name == "" and cwd or name):gsub("%%", "%%%%")
+
+    return vlines_to_inline_hl({
+        { "", "CodeLensSeparator" },
+        { label, "CodeLensContentIcon" },
+        { "", "CodeLensSeparator" },
+    })
 end
 
 M.diagnostics = function()
@@ -163,7 +155,8 @@ M.mode = function()
 end
 
 M.tools = function()
-    if valid.tools then
+    local is_toggleterm = vim.bo.filetype == "toggleterm"
+    if valid.tools and cache.tools_toggleterm == is_toggleterm then
         return vlines_to_inline_hl(cache.tools)
     end
 
@@ -171,7 +164,9 @@ M.tools = function()
     local vlines = {
         { "", "CodeLensSeparator" },
     }
-    if #clients > 0 then
+    if is_toggleterm then
+        table.insert(vlines, { " term", "CodeLensContentIcon" })
+    elseif #clients > 0 then
         table.insert(vlines, { "", "CodeLensContentIcon" })
     else
         table.insert(vlines, { "󰔟", "CodeLensContentIcon" })
@@ -183,6 +178,7 @@ M.tools = function()
 
     table.insert(vlines, { "", "CodeLensSeparator" })
     cache.tools = vlines
+    cache.tools_toggleterm = is_toggleterm
     valid.tools = true
 
     return vlines_to_inline_hl(vlines)
@@ -234,7 +230,7 @@ end
 M.active = function()
     return table.concat({
         "%{%v:lua.require'ui.statusline'.mode()%}",
-        "%{%v:lua.require'ui.statusline'.claude()%}",
+        "%{%v:lua.require'ui.statusline'.directory()%}",
         "%{%v:lua.require'ui.statusline'.diagnostics()%}",
         "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",
@@ -284,16 +280,6 @@ M.setup = function()
         FIFO_PIPE_UPDATE_TIME,
         vim.schedule_wrap(function()
             valid.spotify = false
-        end)
-    )
-
-    -- Invalidate claude cache every 5 seconds
-    local claude_timer = vim.uv.new_timer()
-    claude_timer:start(
-        0,
-        5000,
-        vim.schedule_wrap(function()
-            valid.claude = false
         end)
     )
 end
