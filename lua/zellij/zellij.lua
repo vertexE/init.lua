@@ -1,7 +1,6 @@
 local M = {}
 
 local session = "nvim-mux"
-local nightly = "43c8710b3a9845f60d5a567c7410fc1197fabb66"
 
 local function failure(kind, message)
     return { kind = kind, message = message }
@@ -43,13 +42,7 @@ local function action(args, callback)
 end
 
 function M.check_version(callback)
-    run({ "--version" }, "version check", function(stdout, err)
-        if not err then
-            local version = vim.version.parse(stdout:match("%d+%.%d+%.%d+") or "")
-            if not version or vim.version.lt(version, "0.46.0") then
-                err = failure("incompatible_version", "Zellij on PATH requires nightly " .. nightly .. " (0.46.0)")
-            end
-        end
+    run({ "--version" }, "version check", function(_, err)
         callback(err)
     end)
 end
@@ -148,12 +141,8 @@ function M.panes(callback)
                     or type(pane.is_selectable) ~= "boolean"
                     or type(pane.is_suppressed) ~= "boolean"
                     or type(pane.exited) ~= "boolean"
-                    or type(pane.attention) ~= "table"
-                    or type(pane.attention.status) ~= "string"
-                    or type(pane.attention.seen) ~= "boolean"
-                    or type(pane.attention.changed_ms) ~= "number"
                 then
-                    callback(nil, failure("incompatible_version", "Zellij pane data requires nightly " .. nightly))
+                    callback(nil, failure("incompatible_version", "Zellij list-panes is missing required pane fields"))
                     return
                 end
 
@@ -176,13 +165,17 @@ function M.panes(callback)
                         command = executable and vim.fn.fnamemodify(executable, ":t") or "shell",
                         is_focused = pane.is_focused,
                         is_floating = pane.is_floating,
-                        attention = pane.attention,
+                        attention = type(pane.attention) == "table" and pane.attention or nil,
                     }
                 end
             end
         end
         callback(records)
     end)
+end
+
+function M.dump_pane(pane_id, callback)
+    action({ "dump-screen", "--pane-id", "terminal_" .. pane_id }, callback)
 end
 
 local function focus_rank(pane)
