@@ -96,6 +96,8 @@ vertexE/hacked.nvim
 
 useful cmd `zellij delete-session nvim-mux --force`
 
+and we install on `cargo install --locked --force --git https://github.com/zellij-org/zellij.git --rev 43c8710b3a9845f60d5a567c7410fc1197fabb66 zellij`
+
 ## Claude
 
 ### claude CLI hooks for statusline
