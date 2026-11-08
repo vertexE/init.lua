@@ -2,6 +2,10 @@ local stream = require("editor.stream")
 
 vim.api.nvim_create_user_command("Symbols", "new | put=execute('digraphs')->split('\\n')[1:]", {})
 
+vim.api.nvim_create_user_command("Todo", function()
+    require("ui.todo").open()
+end, {})
+
 vim.api.nvim_create_user_command("Implement", function(opts)
     local winr = vim.api.nvim_get_current_win()
     stream.start_change_stream(winr, opts.args)

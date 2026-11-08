@@ -42,41 +42,57 @@ local function query(sql, callback)
     end)
 end
 
-function M.add(params, callback)
-    if type(params.body) ~= "string" or not params.body:find("%S") then
-        callback(nil, "Todo body must be a nonblank string")
-        return
+local function body_sql(body)
+    if type(body) ~= "string" or not body:find("%S") then
+        error("Todo body must be a nonblank string", 0)
     end
-
     -- Encode text bytes so user input cannot change the SQL statement.
-    local hex = params.body:gsub(".", function(byte)
+    local hex = body:gsub(".", function(byte)
         return ("%02x"):format(byte:byte())
     end)
-    query(("INSERT INTO todos (body) VALUES (CAST(X'%s' AS TEXT)) RETURNING *;"):format(hex), function(rows, err)
+    return ("CAST(X'%s' AS TEXT)"):format(hex)
+end
+
+function M.add(params, callback)
+    query(("INSERT INTO todos (body) VALUES (%s) RETURNING *;"):format(body_sql(params.body)), function(rows, err)
         callback(rows and rows[1], err)
     end)
 end
 
 function M.list(_, callback)
-    query("SELECT * FROM todos ORDER BY id;", callback)
+    query("SELECT *, date(done_at, 'localtime') AS complete_at FROM todos ORDER BY id;", callback)
 end
 
-function M.complete(params, callback)
-    local id = params.id
+local function change_row(statement, id, callback)
     if type(id) ~= "number" or id < 1 or id > 9007199254740991 or id % 1 ~= 0 then
         callback(nil, "Todo id must be a positive safe integer")
         return
     end
 
-    local sql = ("UPDATE todos SET done_at = COALESCE(done_at, CURRENT_TIMESTAMP) WHERE id = %.0f RETURNING *;")
-        :format(id)
-    query(sql, function(rows, err)
+    query(statement .. (" WHERE id = %.0f RETURNING *;"):format(id), function(rows, err)
         if rows and not rows[1] then
             callback(nil, ("Todo %.0f not found"):format(id))
             return
         end
         callback(rows and rows[1], err)
     end)
+end
+
+function M.complete(params, callback)
+    change_row("UPDATE todos SET done_at = COALESCE(done_at, CURRENT_TIMESTAMP)", params.id, callback)
+end
+
+function M.toggle(params, callback)
+    local statement = "UPDATE todos SET done_at = CASE WHEN done_at IS NULL THEN CURRENT_TIMESTAMP ELSE NULL END"
+    change_row(statement, params.id, callback)
+end
+
+function M.edit(params, callback)
+    change_row("UPDATE todos SET body = " .. body_sql(params.body), params.id, callback)
+end
+
+function M.delete(params, callback)
+    change_row("DELETE FROM todos", params.id, callback)
 end
 
 return M

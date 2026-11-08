@@ -98,6 +98,8 @@ vim.keymap.set("n", "<leader>fa", function()
     require("navigation.goto").add()
 end, { desc = "add file to quick goto menu" })
 
+vim.keymap.set("n", "<leader>ft", "<cmd>Todo<cr>", { desc = "open todo list" })
+
 vim.keymap.set("n", "<c-1>", function()
     require("navigation.goto").quick_open(1)
 end, { desc = "quick goto file 1" })
