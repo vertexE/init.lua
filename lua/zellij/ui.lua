@@ -67,6 +67,7 @@ function M.pick(tabs, open_tab)
     end
 
     local buf = api.nvim_create_buf(false, true)
+    vim.b[buf].miniindentscope_disable = true
     vim.bo[buf].bufhidden = "wipe"
     local win, prefix, pulse
     local width, height
@@ -95,7 +96,7 @@ function M.pick(tabs, open_tab)
         local selected = view and row_items[view.lnum]
         local selected_row
         row_items = {}
-        width = vim.fn.strdisplaywidth(title)
+        width = math.max(25, vim.fn.strdisplaywidth(title))
 
         local function add_row(chunks, next_key)
             local i = #lines + 1
