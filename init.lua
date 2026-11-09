@@ -69,4 +69,4 @@ require("ui.statusline").setup()
 require("ui.winbar").setup()
 
 require("assistant").setup()
-require("zellij").setup()
+require("plex").setup()

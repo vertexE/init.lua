@@ -1,5 +1,5 @@
-local attention = require("zellij.notify")
-local zellij = require("zellij.zellij")
+local attention = require("plex.notify")
+local panes = require("plex.panes")
 local api = vim.api
 
 local M = {}
@@ -9,20 +9,19 @@ local notification_bell = ""
 local spinner_frames = require("symbols").braille_spinner_frames
 local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIconsRed" }
 local label_highlight = "MiniIconsRed"
-local cursor_highlight = "ZellijPickerHiddenCursor"
-local row_highlight = "ZellijPickerCurrentRow"
-local title = " 󱙝 " .. zellij.session_name() .. " "
+local cursor_highlight = "PlexPickerHiddenCursor"
+local row_highlight = "PlexPickerCurrentRow"
 local left_keys, right_keys = "tsrag", "neiom"
-local ns = api.nvim_create_namespace("user.zellij.picker")
-local row_ns = api.nvim_create_namespace("user.zellij.picker.cursor")
+local ns = api.nvim_create_namespace("user.plex.picker")
+local row_ns = api.nvim_create_namespace("user.plex.picker.cursor")
 local active_win
 
 local function single_line(value)
     return (value:gsub("%c", " "))
 end
 
-local function empty()
-    vim.notify("No selectable terminal tabs in nvim-mux", vim.log.levels.INFO, { title = "Zellij" })
+local function empty(strategy)
+    vim.notify("No selectable terminal tabs in " .. strategy.session_name(), vim.log.levels.INFO, { title = "Plex" })
 end
 
 local function group_items(items)
@@ -41,13 +40,14 @@ local function group_items(items)
     return groups
 end
 
-function M.pick(tabs, on_select)
+function M.pick(tabs, on_select, strategy)
+    local title = " 󱙝 " .. strategy.session_name() .. " "
     if active_win and api.nvim_win_is_valid(active_win) then
         api.nvim_set_current_win(active_win)
         return
     end
     if #tabs == 0 then
-        empty()
+        empty(strategy)
         return
     end
 
@@ -285,7 +285,7 @@ function M.pick(tabs, on_select)
     local function select(item)
         close()
         vim.schedule(function()
-            on_select(item.pane)
+            on_select(item.pane, strategy)
         end)
     end
 
@@ -341,10 +341,10 @@ function M.pick(tabs, on_select)
         end
 
         tagging = true
-        zellij.set_tab_tag(pane.tab_id, pane.tab_name, tag, function(name, err)
+        strategy.set_tab_tag(pane.tab_id, pane.tab_name, tag, function(name, err)
             tagging = false
             if err then
-                vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+                vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
             end
             if not name or not api.nvim_win_is_valid(win) then
                 return
@@ -371,16 +371,16 @@ function M.pick(tabs, on_select)
         end
         directory = vim.fn.fnamemodify(directory, ":p")
         creating = true
-        zellij.new_tab(directory, function(err)
+        strategy.new_tab(directory, function(err)
             if err then
                 creating = false
-                vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+                vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
                 return
             end
-            zellij.tabs(function(updated, query_err)
+            panes.tabs(strategy, function(updated, query_err)
                 creating = false
                 if query_err then
-                    vim.notify(query_err.message, vim.log.levels.WARN, { title = "Zellij" })
+                    vim.notify(query_err.message, vim.log.levels.WARN, { title = "Plex" })
                     return
                 end
                 if not api.nvim_win_is_valid(win) then
@@ -412,7 +412,7 @@ function M.pick(tabs, on_select)
     local unsubscribe = attention.subscribe(function(panes, err)
         if err then
             close()
-            vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+            vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
             return
         end
         local by_id = {}
@@ -433,7 +433,7 @@ function M.pick(tabs, on_select)
         end
         if #items == 0 then
             close()
-            empty()
+            empty(strategy)
             return
         end
         prefix = available_prefix(prefix)

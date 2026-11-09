@@ -92,11 +92,35 @@ vertexE/multibuffer.nvim
 vertexE/hacked.nvim
 ```
 
-## Zellij
+## Plex
 
-useful cmd `zellij delete-session nvim-mux --force`
+`<C-t>` opens the tab picker. `<leader>am` sends a message with editor context.
+Zellij is the default. To use tmux, change the setup call in `init.lua`.
 
-and we install on `cargo install --locked --force --git https://github.com/zellij-org/zellij.git --rev 43c8710b3a9845f60d5a567c7410fc1197fabb66 zellij`
+```lua
+require("plex").setup({ strategy = "tmux" })
+```
+
+### Zellij
+
+Delete the dedicated session with `zellij delete-session nvim-mux --force`
+
+No pinned commit required. Zellij must support `list-panes --all --json` and pane targeting used by picker.
+
+Native attention data drives notifications when available. Without native attention,
+Codex/Claude CLI panes notify once their viewport dump stays unchanged for at least
+2 seconds. New output resets idle detection. Fallback requires `dump-screen --pane-id`;
+unchanged output is a readiness heuristic, including during silent work.
+
+### tmux
+
+Plex uses the `nvim-mux` session on a dedicated `nvim-mux` socket. Attach with
+`tmux -L nvim-mux attach -t nvim-mux`.
+
+Plex reads OSC 7501 reports from tmux control mode, including reports from
+background windows. Codex CLI 0.167.0 and tmux 3.8 were tested together.
+Panes that emit no OSC 7501 reports show no agent status. Claude Code's
+status emission depends on terminal support for its OSC 7501 probe.
 
 ## Claude
 

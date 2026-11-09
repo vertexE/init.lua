@@ -32,15 +32,15 @@ vim.keymap.set({ "n" }, "<C-,>", "<C-w>5<")
 vim.keymap.set({ "n" }, "<C-.>", "<C-w>5>")
 vim.keymap.set({ "n" }, "<C-s>", "<C-w>-")
 
--- Zellij
-local zellij = require("zellij")
+-- Plex
+local plex = require("plex")
 vim.keymap.set("n", "<C-t>", function()
-    zellij.pick(zellij.open_tab, { attach = true })
-end, { desc = "zellij: pick tab" })
+    plex.pick(plex.open_tab, { attach = true })
+end, { desc = "plex: pick tab" })
 
 vim.keymap.set("n", "<leader>am", function()
-    require("zellij.message").pick()
-end, { desc = "zellij: send message" })
+    require("plex.message").pick()
+end, { desc = "plex: send message" })
 
 -- editing
 vim.keymap.set("n", "<Esc>", "<CMD>nohlsearch<CR>")

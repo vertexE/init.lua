@@ -1,6 +1,5 @@
-local picker = require("zellij")
+local picker = require("plex")
 local textarea = require("ui.textarea")
-local zellij = require("zellij.zellij")
 local api = vim.api
 
 local M = {}
@@ -40,7 +39,7 @@ end
 
 function M.pick()
     local context = editor_context()
-    picker.pick(function(tab)
+    picker.pick(function(tab, strategy)
         textarea.open({
             prompt = "Send message to " .. tab.tab_name:gsub("%c", " "),
             height = 5,
@@ -50,9 +49,9 @@ function M.pick()
             if vim.trim(message) == "" then
                 return
             end
-            zellij.send_message(tab.pane_id, message .. "\n\n" .. context, function(err)
+            strategy.send_message(tab.pane_id, message .. "\n\n" .. context, function(err)
                 if err then
-                    vim.notify(err.message, vim.log.levels.WARN, { title = "Zellij" })
+                    vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
                 end
             end)
         end)

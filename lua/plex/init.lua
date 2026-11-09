@@ -1,30 +1,33 @@
-local zellij = require("zellij.zellij")
-local attention = require("zellij.notify")
-local ui = require("zellij.ui")
+local attention = require("plex.notify")
+local panes = require("plex.panes")
+local ui = require("plex.ui")
 
 local M = {}
+local strategy
 local terminal
 local busy = false
 local notification_opts
-local other_clients = "Close other clients attached to " .. zellij.session_name() .. " before picking a tab"
+
+local function other_clients()
+    return "Close other clients attached to " .. strategy.session_name() .. " before picking a tab"
+end
 
 local function warn(message)
-    vim.notify(message, vim.log.levels.WARN, { title = "Zellij" })
+    vim.notify(message, vim.log.levels.WARN, { title = "Plex" })
 end
 
 local function spawn_terminal()
     local Terminal = require("toggleterm.terminal").Terminal
     terminal = Terminal:new({
-        -- ToggleTerm takes a shell command. Session name is a fixed literal.
-        cmd = "exec zellij attach --create nvim-mux",
+        cmd = strategy.attach_command(),
         direction = "tab",
-        display_name = zellij.session_name(),
+        display_name = strategy.session_name(),
         hidden = true,
         close_on_exit = true,
         on_create = function(term)
             vim.keymap.set({ "n", "t" }, "<C-q>", function()
                 term:close()
-            end, { buffer = term.bufnr, desc = "Hide Zellij terminal" })
+            end, { buffer = term.bufnr, desc = "Hide Plex terminal" })
         end,
         on_exit = function(term)
             if terminal == term then
@@ -35,7 +38,7 @@ local function spawn_terminal()
     local ok, err = pcall(terminal.spawn, terminal)
     if not ok or not terminal.job_id or terminal.job_id <= 0 then
         terminal = nil
-        return "Could not start Zellij in ToggleTerm" .. (err and (": " .. tostring(err)) or "")
+        return "Could not start " .. strategy.name .. " in ToggleTerm" .. (err and (": " .. tostring(err)) or "")
     end
 end
 
@@ -43,18 +46,18 @@ local function wait_for_client(term, callback)
     local deadline = vim.uv.now() + 5000
     local function check()
         if terminal ~= term then
-            callback(nil, "Zellij exited while attaching to " .. zellij.session_name())
+            callback(nil, strategy.name .. " exited while attaching to " .. strategy.session_name())
             return
         end
-        zellij.clients(function(clients, err)
+        strategy.clients(function(clients, err)
             if terminal ~= term then
-                callback(nil, "Zellij exited while attaching to " .. zellij.session_name())
+                callback(nil, strategy.name .. " exited while attaching to " .. strategy.session_name())
             elseif clients and #clients == 1 then
                 callback(term, nil, clients[1])
             elseif clients and #clients > 1 then
-                callback(nil, other_clients)
+                callback(nil, other_clients())
             elseif vim.uv.now() >= deadline then
-                callback(nil, err and err.message or ("Timed out attaching to " .. zellij.session_name()))
+                callback(nil, err and err.message or ("Timed out attaching to " .. strategy.session_name()))
             else
                 vim.defer_fn(check, 100)
             end
@@ -68,14 +71,14 @@ local function ensure_terminal(callback)
         wait_for_client(terminal, callback)
         return
     end
-    zellij.check_version(function(err)
+    strategy.check_version(function(err)
         if err then
             callback(nil, err.message)
             return
         end
-        zellij.clients(function(clients)
+        strategy.clients(function(clients)
             if clients and #clients > 0 then
-                callback(nil, other_clients)
+                callback(nil, other_clients())
                 return
             end
             local spawn_err = spawn_terminal()
@@ -84,47 +87,6 @@ local function ensure_terminal(callback)
                 return
             end
             wait_for_client(terminal, callback)
-        end)
-    end)
-end
-
-local function focus_tab(tab, focused_pane, callback)
-    local target = "terminal_" .. tab.pane_id
-    if focused_pane == target then
-        callback()
-        return
-    end
-    zellij.focus_pane(tab.pane_id, function(err)
-        if err then
-            callback(err.message)
-            return
-        end
-        zellij.clients(function(clients, client_err)
-            if client_err then
-                callback(client_err.message)
-            elseif #clients ~= 1 then
-                callback("Zellij focus requires one client attached to " .. zellij.session_name())
-            elseif clients[1] == target then
-                callback()
-            else
-                -- Until a client sends its first key, focus-pane-id can route to the CLI
-                -- client. go-to-tab-by-id falls back to the attached client.
-                zellij.focus_tab(tab.tab_id, function(tab_err)
-                    if tab_err then
-                        callback(tab_err.message)
-                        return
-                    end
-                    zellij.clients(function(updated, verify_err)
-                        if verify_err then
-                            callback(verify_err.message)
-                        elseif #updated == 1 and updated[1] == target then
-                            callback()
-                        else
-                            callback("Zellij could not focus the selected pane. Press a key in Zellij and pick again.")
-                        end
-                    end)
-                end)
-            end
         end)
     end)
 end
@@ -145,7 +107,7 @@ function M.open_tab(tab)
         else
             term:open()
         end
-        focus_tab(tab, focused_pane, function(focus_err)
+        strategy.focus(tab, focused_pane, function(focus_err)
             busy = false
             if focus_err then
                 warn(focus_err)
@@ -163,14 +125,14 @@ function M.pick(on_select, opts)
     end
     busy = true
     local function show_picker()
-        zellij.tabs(function(tabs, query_err)
+        panes.tabs(strategy, function(tabs, query_err)
             busy = false
             if query_err then
                 warn(query_err.message)
                 return
             end
-            attention.start(notification_opts)
-            ui.pick(tabs, on_select)
+            attention.start(strategy, notification_opts)
+            ui.pick(tabs, on_select, strategy)
         end)
     end
     if opts and opts.attach then
@@ -188,6 +150,11 @@ function M.pick(on_select, opts)
 end
 
 function M.setup(opts)
+    local name = opts and opts.strategy or "zellij"
+    assert(name == "zellij" or name == "tmux", "Unknown Plex strategy: " .. tostring(name))
+    local selected = require("plex." .. name)
+    assert(not strategy or strategy == selected, "Plex strategy cannot change after setup")
+    strategy = selected
     require("toggleterm").setup({
         shade_terminals = false,
         float_opts = { border = "rounded" },
@@ -201,9 +168,12 @@ function M.setup(opts)
         end,
     })
     vim.api.nvim_create_autocmd("VimLeavePre", {
-        group = vim.api.nvim_create_augroup("user.zellij", { clear = true }),
+        group = vim.api.nvim_create_augroup("user.plex", { clear = true }),
         callback = function()
             attention.stop()
+            if strategy.stop then
+                strategy.stop()
+            end
             if terminal then
                 vim.fn.jobstop(terminal.job_id)
             end

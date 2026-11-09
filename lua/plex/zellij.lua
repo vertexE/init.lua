@@ -1,4 +1,6 @@
-local M = {}
+local panes = require("plex.panes")
+
+local M = { name = "Zellij" }
 
 local session = "nvim-mux"
 
@@ -8,6 +10,10 @@ end
 
 function M.session_name()
     return session
+end
+
+function M.attach_command()
+    return "exec zellij attach --create " .. session
 end
 
 local function run(args, label, callback)
@@ -57,7 +63,7 @@ function M.clients(callback)
         for line in stdout:gmatch("[^\n]+") do
             local pane = line:match("^%s*%d+%s+(%S+)")
             if pane then
-                clients[#clients + 1] = pane
+                clients[#clients + 1] = tonumber(pane:match("^terminal_(%d+)$")) or pane
             end
         end
         callback(clients)
@@ -82,20 +88,8 @@ function M.new_tab(cwd, callback)
     end)
 end
 
-local function split_tab_name(name)
-    local tag, title = name:match("^%[#([^%]]+)%] (.+)$")
-    if not tag then
-        return nil, name
-    end
-    return (tag:gsub("%%5D", "]"):gsub("%%25", "%%")), title
-end
-
 function M.set_tab_tag(tab_id, name, tag, callback)
-    local _, title = split_tab_name(name)
-    if tag then
-        local escaped = tag:gsub("%%", "%%25"):gsub("%]", "%%5D")
-        title = "[#" .. escaped .. "] " .. title
-    end
+    local title = panes.tagged_name(name, tag)
     action({ "rename-tab-by-id", "--", tostring(tab_id), title }, function(_, err)
         if err then
             callback(nil, err)
@@ -118,14 +112,14 @@ function M.panes(callback)
             return
         end
 
-        local decoded, panes = pcall(vim.json.decode, stdout)
-        if not decoded or not vim.islist(panes) then
+        local decoded, raw_panes = pcall(vim.json.decode, stdout)
+        if not decoded or not vim.islist(raw_panes) then
             callback(nil, failure("invalid_json", "Zellij list-panes did not return a JSON array"))
             return
         end
 
         local records = {}
-        for _, pane in ipairs(panes) do
+        for _, pane in ipairs(raw_panes) do
             if type(pane) ~= "table" or type(pane.is_plugin) ~= "boolean" then
                 callback(nil, failure("invalid_json", "Zellij list-panes returned an invalid pane"))
                 return
@@ -148,7 +142,7 @@ function M.panes(callback)
 
                 if pane.is_selectable and not pane.is_suppressed and not pane.exited then
                     local name = nonempty_string(pane.tab_name) or ("Tab #" .. (pane.tab_position + 1))
-                    local tag, title = split_tab_name(name)
+                    local tag, title = panes.split_tab_name(name)
                     local cwd = nonempty_string(pane.pane_cwd)
                     local raw_command = nonempty_string(pane.pane_command)
                     local executable = raw_command and raw_command:match("%S+")
@@ -194,33 +188,44 @@ function M.send_message(pane_id, message, callback)
     end)
 end
 
-local function focus_rank(pane)
-    if not pane.is_focused then
-        return 0
+function M.focus(tab, focused_pane, callback)
+    local target = tab.pane_id
+    if focused_pane == target then
+        callback()
+        return
     end
-    return pane.is_floating and 2 or 1
-end
-
-function M.tabs(callback)
-    M.panes(function(panes, err)
+    M.focus_pane(tab.pane_id, function(err)
         if err then
-            callback(nil, err)
+            callback(err.message)
             return
         end
-
-        local by_tab = {}
-        for _, pane in ipairs(panes) do
-            local previous = by_tab[pane.tab_id]
-            if not previous or focus_rank(pane) > focus_rank(previous) then
-                by_tab[pane.tab_id] = pane
+        M.clients(function(clients, client_err)
+            if client_err then
+                callback(client_err.message)
+            elseif #clients ~= 1 then
+                callback("Zellij focus requires one client attached to " .. M.session_name())
+            elseif clients[1] == target then
+                callback()
+            else
+                -- Until a client sends its first key, focus-pane-id can route to the CLI
+                -- client. go-to-tab-by-id falls back to the attached client.
+                M.focus_tab(tab.tab_id, function(tab_err)
+                    if tab_err then
+                        callback(tab_err.message)
+                        return
+                    end
+                    M.clients(function(updated, verify_err)
+                        if verify_err then
+                            callback(verify_err.message)
+                        elseif #updated == 1 and updated[1] == target then
+                            callback()
+                        else
+                            callback("Zellij could not focus the selected pane. Press a key in Zellij and pick again.")
+                        end
+                    end)
+                end)
             end
-        end
-
-        local tabs = vim.tbl_values(by_tab)
-        table.sort(tabs, function(a, b)
-            return a.tab_position < b.tab_position
         end)
-        callback(tabs)
     end)
 end
 

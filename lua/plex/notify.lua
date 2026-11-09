@@ -1,6 +1,5 @@
 local M = {}
 
-local zellij = require("zellij.zellij")
 local timer
 local subscribers = {}
 local debounces = {}
@@ -77,7 +76,7 @@ local function native_attention(pane)
         and type(attention.changed_ms) == "number"
 end
 
-local function sample_fallback(panes, samples, active_panes, callback)
+local function sample_fallback(strategy, panes, samples, active_panes, callback)
     local remaining = 1
     local present = {}
     local function done()
@@ -96,7 +95,7 @@ local function sample_fallback(panes, samples, active_panes, callback)
         if not native_attention(pane) and (pane.command == "codex" or pane.command == "claude") then
             present[id] = true
             remaining = remaining + 1
-            zellij.dump_pane(id, function(dump, err)
+            strategy.dump_pane(id, function(dump, err)
                 local now = vim.uv.hrtime() / 1e6
                 local previous = samples[id]
                 if err then
@@ -125,7 +124,7 @@ local function sample_fallback(panes, samples, active_panes, callback)
     done()
 end
 
-function M.start(opts)
+function M.start(strategy, opts)
     if timer then
         return
     end
@@ -151,7 +150,7 @@ function M.start(opts)
         end
         pending = true
         local function query()
-            zellij.panes(function(panes, err)
+            strategy.panes(function(panes, err)
                 if timer ~= monitor then
                     return
                 end
@@ -195,7 +194,7 @@ function M.start(opts)
                                             vim.notify(
                                                 ("%s · %s %s"):format(pane.directory, pane.command, message),
                                                 alert.level,
-                                                { title = "Zellij" }
+                                                { title = "Plex" }
                                             )
                                             if sound then
                                                 pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
@@ -218,25 +217,22 @@ function M.start(opts)
                         callback(panes, err)
                     end
                 end
-                if panes then
-                    sample_fallback(panes, samples, active_panes, process)
+                if panes and strategy.dump_pane then
+                    sample_fallback(strategy, panes, samples, active_panes, process)
                 else
                     samples = {}
                     process()
                 end
-            end)
+            end, active_panes)
         end
         active_panes = {}
         if opts.is_terminal_focused and opts.is_terminal_focused() then
-            zellij.clients(function(clients)
+            strategy.clients(function(clients)
                 if timer ~= monitor then
                     return
                 end
                 for _, client in ipairs(clients or {}) do
-                    local id = tonumber(client:match("^terminal_(%d+)$"))
-                    if id then
-                        active_panes[id] = true
-                    end
+                    active_panes[client] = true
                 end
                 query()
             end)
