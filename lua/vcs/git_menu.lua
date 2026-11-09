@@ -97,62 +97,79 @@ end
 function M.open()
     return menu.open({
         position = "editor",
+        title = "Git",
         items = {
             {
-                label = "Git Log",
+                label = "Log",
+                icon = "",
                 keymap = ",l",
                 on_select = function()
                     vim.cmd("Git log --pretty=oneline")
                 end,
             },
             {
-                label = "Git Diff",
+                label = "Diff",
+                icon = "",
                 keymap = ",d",
                 on_select = function()
                     vim.cmd("CodeDiff")
                 end,
             },
-            { label = "Current File History", on_select = file_history },
+            { label = "File History", icon = "", keymap = ",h", on_select = file_history },
             {
                 label = "Compare Refs",
+                icon = "",
+                keymap = ",c",
                 divider = true,
                 children = {
                     {
                         label = "Compare Current Branch",
+                        icon = "",
+                        keymap = ",h",
                         on_select = function()
                             compare_refs("HEAD")
                         end,
                     },
                     {
                         label = "Compare Two Refs",
+                        icon = "",
+                        keymap = ",t",
                         on_select = function()
                             compare_refs()
                         end,
                     },
                 },
             },
-            { label = "Git Status", on_select = require("vcs.git_tray").status_tray },
+            { label = "Status", icon = "", keymap = ",s", on_select = require("vcs.git_tray").status_tray },
             {
-                label = "Git Branches",
+                label = "Branches",
+                icon = "",
+                keymap = ",b",
                 on_select = function()
                     require("snacks").picker.git_branches()
                 end,
             },
             {
                 label = "Stash",
+                icon = "",
+                keymap = ",t",
                 divider = true,
                 children = {
                     {
                         label = "Browse & Apply",
+                        icon = "",
+                        keymap = ",a",
                         on_select = function()
                             require("snacks").picker.git_stash()
                         end,
                     },
-                    { label = "Browse & Pop", on_select = pop_stash },
+                    { label = "Browse & Pop", icon = "", keymap = ",p", on_select = pop_stash },
                 },
             },
             {
                 label = "File Blame",
+                icon = "",
+                keymap = ",f",
                 on_select = function()
                     vim.cmd("Gitsigns blame")
                 end,

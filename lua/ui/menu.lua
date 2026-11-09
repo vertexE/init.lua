@@ -7,6 +7,7 @@ local ns = api.nvim_create_namespace("user.menu")
 
 --- @class MenuItem
 --- @field label string
+--- @field icon? string
 --- @field on_select? fun(props: MenuProps) Runs before close for branches and after close for leaves.
 --- @field children? MenuItem[]
 --- @field keymap? string q and <Esc> are reserved for going back.
@@ -14,6 +15,7 @@ local ns = api.nvim_create_namespace("user.menu")
 
 --- @class MenuOpts
 --- @field position "cursor"|"editor"
+--- @field title? string
 --- @field items MenuItem[]
 
 local function has_children(item)
@@ -69,13 +71,18 @@ local function close(menu, all)
     until not all or not menu
 end
 
-local function open_menu(items, position, origin, parent)
-    local lines, dividers = {}, {}
-    local width = 1
+local function open_menu(items, position, origin, parent, title)
+    local lines, dividers, shortcuts = {}, {}, {}
+    local width = title and vim.fn.strdisplaywidth(title) or 1
     for i, item in ipairs(items) do
         local line = " " .. item.label:gsub("%c", " ")
+        if item.icon then
+            line = " " .. item.icon .. line
+        end
         if item.keymap and item.keymap ~= "" then
-            line = line .. "  " .. item.keymap
+            line = line .. "  "
+            shortcuts[i] = { #line, #line + #item.keymap }
+            line = line .. item.keymap
         end
         lines[i] = line .. (has_children(item) and " › " or " ")
         width = math.max(width, vim.fn.strdisplaywidth(lines[i]))
@@ -90,6 +97,12 @@ local function open_menu(items, position, origin, parent)
     vim.bo[buf].bufhidden = "wipe"
     api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.bo[buf].modifiable = false
+    for row, span in pairs(shortcuts) do
+        api.nvim_buf_set_extmark(buf, ns, row - 1, span[1], {
+            end_col = span[2],
+            hl_group = "Comment",
+        })
+    end
     local rule = ("─"):rep(math.floor(width / vim.fn.strdisplaywidth("─")))
     for _, row in ipairs(dividers) do
         api.nvim_buf_set_extmark(buf, ns, row - 1, 0, {
@@ -97,7 +110,9 @@ local function open_menu(items, position, origin, parent)
         })
     end
 
-    local win = api.nvim_open_win(buf, true, layout(width, height, position, origin, parent))
+    local config = layout(width, height, position, origin, parent)
+    config.title = title
+    local win = api.nvim_open_win(buf, true, config)
     local menu = { win = win, origin = origin, parent = parent }
     vim.wo[win].wrap = false
     vim.wo[win].scrolloff = 0
@@ -185,7 +200,7 @@ function M.open(opts)
     end
     api.nvim_set_hl(0, "MenuSelection", { default = true, bg = "#23382E" })
     api.nvim_set_hl(0, "MenuHiddenCursor", { blend = 100, nocombine = true })
-    return open_menu(opts.items, opts.position, api.nvim_get_current_win()).win
+    return open_menu(opts.items, opts.position, api.nvim_get_current_win(), nil, opts.title).win
 end
 
 return M
