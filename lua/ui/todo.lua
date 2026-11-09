@@ -21,7 +21,7 @@ function M.open()
     api.nvim_set_hl(0, "TodoCompleted", { default = true, fg = "#808080", ctermfg = 8, strikethrough = true })
     local content_width = 0
     local buf, win = floats.open({
-        title = " Todo ",
+        title = " Todo  ",
         width = float_width(content_width),
         height = 0.4,
         bo = { buflisted = false, bufhidden = "wipe", modifiable = false },

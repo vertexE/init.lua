@@ -188,7 +188,11 @@ function M.setup(opts)
             FloatBorder = { link = "FloatBorder" },
         },
     })
-    notification_opts = opts
+    notification_opts = vim.tbl_extend("force", opts or {}, {
+        is_terminal_focused = function()
+            return terminal ~= nil and terminal:is_open() and terminal:is_focused()
+        end,
+    })
     vim.keymap.set("n", "<C-t>", M.pick, { desc = "zellij: pick tab" })
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("user.zellij", { clear = true }),

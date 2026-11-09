@@ -77,7 +77,7 @@ local function native_attention(pane)
         and type(attention.changed_ms) == "number"
 end
 
-local function sample_fallback(panes, samples, callback)
+local function sample_fallback(panes, samples, active_panes, callback)
     local remaining = 1
     local present = {}
     local function done()
@@ -108,9 +108,12 @@ local function sample_fallback(panes, samples, callback)
                         samples[id] = previous
                     end
                     local ready = now - previous.since >= 2000
+                    if active_panes[id] then
+                        previous.seen = true
+                    end
                     pane.attention = {
                         status = ready and "Done" or "Working",
-                        seen = false,
+                        seen = previous.seen == true,
                         changed_ms = previous.since,
                         source = "PaneIdle",
                     }
@@ -130,6 +133,10 @@ function M.start(opts)
     opts = opts or {}
     local sound = vim.F.if_nil(opts.sound, vim.fn.has("mac") == 1)
     local sound_path = opts.sound_path or "/System/Library/Sounds/Glass.aiff"
+    local active_panes = {}
+    local function is_active(pane_id)
+        return opts.is_terminal_focused and opts.is_terminal_focused() and active_panes[pane_id]
+    end
     local samples = {}
     local last_events = {}
     local last_statuses = {}
@@ -143,74 +150,99 @@ function M.start(opts)
             return
         end
         pending = true
-        zellij.panes(function(panes, err)
-            if timer ~= monitor then
-                return
-            end
-            local function process()
-                pending = false
+        local function query()
+            zellij.panes(function(panes, err)
                 if timer ~= monitor then
                     return
                 end
-                if panes then
-                    for _, pane in ipairs(panes) do
-                        local state = M.from_pane(pane)
-                        local previous_status = last_statuses[pane.pane_id]
-                        local finished = previous_status == "working" and state.status == "done"
-                        last_statuses[pane.pane_id] = state.status
-                        local alert = alerts[state.status]
-                        if alert then
-                            local message = pane.attention.source == "PaneIdle" and "ready to be looked at" or alert.text
-                            if state.status == "needs_input" then
-                                message = input_messages[state.kind]
-                                    or (pane.attention.source == "Bell" and "rang bell")
-                                    or message
-                            end
-                            local events = last_events[pane.pane_id] or {}
-                            last_events[pane.pane_id] = events
-                            local changed_ms = pane.attention.changed_ms
-                            if events[state.status] ~= changed_ms then
-                                events[state.status] = changed_ms
+                local function process()
+                    pending = false
+                    if timer ~= monitor then
+                        return
+                    end
+                    if panes then
+                        for _, pane in ipairs(panes) do
+                            local active = is_active(pane.pane_id)
+                            if active then
                                 cancel_debounce(pane.pane_id)
-                                if (state.unread or finished) and not baseline then
-                                    local function notify()
-                                        debounces[pane.pane_id] = nil
-                                        if timer ~= monitor then
-                                            return
+                            end
+                            local state = M.from_pane(pane)
+                            local previous_status = last_statuses[pane.pane_id]
+                            local finished = previous_status == "working"
+                                and state.status == "done"
+                                and pane.attention.source ~= "PaneIdle"
+                            last_statuses[pane.pane_id] = state.status
+                            local alert = alerts[state.status]
+                            if alert then
+                                local message = pane.attention.source == "PaneIdle" and "ready to be looked at" or alert.text
+                                if state.status == "needs_input" then
+                                    message = input_messages[state.kind]
+                                        or (pane.attention.source == "Bell" and "rang bell")
+                                        or message
+                                end
+                                local events = last_events[pane.pane_id] or {}
+                                last_events[pane.pane_id] = events
+                                local changed_ms = pane.attention.changed_ms
+                                if events[state.status] ~= changed_ms then
+                                    events[state.status] = changed_ms
+                                    cancel_debounce(pane.pane_id)
+                                    if (state.unread or finished) and not baseline and not active then
+                                        local function notify()
+                                            debounces[pane.pane_id] = nil
+                                            if timer ~= monitor or is_active(pane.pane_id) then
+                                                return
+                                            end
+                                            vim.notify(
+                                                ("%s · %s %s"):format(pane.directory, pane.command, message),
+                                                alert.level,
+                                                { title = "Zellij" }
+                                            )
+                                            if sound then
+                                                pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
+                                            end
                                         end
-                                        vim.notify(
-                                            ("%s · %s %s"):format(pane.directory, pane.command, message),
-                                            alert.level,
-                                            { title = "Zellij" }
-                                        )
-                                        if sound then
-                                            pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
+                                        if pane.attention.source == "PaneIdle" then
+                                            notify()
+                                        else
+                                            debounces[pane.pane_id] = vim.defer_fn(notify, 2000)
                                         end
-                                    end
-                                    if pane.attention.source == "PaneIdle" then
-                                        notify()
-                                    else
-                                        debounces[pane.pane_id] = vim.defer_fn(notify, 2000)
                                     end
                                 end
+                            else
+                                cancel_debounce(pane.pane_id)
                             end
-                        else
-                            cancel_debounce(pane.pane_id)
                         end
+                        baseline = false
                     end
-                    baseline = false
+                    for callback in pairs(subscribers) do
+                        callback(panes, err)
+                    end
                 end
-                for callback in pairs(subscribers) do
-                    callback(panes, err)
+                if panes then
+                    sample_fallback(panes, samples, active_panes, process)
+                else
+                    samples = {}
+                    process()
                 end
-            end
-            if panes then
-                sample_fallback(panes, samples, process)
-            else
-                samples = {}
-                process()
-            end
-        end)
+            end)
+        end
+        active_panes = {}
+        if opts.is_terminal_focused and opts.is_terminal_focused() then
+            zellij.clients(function(clients)
+                if timer ~= monitor then
+                    return
+                end
+                for _, client in ipairs(clients or {}) do
+                    local id = tonumber(client:match("^terminal_(%d+)$"))
+                    if id then
+                        active_panes[id] = true
+                    end
+                end
+                query()
+            end)
+        else
+            query()
+        end
     end))
 end
 
