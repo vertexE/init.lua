@@ -10,6 +10,27 @@ local function file_history()
     vim.cmd("CodeDiff history %")
 end
 
+local function stage_file()
+    local path = vim.api.nvim_buf_get_name(0)
+    if path == "" or vim.bo.buftype ~= "" then
+        vim.notify("Stage needs a file buffer", vim.log.levels.WARN)
+        return
+    end
+
+    local cmd = { "git", "--literal-pathspecs", "add", "--", path }
+    local on_exit = vim.schedule_wrap(function(result)
+        if result.code == 0 then
+            vim.notify("Staged " .. vim.fs.basename(path))
+        else
+            vim.notify(vim.trim(result.stderr), vim.log.levels.ERROR)
+        end
+    end)
+    local ok, err = pcall(vim.system, cmd, { cwd = vim.fs.dirname(path), text = true }, on_exit)
+    if not ok then
+        vim.notify("git add failed\n" .. err, vim.log.levels.ERROR)
+    end
+end
+
 local function git_root()
     local git = require("snacks").git
     local cwd = git.get_root() or git.get_root(vim.fn.getcwd())
@@ -188,6 +209,7 @@ function M.open()
                 },
             },
             { label = "Status", icon = "", keymap = ",s", on_select = require("vcs.git_tray").status_tray },
+            { label = "Stage", icon = "", keymap = ",a", on_select = stage_file },
             { label = "Sync", icon = "", keymap = ",y", on_select = sync },
             {
                 label = "Branches",
