@@ -41,7 +41,7 @@ local function group_items(items)
     return groups
 end
 
-function M.pick(tabs, open_tab)
+function M.pick(tabs, on_select)
     if active_win and api.nvim_win_is_valid(active_win) then
         api.nvim_set_current_win(active_win)
         return
@@ -285,7 +285,7 @@ function M.pick(tabs, open_tab)
     local function select(item)
         close()
         vim.schedule(function()
-            open_tab(item.pane)
+            on_select(item.pane)
         end)
     end
 

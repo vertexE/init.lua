@@ -30,8 +30,17 @@ vim.keymap.set({ "n" }, "<C-j>", "<C-w><C-j>", { desc = "move focus to lower win
 vim.keymap.set({ "n" }, "<C-k>", "<C-w><C-k>", { desc = "move focus to upper window" })
 vim.keymap.set({ "n" }, "<C-,>", "<C-w>5<")
 vim.keymap.set({ "n" }, "<C-.>", "<C-w>5>")
-vim.keymap.set({ "n" }, "<C-t>", "<C-w>+")
 vim.keymap.set({ "n" }, "<C-s>", "<C-w>-")
+
+-- Zellij
+local zellij = require("zellij")
+vim.keymap.set("n", "<C-t>", function()
+    zellij.pick(zellij.open_tab, { attach = true })
+end, { desc = "zellij: pick tab" })
+
+vim.keymap.set("n", "<leader>am", function()
+    require("zellij.message").pick()
+end, { desc = "zellij: send message" })
 
 -- editing
 vim.keymap.set("n", "<Esc>", "<CMD>nohlsearch<CR>")

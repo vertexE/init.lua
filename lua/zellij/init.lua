@@ -157,17 +157,12 @@ function M.open_tab(tab)
     end)
 end
 
-function M.pick()
+function M.pick(on_select, opts)
     if busy then
         return
     end
     busy = true
-    ensure_terminal(function(term, err)
-        if not term then
-            busy = false
-            warn(err)
-            return
-        end
+    local function show_picker()
         zellij.tabs(function(tabs, query_err)
             busy = false
             if query_err then
@@ -175,9 +170,21 @@ function M.pick()
                 return
             end
             attention.start(notification_opts)
-            ui.pick(tabs, M.open_tab)
+            ui.pick(tabs, on_select)
         end)
-    end)
+    end
+    if opts and opts.attach then
+        ensure_terminal(function(term, err)
+            if not term then
+                busy = false
+                warn(err)
+                return
+            end
+            show_picker()
+        end)
+    else
+        show_picker()
+    end
 end
 
 function M.setup(opts)
@@ -193,7 +200,6 @@ function M.setup(opts)
             return terminal ~= nil and terminal:is_open() and terminal:is_focused()
         end,
     })
-    vim.keymap.set("n", "<C-t>", M.pick, { desc = "zellij: pick tab" })
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("user.zellij", { clear = true }),
         callback = function()

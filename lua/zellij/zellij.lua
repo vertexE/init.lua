@@ -178,6 +178,22 @@ function M.dump_pane(pane_id, callback)
     action({ "dump-screen", "--pane-id", "terminal_" .. pane_id }, callback)
 end
 
+function M.send_message(pane_id, message, callback)
+    local target = "terminal_" .. pane_id
+    action({ "paste", "--pane-id", target, "--", message }, function(_, err)
+        if err then
+            callback(err)
+            return
+        end
+        action({ "send-keys", "--pane-id", target, "Enter" }, function(_, submit_err)
+            if submit_err then
+                submit_err.message = "Message pasted. " .. submit_err.message
+            end
+            callback(submit_err)
+        end)
+    end)
+end
+
 local function focus_rank(pane)
     if not pane.is_focused then
         return 0

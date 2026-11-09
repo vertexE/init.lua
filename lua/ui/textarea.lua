@@ -15,6 +15,7 @@ local floats = require("ui.floats")
 --- @field col ?integer
 --- @field content ?string
 --- @field backdrop ?boolean
+--- @field submit_on_enter ?boolean
 
 --- @alias TextareaCallback fun(input: string[])
 
@@ -79,11 +80,19 @@ M.open = function(opts, callback)
         vim.api.nvim_buf_delete(bufnr, { force = true })
     end, { buffer = bufnr })
 
-    vim.keymap.set("n", "<enter>", function()
+    local function submit()
         local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
         vim.api.nvim_buf_delete(bufnr, { force = true })
         callback(lines)
-    end, { buffer = bufnr })
+    end
+    vim.keymap.set("n", "<enter>", submit, { buffer = bufnr })
+    if opts.submit_on_enter then
+        vim.keymap.set("i", "<CR>", function()
+            vim.cmd.stopinsert()
+            submit()
+        end, { buffer = bufnr })
+        vim.keymap.set("i", "<C-j>", "<CR>", { buffer = bufnr, desc = "Insert newline" })
+    end
 
     return bufnr, winr
 end
