@@ -1,5 +1,6 @@
 local menu = require("ui.menu")
 local M = {}
+local syncing = {}
 
 local function file_history()
     if vim.fn.filereadable(vim.api.nvim_buf_get_name(0)) ~= 1 then
@@ -9,11 +10,57 @@ local function file_history()
     vim.cmd("CodeDiff history %")
 end
 
-local function git_refs()
+local function git_root()
     local git = require("snacks").git
     local cwd = git.get_root() or git.get_root(vim.fn.getcwd())
     if not cwd then
         vim.notify("No Git repository found", vim.log.levels.WARN)
+    end
+    return cwd
+end
+
+local function sync()
+    local cwd = git_root()
+    if not cwd then
+        return
+    end
+    if syncing[cwd] then
+        vim.notify("Git sync already running", vim.log.levels.INFO)
+        return
+    end
+
+    local function run(step)
+        local on_exit = vim.schedule_wrap(function(result)
+            if step == "fetch" and result.code == 0 then
+                run("pull")
+                return
+            end
+
+            syncing[cwd] = nil
+            if step == "pull" then
+                vim.cmd.checktime()
+            end
+            if result.code == 0 then
+                vim.notify("Git sync complete")
+            else
+                local output = vim.trim(result.stderr ~= "" and result.stderr or result.stdout)
+                vim.notify("git " .. step .. " failed\n" .. output, vim.log.levels.ERROR)
+            end
+        end)
+        local ok, err = pcall(vim.system, { "git", step }, { cwd = cwd, text = true }, on_exit)
+        if not ok then
+            syncing[cwd] = nil
+            vim.notify("git " .. step .. " failed\n" .. err, vim.log.levels.ERROR)
+        end
+    end
+
+    syncing[cwd] = true
+    run("fetch")
+end
+
+local function git_refs()
+    local cwd = git_root()
+    if not cwd then
         return
     end
 
@@ -141,6 +188,7 @@ function M.open()
                 },
             },
             { label = "Status", icon = "", keymap = ",s", on_select = require("vcs.git_tray").status_tray },
+            { label = "Sync", icon = "", keymap = ",y", on_select = sync },
             {
                 label = "Branches",
                 icon = "",
