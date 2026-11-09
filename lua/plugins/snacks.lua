@@ -1,5 +1,37 @@
 local status = require("ui.status")
 
+local project_paths = {}
+
+local project_picker = {
+    title = "Project Picker",
+    format = "text",
+    layout = { preview = false },
+    show_empty = true,
+    finder = function()
+        return vim.tbl_map(function(path)
+            return { text = vim.fn.fnamemodify(vim.fs.normalize(path), ":p") }
+        end, project_paths)
+    end,
+    confirm = function(picker, item)
+        if not item then
+            return
+        end
+        local path = item.text
+        if vim.fn.isdirectory(path) ~= 1 then
+            vim.notify("Project directory not found: " .. path, vim.log.levels.WARN)
+            return
+        end
+
+        picker:close()
+        vim.cmd.tabnew()
+        local ok, err = pcall(vim.cmd.tcd, { args = { path } })
+        if not ok then
+            vim.cmd.tabclose()
+            vim.notify(tostring(err), vim.log.levels.ERROR)
+        end
+    end,
+}
+
 local clipboard = function()
     local snacks = require("snacks")
     local hacked = require("hacked.clipboard")
@@ -44,6 +76,7 @@ local M = {
             statuscolumn = {},
             picker = {
                 ui_select = true,
+                sources = { project_picker = project_picker },
                 ignore = { "node_modules" },
                 win = {
                     input = {
@@ -91,6 +124,10 @@ local M = {
         vim.keymap.set("n", "<leader>ff", function()
             snacks.picker.files({ layout = { preset = "vscode" } })
         end)
+
+        vim.keymap.set("n", "<leader>fp", function()
+            snacks.picker.project_picker()
+        end, { desc = "snacks: project picker" })
 
         vim.keymap.set("n", "<leader>fe", function()
             snacks.picker.diagnostics()
