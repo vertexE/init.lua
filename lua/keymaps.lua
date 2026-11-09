@@ -73,6 +73,10 @@ vim.keymap.set("n", "<leader>gg", function()
     git_tray.status_tray()
 end)
 
+vim.keymap.set("n", "<leader>gm", function()
+    require("vcs.git_menu").open()
+end, { desc = "open git menu" })
+
 vim.keymap.set("n", "gb", function()
     git_blame.line()
 end, { desc = "git blame current line" })
