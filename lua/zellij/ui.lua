@@ -6,7 +6,7 @@ local M = {}
 
 local bell = ""
 local notification_bell = ""
-local spinner_frames = { "", "", "", "", "", "" } -- nf-extra-progress_spinner_1 through _6
+local spinner_frames = require("symbols").braille_spinner_frames
 local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIconsRed" }
 local label_highlight = "MiniIconsRed"
 local cursor_highlight = "ZellijPickerHiddenCursor"
