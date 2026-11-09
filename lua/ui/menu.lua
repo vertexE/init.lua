@@ -72,20 +72,23 @@ local function close(menu, all)
 end
 
 local function open_menu(items, position, origin, parent, title)
-    local lines, dividers, shortcuts = {}, {}, {}
+    local lines, dividers, hints = {}, {}, {}
     local width = title and vim.fn.strdisplaywidth(title) or 1
     for i, item in ipairs(items) do
         local line = " " .. item.label:gsub("%c", " ")
         if item.icon then
             line = " " .. item.icon .. line
         end
-        if item.keymap and item.keymap ~= "" then
-            line = line .. "  "
-            shortcuts[i] = { #line, #line + #item.keymap }
-            line = line .. item.keymap
+        local chevron = has_children(item) and " ›" or ""
+        local keymap = item.keymap or ""
+        if keymap ~= "" then
+            chevron = chevron .. "  "
+            hints[i] = { { chevron }, { keymap, "Comment" } }
+        elseif chevron ~= "" then
+            hints[i] = { { chevron } }
         end
-        lines[i] = line .. (has_children(item) and " › " or " ")
-        width = math.max(width, vim.fn.strdisplaywidth(lines[i]))
+        lines[i] = line
+        width = math.max(width, vim.fn.strdisplaywidth(line .. chevron .. keymap))
         if item.divider then
             dividers[#dividers + 1] = i
         end
@@ -97,10 +100,11 @@ local function open_menu(items, position, origin, parent, title)
     vim.bo[buf].bufhidden = "wipe"
     api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.bo[buf].modifiable = false
-    for row, span in pairs(shortcuts) do
-        api.nvim_buf_set_extmark(buf, ns, row - 1, span[1], {
-            end_col = span[2],
-            hl_group = "Comment",
+    for row, chunks in pairs(hints) do
+        api.nvim_buf_set_extmark(buf, ns, row - 1, 0, {
+            virt_text = chunks,
+            virt_text_pos = "right_align",
+            hl_mode = "combine",
         })
     end
     local rule = ("─"):rep(math.floor(width / vim.fn.strdisplaywidth("─")))
