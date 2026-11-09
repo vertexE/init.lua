@@ -134,10 +134,29 @@ M.menu = function()
     })
     vim.api.nvim_set_option_value("buftype", "nofile", { buf = float_buf, scope = "local" })
     vim.wo[float_winr].signcolumn = "yes"
-    vim.wo[float_winr].cursorline = true
+    vim.wo[float_winr].cursorline = false
+    vim.wo[float_winr].cursorcolumn = false
     vim.cmd("hi Cursor blend=100")
 
     vim.cmd("edit " .. filepath())
+    float_buf = vim.api.nvim_get_current_buf()
+
+    local position_ns = vim.api.nvim_create_namespace("user.goto.position")
+    local function update_position()
+        local selected = vim.api.nvim_win_get_cursor(float_winr)[1]
+        vim.api.nvim_buf_clear_namespace(float_buf, position_ns, 0, -1)
+        for line = 1, vim.api.nvim_buf_line_count(float_buf) do
+            vim.api.nvim_buf_set_extmark(float_buf, position_ns, line - 1, 0, {
+                virt_text = { { line == selected and "▎ " or "  ", "ReplaceMode" } },
+                virt_text_pos = "inline",
+            })
+        end
+    end
+    vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "TextChanged", "TextChangedI" }, {
+        buffer = float_buf,
+        callback = update_position,
+    })
+    update_position()
 
     vim.api.nvim_create_autocmd({ "WinClosed", "WinLeave" }, {
         group = vim.api.nvim_create_augroup("user.nav.goto.cursor", { clear = true }),

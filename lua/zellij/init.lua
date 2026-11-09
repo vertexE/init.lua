@@ -189,7 +189,7 @@ function M.setup(opts)
         },
     })
     notification_opts = opts
-    vim.keymap.set("n", "<leader>fz", M.pick, { desc = "zellij: pick tab" })
+    vim.keymap.set("n", "<C-t>", M.pick, { desc = "zellij: pick tab" })
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("user.zellij", { clear = true }),
         callback = function()
