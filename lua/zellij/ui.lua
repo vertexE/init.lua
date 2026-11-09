@@ -1,15 +1,14 @@
 local attention = require("zellij.notify")
 local zellij = require("zellij.zellij")
-local Color = require("color")
 local api = vim.api
 
 local M = {}
 
 local bell = ""
 local notification_bell = ""
+local spinner_frames = { "", "", "", "", "", "" } -- nf-extra-progress_spinner_1 through _6
 local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIconsRed" }
 local label_highlight = "MiniIconsRed"
-local pulse_highlight = "ZellijPickerPulse"
 local cursor_highlight = "ZellijPickerHiddenCursor"
 local row_highlight = "ZellijPickerCurrentRow"
 local title = " 󱙝 " .. zellij.session_name() .. " "
@@ -76,7 +75,9 @@ function M.pick(tabs, open_tab)
     local buf = api.nvim_create_buf(false, true)
     vim.b[buf].miniindentscope_disable = true
     vim.bo[buf].bufhidden = "wipe"
-    local win, prefix, pulse
+    local win, prefix, spinner_timer
+    local spinner_frame = 1
+    local spinner_marks = {}
     local width, height
     local row_items = {}
 
@@ -111,12 +112,24 @@ function M.pick(tabs, open_tab)
         }
     end
 
+    local function draw_spinners()
+        for _, mark in ipairs(spinner_marks) do
+            mark.id = api.nvim_buf_set_extmark(buf, ns, mark.row, mark.col, {
+                id = mark.id,
+                virt_text = { { spinner_frames[spinner_frame], mark.hl } },
+                virt_text_pos = "overlay",
+                hl_mode = "combine",
+            })
+        end
+    end
+
     local function draw()
         local lines, spans = {}, {}
         local view = win and api.nvim_win_call(win, vim.fn.winsaveview)
         local selected = view and row_items[view.lnum]
         local selected_row
         row_items = {}
+        spinner_marks = {}
         width = math.max(25, vim.fn.strdisplaywidth(title))
 
         local function add_row(chunks, next_key)
@@ -149,7 +162,7 @@ function M.pick(tabs, open_tab)
                 local glyph = (indicator == "orange" or indicator == "red") and notification_bell or bell
                 local indicator_hl = highlights[indicator]
                 if indicator == "spinner" then
-                    glyph, indicator_hl = "●", pulse_highlight
+                    glyph, indicator_hl = spinner_frames[1], "MiniIconsGreen"
                 end
                 local label = item.label or "  "
                 local left, right = label:sub(1, 1), label:sub(2, 2)
@@ -168,6 +181,13 @@ function M.pick(tabs, open_tab)
                     })
                 end
                 add_row(chunks, prefix == left and 2 or nil)
+                if indicator == "spinner" then
+                    spinner_marks[#spinner_marks + 1] = {
+                        row = #lines - 1,
+                        col = #chunks[1][1] + #chunks[2][1] + 1, -- Skip shortcut and following space.
+                        hl = prefix and "Comment" or indicator_hl,
+                    }
+                end
                 row_items[#lines] = item
                 if selected == item then
                     selected_row = #lines
@@ -197,6 +217,7 @@ function M.pick(tabs, open_tab)
                 api.nvim_buf_set_extmark(buf, ns, i - 1, span[1], { end_col = span[2], hl_group = span[3] })
             end
         end
+        draw_spinners()
         if win then
             underline_row()
         end
@@ -232,38 +253,30 @@ function M.pick(tabs, open_tab)
     api.nvim_create_autocmd("WinLeave", { buffer = buf, callback = restore_cursor })
     hide_cursor()
 
-    local function stop_pulse()
-        if pulse then
-            pulse:stop()
-            pulse:close()
-            pulse = nil
+    local function stop_spinner()
+        if spinner_timer then
+            spinner_timer:stop()
+            spinner_timer:close()
+            spinner_timer = nil
+            spinner_frame = 1
         end
     end
 
-    local function sync_pulse()
-        for _, item in ipairs(items) do
-            if attention.from_pane(item.pane).indicator == "spinner" then
-                if not pulse then
-                    local fg = api.nvim_get_hl(0, { name = "MiniIconsGreen", link = false }).fg
-                    local green = Color:from_hex(("#%06x"):format(fg or 0x00d787))
-                    api.nvim_set_hl(0, pulse_highlight, { fg = green:hex() })
-                    local phase = 0
-                    local timer = assert(vim.uv.new_timer())
-                    pulse = timer
-                    timer:start(75, 75, vim.schedule_wrap(function()
-                        if pulse == timer then
-                            phase = (phase + 1) % 16
-                            local fade = (1 - math.cos(phase * math.pi / 8)) / 2
-                            api.nvim_set_hl(0, pulse_highlight, { fg = green:darken(green.l * 0.4 * fade):hex() })
-                        end
-                    end))
+    local function sync_spinner()
+        if #spinner_marks == 0 then
+            stop_spinner()
+        elseif not spinner_timer then
+            local timer = assert(vim.uv.new_timer())
+            spinner_timer = timer
+            timer:start(75, 75, vim.schedule_wrap(function()
+                if spinner_timer == timer then
+                    spinner_frame = spinner_frame % #spinner_frames + 1
+                    draw_spinners()
                 end
-                return
-            end
+            end))
         end
-        stop_pulse()
     end
-    sync_pulse()
+    sync_spinner()
 
     local function close()
         api.nvim_win_close(win, true)
@@ -380,7 +393,7 @@ function M.pick(tabs, open_tab)
                 assign_labels()
                 draw()
                 api.nvim_win_set_config(win, layout())
-                sync_pulse()
+                sync_spinner()
             end)
         end)
     end)
@@ -426,7 +439,7 @@ function M.pick(tabs, open_tab)
         prefix = available_prefix(prefix)
         draw()
         api.nvim_win_set_config(win, layout())
-        sync_pulse()
+        sync_spinner()
     end)
     api.nvim_create_autocmd("BufWipeout", {
         buffer = buf,
@@ -435,7 +448,7 @@ function M.pick(tabs, open_tab)
             active_win = nil
             api.nvim_del_autocmd(resize)
             unsubscribe()
-            stop_pulse()
+            stop_spinner()
             restore_cursor()
             vim.schedule(function()
                 if api.nvim_win_is_valid(win) then
