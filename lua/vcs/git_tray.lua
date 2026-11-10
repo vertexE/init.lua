@@ -2,6 +2,7 @@ local M = {}
 
 local api = vim.api
 local floats = require("ui.floats")
+local confirm = require("ui.confirm")
 local extmarks = require("ui.extmarks")
 local parse_status = require("vcs.git_parse").parse_git_status
 local namespace = api.nvim_create_namespace("user.git.tray")
@@ -22,7 +23,7 @@ local function git(root, args, callback, stdin)
 end
 
 local function active(view)
-    return view == tray and api.nvim_win_is_valid(view.win)
+    return view == tray and api.nvim_win_is_valid(view.win) and api.nvim_win_get_buf(view.win) == view.buf
 end
 
 local function hide_tray_cursor(buf)
@@ -46,25 +47,6 @@ local function hide_tray_cursor(buf)
     hide()
 end
 
-local function dimensions(width, height)
-    return math.min(width, vim.o.columns - 2), math.min(height, math.max(1, vim.o.lines - vim.o.cmdheight - 2))
-end
-
-local function fit(text, width)
-    if vim.fn.strdisplaywidth(text) > width then
-        local limit = width - vim.fn.strdisplaywidth("…")
-        if limit < 0 then
-            return string.rep(" ", width)
-        end
-        text = vim.fn.strcharpart(text, 0, limit)
-        while vim.fn.strdisplaywidth(text) > limit do
-            text = vim.fn.strcharpart(text, 0, vim.fn.strchars(text) - 1)
-        end
-        text = text .. "…"
-    end
-    return text .. string.rep(" ", width - vim.fn.strdisplaywidth(text))
-end
-
 local function render(view, status)
     local cursor = api.nvim_win_get_cursor(view.win)[1]
     local selected = view.rows[cursor]
@@ -73,64 +55,42 @@ local function render(view, status)
         or (status.upstream and "Upstream unavailable")
         or "No upstream"
     local heading = status.message and "Git status" or (status.head or "Git status") .. "  " .. summary
-    local paths = vim.tbl_keys(status.files)
+    local files = {}
+    for path, file in pairs(status.files) do
+        local display_path = path
+        if file.index == "." and file.worktree == "?" and status.folders then
+            for slash in path:gmatch("()/") do
+                local folder = path:sub(1, slash)
+                if status.folders[folder] then
+                    display_path = folder
+                    break
+                end
+            end
+        end
+        files[display_path] = file
+    end
+    local paths = vim.tbl_keys(files)
     table.sort(paths)
     local icons = require("mini.icons")
-    local labels = {}
-    local columns = " │ Index │ Worktree"
-    local column_width = vim.fn.strdisplaywidth(columns)
-    local width = math.max(60, vim.fn.strdisplaywidth(heading))
-    for _, path in ipairs(paths) do
-        local dir, name = path:match("^(.*/)([^/]+)$")
-        local icon, hl = icons.get("file", path)
-        local label = {
-            icon = icon .. " ",
-            hl = hl,
-            dir = vim.fn.strtrans(dir or ""),
-            name = vim.fn.strtrans(name or path),
-        }
-        labels[path] = label
-        width = math.max(width, vim.fn.strdisplaywidth(label.icon .. label.dir .. label.name) + column_width + 1)
-    end
-
-    local height
-    width, height = dimensions(width, math.max(3, #paths + 2))
-    api.nvim_win_set_config(view.win, {
-        relative = "editor",
-        width = width,
-        height = height,
-        row = math.floor((vim.o.lines - height - 2) / 2),
-        col = math.floor((vim.o.columns - width - 2) / 2),
-    })
-
-    local path_width = math.max(2, width - column_width)
-    local lines = {
-        { { fit(heading, width), "Title" } },
-        { { fit("Path", path_width) .. columns, "Comment" } },
-    }
+    local lines = { { { heading, "Title" } } }
     local rows = {}
     for _, path in ipairs(paths) do
-        local file = status.files[path]
-        local label = labels[path]
-        local icon = vim.fn.strdisplaywidth(label.icon) < path_width and label.icon or ""
-        local available = path_width - vim.fn.strdisplaywidth(icon)
-        local name_width = vim.fn.strdisplaywidth(label.name)
-        local dir_width = math.min(vim.fn.strdisplaywidth(label.dir), math.max(0, available - name_width))
+        local file = files[path]
+        local dir, name = path:match("^(.*/)([^/]+/?)$")
+        local icon, hl = icons.get(path:sub(-1) == "/" and "directory" or "file", path)
         table.insert(lines, {
-            { icon, label.hl },
-            { fit(label.dir, dir_width), "Comment" },
-            { fit(label.name, available - dir_width) },
-            { " │   ", "Comment" },
             { file.index, file.index == "." and "Comment" or "DiffAdd" },
-            { "   │    ", "Comment" },
             { file.worktree, file.worktree == "." and "Comment" or "DiffChange" },
+            { "  " .. icon .. " ", hl },
+            { vim.fn.strtrans(name or path) },
+            { dir and ("  " .. vim.fn.strtrans(dir)) or "", "Comment" },
         })
         rows[#lines] = path
         if selected == path then
             cursor = #lines
         end
     end
-    if #lines == 2 then
+    if #lines == 1 then
         table.insert(lines, { { status.message or "No changes", "Comment" } })
     end
 
@@ -139,17 +99,39 @@ local function render(view, status)
     extmarks.write_vlines_as_content(view.buf, namespace, lines)
     vim.bo[view.buf].modifiable = false
     view.rows = rows
-    api.nvim_win_set_cursor(view.win, { math.max(3, math.min(cursor, #lines)), 0 })
+    api.nvim_win_set_cursor(view.win, { math.max(2, math.min(cursor, #lines)), 0 })
 end
 
 local function read_status(root, callback)
-    local args = { "--no-optional-locks", "status", "--porcelain=v2", "-z", "--branch", "--ahead-behind", "-uall" }
+    local args = { "--no-optional-locks", "status", "--porcelain=v2", "-z", "--branch", "--ahead-behind", "-unormal" }
     git(root, args, function(result)
         if result.code ~= 0 then
             callback(nil, result.stderr)
-        else
-            callback(parse_status(result.stdout))
+            return
         end
+        local status = parse_status(result.stdout)
+        local folders = {}
+        for path, file in pairs(status.files) do
+            if file.worktree == "?" and path:sub(-1) == "/" then
+                folders[path] = true
+            end
+        end
+        if next(folders) == nil then
+            callback(status)
+            return
+        end
+
+        -- Keep exact file markers for optimistic staging and reconciliation.
+        args[#args] = "-uall"
+        git(root, args, function(expanded)
+            if expanded.code ~= 0 then
+                callback(nil, expanded.stderr)
+                return
+            end
+            local detailed = parse_status(expanded.stdout)
+            detailed.folders = folders
+            callback(detailed)
+        end)
     end)
 end
 
@@ -233,7 +215,15 @@ local function toggle(view)
     for line = first, last do
         local path = view.rows[line]
         if path then
-            files[path] = view.status.files[path]
+            if path:sub(-1) == "/" then
+                for child, file in pairs(view.status.files) do
+                    if vim.startswith(child, path) and file.index == "." and file.worktree == "?" then
+                        files[child] = file
+                    end
+                end
+            else
+                files[path] = view.status.files[path]
+            end
         end
     end
     if next(files) == nil then
@@ -288,6 +278,86 @@ local function toggle(view)
     end, table.concat(vim.tbl_keys(pathspecs), "\0") .. "\0")
 end
 
+local function discard(view)
+    if not view.status or view.reading or pending[view.root] then
+        return
+    end
+    local path = view.rows[api.nvim_win_get_cursor(view.win)[1]]
+    if not path then
+        return
+    end
+    local folder = path:sub(-1) == "/"
+    local file = view.status.files[path]
+    local untracked = folder or (file.index == "." and file.worktree == "?")
+    if file and file.submodule then
+        notify("Discard submodule changes from inside the submodule", vim.log.levels.WARN)
+        return
+    end
+    local original = file and (file.index == "R" or file.worktree == "R") and file.original
+    local label = vim.fn.strtrans(path)
+    if original then
+        label = vim.fn.strtrans(original) .. " → " .. label
+    end
+    local action = untracked and "Delete untracked " or "Discard staged and unstaged changes for "
+    confirm.open(action .. label .. "?", function(accepted)
+        if not accepted or not active(view) or view.reading or pending[view.root] then
+            return
+        end
+        pending[view.root] = true
+        local function finish(result)
+            pending[view.root] = nil
+            if tray and tray.root == view.root and active(tray) then
+                refresh(tray)
+            end
+            if result.code ~= 0 then
+                notify(result.stderr, vim.log.levels.ERROR)
+            end
+        end
+        read_status(view.root, function(status, err)
+            if not status then
+                finish({ code = 1, stderr = err })
+                return
+            end
+            local unchanged = folder and status.folders and status.folders[path]
+                or (not folder and vim.deep_equal(file, status.files[path]))
+            if not unchanged then
+                finish({ code = 1, stderr = "Git status changed. Review the refreshed row before discarding." })
+                return
+            end
+            if untracked then
+                git(view.root, { "clean", "-fd", "--", path }, finish)
+                return
+            end
+            local disk = vim.uv.fs_lstat(view.root .. "/" .. path)
+            local original_disk = original and vim.uv.fs_lstat(view.root .. "/" .. original)
+            if (disk and disk.type == "directory")
+                or (original and (status.files[original] or original_disk))
+            then
+                finish({ code = 1, stderr = "Discard would overwrite a separate file or directory." })
+                return
+            end
+            local function restore(source)
+                local args = { "restore", "--source=" .. source, "--staged", "--worktree", "--", path }
+                if original then
+                    table.insert(args, original)
+                end
+                git(view.root, args, finish)
+            end
+            if status.oid == "(initial)" then
+                git(view.root, { "hash-object", "-t", "tree", "--stdin" }, function(result)
+                    if result.code == 0 then
+                        restore(vim.trim(result.stdout))
+                    else
+                        finish(result)
+                    end
+                end, "")
+            else
+                restore("HEAD")
+            end
+        end)
+    end)
+end
+
 local function commit(view)
     if view.reading or pending[view.root] then
         return
@@ -315,7 +385,6 @@ end
 M.status_tray = function()
     if tray and active(tray) and api.nvim_win_get_tabpage(tray.win) == api.nvim_get_current_tabpage() then
         api.nvim_set_current_win(tray.win)
-        refresh(tray)
         return
     end
     local result = vim.system({ "git", "rev-parse", "--show-toplevel" }):wait()
@@ -324,21 +393,24 @@ M.status_tray = function()
         return
     end
     local origin = api.nvim_get_current_win()
-    local width, height = dimensions(60, 3)
-    local bufnr, win = floats.open({
-        bufnr = api.nvim_create_buf(false, true),
-        title = " Git status ",
-        width = width,
-        height = height,
-        bo = { bufhidden = "wipe" },
-        wo = { wrap = false, signcolumn = "no", foldcolumn = "0" },
+    local bufnr = api.nvim_create_buf(false, true)
+    vim.bo[bufnr].bufhidden = "wipe"
+    local win = api.nvim_open_win(bufnr, true, {
+        split = "left",
+        win = -1,
+        width = math.min(60, math.floor(vim.o.columns / 2)),
     })
+    vim.wo[win].wrap = false
+    vim.wo[win].number = false
+    vim.wo[win].relativenumber = false
+    vim.wo[win].signcolumn = "no"
+    vim.wo[win].foldcolumn = "0"
     floats.highlight_selection(win)
     hide_tray_cursor(bufnr)
     local view = { buf = bufnr, win = win, root = result.stdout:gsub("\n$", ""), rows = {} }
     local previous = tray
     tray = view
-    if previous and api.nvim_win_is_valid(previous.win) then
+    if previous and api.nvim_win_is_valid(previous.win) and api.nvim_win_get_buf(previous.win) == previous.buf then
         api.nvim_win_close(previous.win, false)
     end
     vim.b[bufnr].minicursorword_disable = true
@@ -348,6 +420,9 @@ M.status_tray = function()
     map({ "n", "x" }, "<Tab>", function()
         toggle(view)
     end)
+    vim.keymap.set("n", "dd", function()
+        discard(view)
+    end, { buffer = bufnr, desc = "Discard changes" })
     vim.keymap.set("n", ",c", function()
         commit(view)
     end, { buffer = bufnr, desc = "Commit staged changes" })
@@ -361,15 +436,18 @@ M.status_tray = function()
             notify("File no longer exists: " .. vim.fn.strtrans(selected), vim.log.levels.WARN)
             return
         end
-        api.nvim_win_close(win, false)
+        api.nvim_buf_delete(bufnr, { force = true })
         if api.nvim_win_is_valid(origin) then
             api.nvim_set_current_win(origin)
         end
         vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
     end)
-    map("n", "<Esc>", function()
-        api.nvim_win_close(win, false)
+    map("n", "q", function()
+        api.nvim_buf_delete(bufnr, { force = true })
     end)
+    vim.keymap.set("n", ",r", function()
+        refresh(view)
+    end, { buffer = bufnr, desc = "Refresh Git status" })
     render(view, { files = {}, message = pending[view.root] and "Updating index…" or "Loading…" })
     refresh(view)
 end
