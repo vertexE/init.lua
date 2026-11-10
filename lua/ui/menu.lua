@@ -16,6 +16,7 @@ local ns = api.nvim_create_namespace("user.menu")
 --- @class MenuOpts
 --- @field position "cursor"|"editor"
 --- @field title? string
+--- @field min_width? integer Minimum width in terminal cells for the top-level menu.
 --- @field items MenuItem[]
 
 local function has_children(item)
@@ -71,9 +72,9 @@ local function close(menu, all)
     until not all or not menu
 end
 
-local function open_menu(items, position, origin, parent, title)
+local function open_menu(items, position, origin, parent, title, min_width)
     local lines, dividers, hints = {}, {}, {}
-    local width = title and vim.fn.strdisplaywidth(title) or 1
+    local width = math.max(min_width or 1, title and vim.fn.strdisplaywidth(title) or 1)
     for i, item in ipairs(items) do
         local line = " " .. item.label:gsub("%c", " ")
         if item.icon then
@@ -204,7 +205,7 @@ function M.open(opts)
     end
     api.nvim_set_hl(0, "MenuSelection", { default = true, bg = "#23382E" })
     api.nvim_set_hl(0, "MenuHiddenCursor", { blend = 100, nocombine = true })
-    return open_menu(opts.items, opts.position, api.nvim_get_current_win(), nil, opts.title).win
+    return open_menu(opts.items, opts.position, api.nvim_get_current_win(), nil, opts.title, opts.min_width).win
 end
 
 return M

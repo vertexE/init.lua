@@ -166,6 +166,7 @@ function M.open()
     return menu.open({
         position = "editor",
         title = "Git",
+        min_width = 40,
         items = {
             {
                 label = "Log",
