@@ -398,7 +398,7 @@ M.status_tray = function()
     local win = api.nvim_open_win(bufnr, true, {
         split = "left",
         win = -1,
-        width = math.min(60, math.floor(vim.o.columns / 2)),
+        width = math.floor(vim.o.columns / 4),
     })
     vim.wo[win].wrap = false
     vim.wo[win].number = false
@@ -436,9 +436,16 @@ M.status_tray = function()
             notify("File no longer exists: " .. vim.fn.strtrans(selected), vim.log.levels.WARN)
             return
         end
-        api.nvim_buf_delete(bufnr, { force = true })
-        if api.nvim_win_is_valid(origin) then
+        if api.nvim_win_is_valid(origin)
+            and api.nvim_win_get_tabpage(origin) == api.nvim_win_get_tabpage(win)
+            and api.nvim_win_get_config(origin).relative == ""
+        then
             api.nvim_set_current_win(origin)
+        else
+            vim.cmd.wincmd("l")
+            if api.nvim_get_current_win() == win then
+                vim.cmd("rightbelow vsplit")
+            end
         end
         vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
     end)
