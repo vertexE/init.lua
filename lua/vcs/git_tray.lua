@@ -32,6 +32,9 @@ end
 local function fit(text, width)
     if vim.fn.strdisplaywidth(text) > width then
         local limit = width - vim.fn.strdisplaywidth("…")
+        if limit < 0 then
+            return string.rep(" ", width)
+        end
         text = vim.fn.strcharpart(text, 0, limit)
         while vim.fn.strdisplaywidth(text) > limit do
             text = vim.fn.strcharpart(text, 0, vim.fn.strchars(text) - 1)
@@ -51,14 +54,22 @@ local function render(view, status)
     local heading = status.message and "Git status" or (status.head or "Git status") .. "  " .. summary
     local paths = vim.tbl_keys(status.files)
     table.sort(paths)
+    local icons = require("mini.icons")
     local labels = {}
     local columns = " │ Index │ Worktree"
     local column_width = vim.fn.strdisplaywidth(columns)
     local width = math.max(60, vim.fn.strdisplaywidth(heading))
     for _, path in ipairs(paths) do
-        local label = vim.fn.strtrans(path)
+        local dir, name = path:match("^(.*/)([^/]+)$")
+        local icon, hl = icons.get("file", path)
+        local label = {
+            icon = icon .. " ",
+            hl = hl,
+            dir = vim.fn.strtrans(dir or ""),
+            name = vim.fn.strtrans(name or path),
+        }
         labels[path] = label
-        width = math.max(width, vim.fn.strdisplaywidth(label) + column_width + 1)
+        width = math.max(width, vim.fn.strdisplaywidth(label.icon .. label.dir .. label.name) + column_width + 1)
     end
 
     local height
@@ -79,8 +90,15 @@ local function render(view, status)
     local rows = {}
     for _, path in ipairs(paths) do
         local file = status.files[path]
+        local label = labels[path]
+        local icon = vim.fn.strdisplaywidth(label.icon) < path_width and label.icon or ""
+        local available = path_width - vim.fn.strdisplaywidth(icon)
+        local name_width = vim.fn.strdisplaywidth(label.name)
+        local dir_width = math.min(vim.fn.strdisplaywidth(label.dir), math.max(0, available - name_width))
         table.insert(lines, {
-            { fit(labels[path], path_width) },
+            { icon, label.hl },
+            { fit(label.dir, dir_width), "Comment" },
+            { fit(label.name, available - dir_width) },
             { " │   ", "Comment" },
             { file.index, file.index == "." and "Comment" or "DiffAdd" },
             { "   │    ", "Comment" },
