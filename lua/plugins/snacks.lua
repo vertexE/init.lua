@@ -23,10 +23,8 @@ local project_picker = {
         end
 
         picker:close()
-        vim.cmd.tabnew()
         local ok, err = pcall(vim.cmd.tcd, { args = { path } })
         if not ok then
-            vim.cmd.tabclose()
             vim.notify(tostring(err), vim.log.levels.ERROR)
         end
     end,
