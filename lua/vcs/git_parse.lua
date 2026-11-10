@@ -1,50 +1,48 @@
 --- common git parsers
 local M = {}
 
---- @class git.Change
---- @field file string
---- @field path string
---- @field stage git.Stage
---- @field type git.ChangeType
---- @field depth ?integer
-
---- parse the output of git status
---- @param s string
---- @return table<git.Change>
-M.parse_git_status = function(s)
-    local changes = {}
-    for line in s:gmatch("[^\r\n]+") do
-        local status = string.sub(line, 1, 2)
-        local fp = string.sub(line, 3)
-        fp = vim.trim(fp)
-
-        -- handle rename case
-        local _, last = fp:find(" -> ")
-        if last ~= nil then
-            fp = vim.trim(fp:sub(last))
+-- Porcelain v2 separates records with NUL. Rename/copy records consume an
+-- extra field containing the original path.
+M.parse_git_status = function(stdout)
+    local status = { files = {} }
+    local records = vim.split(stdout, "\0", { plain = true, trimempty = true })
+    local remaining_fields = { ["1"] = 2, ["2"] = 3, u = 3 }
+    local i = 1
+    while i <= #records do
+        local record = records[i]
+        local kind = record:sub(1, 1)
+        if kind == "#" then
+            local key, value = record:match("^# branch%.(%S+) (.+)$")
+            if key then
+                status[key] = value
+            end
+        elseif kind == "?" then
+            local path = record:sub(3)
+            local file = status.files[path] or { index = ".", head_mode = "000000" }
+            file.worktree = "?"
+            status.files[path] = file
+        elseif remaining_fields[kind] then
+            local modes = kind == "u" and "%S+ (%S+) %S+ (%S+) " or "(%S+) %S+ (%S+) "
+            local xy, submodule, head_mode, worktree_mode, path = record:match(
+                "^. (%S+) (%S+) " .. modes .. string.rep("%S+ ", remaining_fields[kind]) .. "(.+)$"
+            )
+            local file = {
+                index = xy:sub(1, 1),
+                worktree = status.files[path] and "?" or xy:sub(2, 2),
+                head_mode = head_mode,
+                worktree_mode = worktree_mode,
+                submodule = submodule:sub(1, 1) == "S" and submodule or nil,
+                conflict = kind == "u",
+            }
+            if kind == "2" then
+                i = i + 1
+                file.original = records[i]
+            end
+            status.files[path] = file
         end
-
-        local segments = vim.split(fp, "/")
-        local file = segments[#segments]
-        local stage_mark = string.sub(status, 1, 1)
-        local unstaged = #vim.trim(string.sub(status, 2, 2)) > 0
-        local staged = stage_mark ~= " " and stage_mark ~= "?" and stage_mark ~= "U"
-        status = string.sub(vim.trim(status), 1, 1)
-        local change = {
-            file = file,
-            path = fp,
-            stage = status == "?" and "untracked"
-                or ((unstaged and staged and "partial") or (staged and "staged" or "working")),
-            type = (status == "M" or status == "m") and "modified"
-                or status == "A" and "added"
-                or status == "?" and "added"
-                or status == "D" and "deleted"
-                or status == "R" and "renamed"
-                or "conflict",
-        }
-        table.insert(changes, change)
+        i = i + 1
     end
-    return changes
+    return status
 end
 
 --- @class git.Hunk

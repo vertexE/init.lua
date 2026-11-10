@@ -1,6 +1,23 @@
 local menu = require("ui.menu")
+local floats = require("ui.floats")
 local M = {}
 local syncing = {}
+
+local function git_log()
+    local mini_git = require("mini.git")
+    local source = vim.api.nvim_get_current_buf()
+    local repo = mini_git.get_buf_data(source)
+    vim.cmd("Git log --pretty=oneline")
+
+    local buf = vim.api.nvim_get_current_buf()
+    if buf == source or vim.bo[buf].filetype ~= "git" then
+        return
+    end
+    if repo and repo.root and repo.root ~= vim.fn.getcwd() then
+        vim.cmd.lcd(vim.fn.fnameescape(repo.root))
+    end
+    vim.keymap.set("n", "<CR>", mini_git.show_at_cursor, { buffer = buf, desc = "Show commit at cursor" })
+end
 
 local function file_history()
     if vim.fn.filereadable(vim.api.nvim_buf_get_name(0)) ~= 1 then
@@ -38,6 +55,34 @@ local function git_root()
         vim.notify("No Git repository found", vim.log.levels.WARN)
     end
     return cwd
+end
+
+local function run_hook(label, cmd)
+    local cwd = git_root()
+    if not cwd then
+        return
+    end
+
+    local buf, win = floats.open({
+        bufnr = vim.api.nvim_create_buf(false, true),
+        title = " " .. label .. " ",
+        width = 0.85,
+        height = 0.7,
+        bo = { bufhidden = "wipe" },
+    })
+    local ok, job = pcall(vim.fn.jobstart, cmd, {
+        cwd = cwd,
+        term = true,
+        on_exit = function(_, code)
+            if vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_win_set_config(win, { title = (" %s · exit %d "):format(label, code) })
+            end
+        end,
+    })
+    if not ok or job <= 0 then
+        local message = ok and "Could not start Git" or tostring(job)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(message, "\n", { plain = true }))
+    end
 end
 
 local function sync()
@@ -172,9 +217,7 @@ function M.open()
                 label = "Log",
                 icon = "",
                 keymap = ",l",
-                on_select = function()
-                    vim.cmd("Git log --pretty=oneline")
-                end,
+                on_select = git_log,
             },
             {
                 label = "Diff",
@@ -212,6 +255,26 @@ function M.open()
             { label = "Status", icon = "", keymap = ",s", on_select = require("vcs.git_tray").status_tray },
             { label = "Stage", icon = "", keymap = ",a", on_select = stage_file },
             { label = "Sync", icon = "", keymap = ",y", on_select = sync },
+            {
+                label = "Hooks",
+                keymap = ",k",
+                children = {
+                    {
+                        label = "Pre-commit",
+                        keymap = ",c",
+                        on_select = function()
+                            run_hook("Pre-commit", { "git", "hook", "run", "pre-commit" })
+                        end,
+                    },
+                    {
+                        label = "Pre-push (dry run)",
+                        keymap = ",p",
+                        on_select = function()
+                            run_hook("Pre-push dry run", { "git", "push", "--dry-run", "--verify", "--recurse-submodules=no" })
+                        end,
+                    },
+                },
+            },
             {
                 label = "Branches",
                 icon = "",

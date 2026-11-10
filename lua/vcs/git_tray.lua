@@ -1,413 +1,336 @@
 local M = {}
 
-local parser = require("vcs.git_parse")
-local splits = require("ui.splits")
-local confirm = require("ui.confirm")
+local api = vim.api
 local floats = require("ui.floats")
-local tbl = require("tbl")
-local buf = require("buf")
 local extmarks = require("ui.extmarks")
+local parse_status = require("vcs.git_parse").parse_git_status
+local namespace = api.nvim_create_namespace("user.git.tray")
+local pending = {}
+local tray
 
-local common = require("vcs.git_common")
-local open = require("vcs.git_open")
-
-local default_opts = {
-    hl = {
-        icon = "MiniIconsPurple",
-        branch = "@constant",
-        commit_sha = "Comment",
-        commit_msg = "@text",
-        change_type = "Comment",
-        file_path = "Text",
-    },
-}
-
---- @alias git.ChangeType "modified"|"renamed"|"added"|"deleted"|"conflict"
---- @alias git.Stage "staged"|"untracked"|"working"|"partial"
---- @alias git.TrayStage "untracked"|"unstaged"|"staged"
-
---- @class git.State
---- @field changes table<git.Change>
---- @field file_open string
---- @field lines_to_path table<integer,git.Change> line number in status buf mapping to git.Change
---- @field winr ?integer which window the status UI is open in
---- @field bufnr ?integer
---- @field last_cl integer
-
---- @type git.State
-local state = {
-    changes = {},
-    lines_to_path = {},
-    file_open = "", -- which file (fullpath) to render the diff for
-    winr = nil,
-    bufnr = nil,
-    last_cl = -1, -- last cursor position
-}
-
-local refresh_tray_on_mini_cmd = function()
-    vim.api.nvim_create_autocmd({ "User" }, {
-        group = vim.api.nvim_create_augroup("user.git.tray.refresh", { clear = true }),
-        pattern = "MiniGitCommandDone",
-        once = true,
-        callback = function()
-            if state.bufnr ~= nil and state.winr ~= nil then
-                M.status_tray()
-            end
-        end,
-    })
+local function notify(message, level)
+    vim.notify(vim.trim(message), level, { title = "Git status" })
 end
 
-local quick_close = function(bufnr)
-    vim.keymap.set("n", "q", function()
-        vim.api.nvim_buf_delete(bufnr, { force = true })
-    end, { desc = "close the buffer", buffer = bufnr })
-end
-
-local to_normal_modes = function()
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
-end
-
-local git_stage = function(paths)
-    vim.system({
-        "git",
-        "add",
-        unpack(paths),
-    }):wait()
-end
-
-local git_restore = function(paths)
-    vim.system({
-        "git",
-        "restore",
-        "--staged",
-        unpack(paths),
-    }):wait()
-end
-
-local git_reset = function(path)
-    vim.system({ "git", "checkout", "HEAD", "--", path }):wait()
-end
-
----@param stage git.TrayStage?
-local git_diff = function(file, stage)
-    vim.fn.jobstart(
-        stage == "staged" and { "git", "diff", "--staged", file }
-            or stage == "untracked" and { "git", "diff", "--no-index", "/dev/null", file }
-            or { "git", "diff", file },
-        { term = true }
-    )
-    vim.cmd("startinsert")
-end
-
----@param type git.ChangeType
----@return table<string>
-local change_type_virtual = function(type)
-    if type == "added" then
-        return { " ", "MiniIconsGreen" }
-    elseif type == "deleted" then
-        return { " ", "MiniIconsRed" }
-    elseif type == "modified" then
-        return { " ", "MiniIconsOrange" }
-    elseif type == "renamed" then
-        return { " ", "Comment" }
-    elseif type == "conflict" then
-        return { " ", "MiniIconsRed" }
+local function git(root, args, callback, stdin)
+    local cmd = { "git", "--literal-pathspecs" }
+    vim.list_extend(cmd, args)
+    local ok, err = pcall(vim.system, cmd, { cwd = root, stdin = stdin }, vim.schedule_wrap(callback))
+    if not ok then
+        callback({ code = -1, stderr = tostring(err) })
     end
-    return { type, "Comment" }
 end
 
----@param change git.Change
-local change_to_vline = function(change)
-    return {
-        change_type_virtual(change.type),
-        { " ", "Comment" },
-        { change.path, default_opts.hl.file_path },
+local function active(view)
+    return view == tray and api.nvim_win_is_valid(view.win)
+end
+
+local function dimensions(width, height)
+    return math.min(width, vim.o.columns - 2), math.min(height, math.max(1, vim.o.lines - vim.o.cmdheight - 2))
+end
+
+local function fit(text, width)
+    if vim.fn.strdisplaywidth(text) > width then
+        local limit = width - vim.fn.strdisplaywidth("…")
+        text = vim.fn.strcharpart(text, 0, limit)
+        while vim.fn.strdisplaywidth(text) > limit do
+            text = vim.fn.strcharpart(text, 0, vim.fn.strchars(text) - 1)
+        end
+        text = text .. "…"
+    end
+    return text .. string.rep(" ", width - vim.fn.strdisplaywidth(text))
+end
+
+local function render(view, status)
+    local cursor = api.nvim_win_get_cursor(view.win)[1]
+    local selected = view.rows[cursor]
+    local ahead, behind = (status.ab or ""):match("^%+(%d+) %-(%d+)$")
+    local summary = (ahead and ("↑ " .. ahead .. " push  ↓ " .. behind .. " pull"))
+        or (status.upstream and "Upstream unavailable")
+        or "No upstream"
+    local heading = status.message and "Git status" or (status.head or "Git status") .. "  " .. summary
+    local paths = vim.tbl_keys(status.files)
+    table.sort(paths)
+    local labels = {}
+    local columns = " │ Index │ Worktree"
+    local column_width = vim.fn.strdisplaywidth(columns)
+    local width = math.max(60, vim.fn.strdisplaywidth(heading))
+    for _, path in ipairs(paths) do
+        local label = vim.fn.strtrans(path)
+        labels[path] = label
+        width = math.max(width, vim.fn.strdisplaywidth(label) + column_width + 1)
+    end
+
+    local height
+    width, height = dimensions(width, math.max(3, #paths + 2))
+    api.nvim_win_set_config(view.win, {
+        relative = "editor",
+        width = width,
+        height = height,
+        row = math.floor((vim.o.lines - height - 2) / 2),
+        col = math.floor((vim.o.columns - width - 2) / 2),
+    })
+
+    local path_width = math.max(2, width - column_width)
+    local lines = {
+        { { fit(heading, width), "Title" } },
+        { { fit("Path", path_width) .. columns, "Comment" } },
     }
+    local rows = {}
+    for _, path in ipairs(paths) do
+        local file = status.files[path]
+        table.insert(lines, {
+            { fit(labels[path], path_width) },
+            { " │   ", "Comment" },
+            { file.index, file.index == "." and "Comment" or "DiffAdd" },
+            { "   │    ", "Comment" },
+            { file.worktree, file.worktree == "." and "Comment" or "DiffChange" },
+        })
+        rows[#lines] = path
+        if selected == path then
+            cursor = #lines
+        end
+    end
+    if #lines == 2 then
+        table.insert(lines, { { status.message or "No changes", "Comment" } })
+    end
+
+    vim.bo[view.buf].modifiable = true
+    api.nvim_buf_clear_namespace(view.buf, namespace, 0, -1)
+    extmarks.write_vlines_as_content(view.buf, namespace, lines)
+    vim.bo[view.buf].modifiable = false
+    view.rows = rows
+    api.nvim_win_set_cursor(view.win, { math.max(3, math.min(cursor, #lines)), 0 })
 end
 
---- draw the git status tray, update state.lines_to_path
---- this draw happen on every modification to the buffer
---- @param bufnr integer
---- @param _ integer
---- @param changes table<git.Change>
-local draw_tray = function(bufnr, _, changes)
-    local ns = vim.api.nvim_create_namespace("user.git.tray")
-    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
-    -- group changes into unstaged, working, partial, staged
-    local changes_by_stage = tbl.group_by_selector(changes, function(change)
-        return change.stage
+local function read_status(root, callback)
+    local args = { "--no-optional-locks", "status", "--porcelain=v2", "-z", "--branch", "--ahead-behind", "-uall" }
+    git(root, args, function(result)
+        if result.code ~= 0 then
+            callback(nil, result.stderr)
+        else
+            callback(parse_status(result.stdout))
+        end
     end)
-
-    local head_sha = common.head_commit()
-    if #head_sha > 0 then
-        head_sha = head_sha:sub(1, 7)
-    end
-
-    local remote_sha = common.remote_commit()
-    if #remote_sha > 0 then
-        remote_sha = remote_sha:sub(1, 7)
-    end
-
-    local v_lines = {} -- we will instead write the lines to the buffer and apply and hl_group on each word
-    table.insert(v_lines, {})
-    table.insert(v_lines, {
-        { " ", default_opts.hl.icon },
-        { head_sha, default_opts.hl.commit_sha },
-        { " ", "Comment" },
-        { common.head_branch_name(), default_opts.hl.branch },
-        { " ", "Comment" },
-        { #head_sha > 0 and common.commit_msg(head_sha) or "", default_opts.hl.commit_msg },
-    })
-    table.insert(v_lines, {
-        { " ", "MiniIconsPurple" },
-        { remote_sha, "Comment" },
-        { " ", "Comment" },
-        { common.remote_branch_name(), default_opts.hl.branch },
-        { " ", "Comment" },
-        { #remote_sha > 0 and common.commit_msg(remote_sha) or "", "@text" },
-    })
-    -- TODO: can combine these stats at some point
-    local unstaged_stats = common.git_stats()
-    local staged_stats = common.git_stats(true)
-    table.insert(v_lines, {
-        { #unstaged_stats > 0 and "(unstaged) " or "", "Comment" },
-        { #unstaged_stats > 0 and unstaged_stats or "", "MiniIconsOrange" },
-        { " ", "Comment" },
-        { #staged_stats > 0 and "(staged) " or "", "Comment" },
-        { #staged_stats > 0 and staged_stats or "", "MiniIconsGreen" },
-    })
-    table.insert(v_lines, {}) -- blank line
-
-    local untracked = changes_by_stage["untracked"] or {}
-    if untracked and #untracked > 0 then
-        table.insert(v_lines, {
-            { string.format("Untracked (%s)", #untracked), "MiniIconsPurple" },
-        })
-        for _, change in ipairs(untracked) do
-            table.insert(v_lines, change_to_vline(change))
-        end
-        table.insert(v_lines, {}) -- blank line
-    end
-
-    local partial = changes_by_stage["partial"] or {}
-    local working_no_partial = changes_by_stage["working"] or {}
-    local working = tbl.merge(working_no_partial, partial)
-    if working and #working > 0 then
-        table.insert(v_lines, {
-            { string.format("Unstaged (%d)", #working), "MiniIconsPurple" },
-        })
-        for _, change in ipairs(working) do
-            table.insert(v_lines, change_to_vline(change))
-        end
-        table.insert(v_lines, {}) -- blank line
-    end
-
-    local staged_no_partial = changes_by_stage["staged"] or {}
-    local staged = tbl.merge(staged_no_partial, partial)
-    if staged and #staged > 0 then
-        table.insert(v_lines, {
-            { string.format("Staged (%d)", #staged), "MiniIconsPurple" },
-        })
-        for _, change in ipairs(staged) do
-            table.insert(v_lines, change_to_vline(change))
-        end
-    end
-
-    if #untracked == 0 and #working == 0 and #staged == 0 then
-        table.insert(v_lines, {
-            { "no changes", "Comment" },
-        })
-    end
-
-    extmarks.write_vlines_as_content(bufnr, ns, v_lines)
 end
 
---- get current tray section
---- @param bufnr integer
---- @param winr integer
---- @return git.TrayStage?
-local stage_at_cursor = function(bufnr, winr)
-    local cl = vim.api.nvim_win_get_cursor(winr)[1]
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    local stage
-    for i, line in ipairs(lines) do
-        if i > cl then
-            break
-        elseif line:match("Untracked") then
-            stage = "untracked"
-        elseif line:match("Unstaged") then
-            stage = "unstaged"
-        elseif line:match("Staged") then
-            stage = "staged"
-        end
+local function refresh(view)
+    if view.reading or pending[view.root] then
+        return
     end
-    return stage
+    view.reading = true
+    read_status(view.root, function(status, err)
+        view.reading = false
+        if not active(view) then
+            return
+        end
+        view.status = status
+        render(view, status or { files = {}, message = "Status unavailable" })
+        if err then
+            notify(err, vim.log.levels.ERROR)
+        end
+    end)
 end
 
---- get the last word on the current line
---- @param lines table<string>
---- @return table<string>
-local last_words_of_lines = function(lines)
-    return vim.iter(lines)
-        :map(function(line)
-            local words = vim.split(line, "%s+", { trimempty = true })
-            if #words > 0 then
-                local last_word_trimmed = words[#words]:gsub("%s+", "")
-                return last_word_trimmed
+local function expected_files(status, paths, stage)
+    local expected = vim.deepcopy(status)
+    local touched = {}
+    local function set(path, index, worktree, original)
+        touched[path] = true
+        expected.files[path] = (index ~= "." or worktree ~= ".")
+            and { index = index, worktree = worktree, original = original }
+            or nil
+    end
+    for _, path in ipairs(paths) do
+        local file = status.files[path]
+        local index, worktree = file.index, file.worktree
+        touched[path] = true
+        if file.original then
+            touched[file.original] = true
+        end
+        if stage then
+            if file.original and worktree == "D" then
+                set(path, ".", ".")
+                if index == "R" then
+                    set(file.original, "D", ".")
+                end
+            elseif worktree == "D" or file.worktree_mode == "000000" and worktree ~= "?" then
+                set(path, file.head_mode == "000000" and "." or "D", ".")
+            elseif file.original and index ~= "." then
+                set(path, index, ".", file.original)
+            elseif not file.submodule or file.submodule:sub(2, 2) == "C" then
+                local type_changed = file.worktree_mode and worktree ~= "?"
+                    and file.head_mode:sub(1, 2) ~= file.worktree_mode:sub(1, 2)
+                local mark = file.head_mode == "000000" and "A" or type_changed and "T" or "M"
+                local submodule_dirty = file.submodule and file.submodule:sub(3) ~= ".."
+                set(path, mark, submodule_dirty and "M" or ".")
             end
-            return ""
+        elseif file.original then
+            set(path, ".", "?")
+            if index == "R" then
+                set(file.original, ".", "D")
+            end
+        else
+            local mark = index == "A" and "?" or worktree == "?" and "M" or index
+            set(path, ".", mark)
+        end
+    end
+    return expected, touched
+end
+
+local function toggle(view)
+    if not view.status or view.reading or pending[view.root] then
+        return
+    end
+    local first = api.nvim_win_get_cursor(view.win)[1]
+    local last = first
+    if vim.fn.mode():match("^[vV\22]") then
+        local anchor = vim.fn.line("v")
+        first, last = math.min(first, anchor), math.max(first, anchor)
+        local esc = api.nvim_replace_termcodes("<Esc>", true, false, true)
+        api.nvim_feedkeys(esc, "nx", false)
+    end
+    local files = {}
+    for line = first, last do
+        local path = view.rows[line]
+        if path then
+            files[path] = view.status.files[path]
+        end
+    end
+    if next(files) == nil then
+        return
+    end
+    local stage = false
+    for _, file in pairs(files) do
+        stage = stage or file.worktree ~= "." or file.conflict
+    end
+    local paths, pathspecs = {}, {}
+    for path, file in pairs(files) do
+        if not stage or file.worktree ~= "." or file.conflict then
+            table.insert(paths, path)
+            pathspecs[path] = true
+            if file.original and (file.index == "." or not stage) then
+                pathspecs[file.original] = true
+            end
+        end
+    end
+    local expected, touched = expected_files(view.status, paths, stage)
+    pending[view.root] = true
+    render(view, expected)
+    local args = stage and { "add", "-A" } or { "reset", "-q" }
+    vim.list_extend(args, { "--pathspec-from-file=-", "--pathspec-file-nul" })
+    git(view.root, args, function(result)
+        read_status(view.root, function(status, err)
+            pending[view.root] = nil
+            if tray and tray.root == view.root and active(tray) then
+                tray.status = status
+                render(tray, status or { files = {}, message = "Status unavailable" })
+            end
+            if result.code ~= 0 then
+                notify(result.stderr, vim.log.levels.ERROR)
+            end
+            if err then
+                notify(err, vim.log.levels.ERROR)
+            elseif result.code == 0 then
+                for path in pairs(touched) do
+                    local actual = status.files[path] or {}
+                    local predicted = expected.files[path] or {}
+                    if actual.index ~= predicted.index
+                        or actual.worktree ~= predicted.worktree
+                        or actual.original ~= predicted.original
+                    then
+                        local message = "Git status differed from staging preview for " .. vim.fn.strtrans(path)
+                        notify(message, vim.log.levels.WARN)
+                        break
+                    end
+                end
+            end
         end)
-        :filter(function(v)
-            return #v > 0
+    end, table.concat(vim.tbl_keys(pathspecs), "\0") .. "\0")
+end
+
+local function commit(view)
+    if view.reading or pending[view.root] then
+        return
+    end
+    vim.ui.input({ prompt = "Commit message: " }, function(message)
+        if not message or vim.trim(message) == "" or not active(view) or view.reading or pending[view.root] then
+            return
+        end
+        pending[view.root] = true
+        git(view.root, { "commit", "-m", message }, function(result)
+            pending[view.root] = nil
+            if tray and tray.root == view.root and active(tray) then
+                refresh(tray)
+            end
+            if result.code == 0 then
+                notify("Committed staged changes", vim.log.levels.INFO)
+            else
+                local output = result.stderr and result.stderr ~= "" and result.stderr or result.stdout
+                notify(output or "git commit failed", vim.log.levels.ERROR)
+            end
         end)
-        :totable()
+    end)
 end
 
 M.status_tray = function()
-    vim.system(
-        { "git", "status", "--short" },
-        { text = true },
-        vim.schedule_wrap(function(res)
-            if #res.stderr > 0 then
-                vim.notify(res.stderr, vim.log.levels.ERROR, {})
-                return
-            end
-
-            local redraw = true
-            local changes = #res.stdout > 0 and parser.parse_git_status(res.stdout) or {}
-            state.changes = changes
-            if state.bufnr == nil and state.winr == nil then
-                local bufnr, winr = splits.horizontal(nil, { enter = true, height = 0.66, wo = { number = false } })
-                state.bufnr = bufnr
-                state.winr = winr
-                vim.wo[winr].winbar =
-                    "%#CodeLensContent#   s stage 󰿟 u unstage 󰿟 x reset 󰿟 cc commit 󰿟 o open-remote 󰿟 ll log 󰿟 PP push-set-upstream 󰿟 Pp push 󰿟 pp pull %#CodeLensSeparator#"
-                redraw = false
-
-                vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
-                    buffer = bufnr,
-                    callback = function()
-                        state.bufnr = nil
-                        state.winr = nil
-                    end,
-                })
-            end
-
-            draw_tray(state.bufnr, state.winr, changes)
-            vim.b.minicursorword_disable = true
-            if not redraw then
-                vim.api.nvim_win_set_cursor(state.winr, { 4, 0 })
-
-                vim.keymap.set({ "n", "x" }, "s", function()
-                    local file_paths = last_words_of_lines(buf.active_selection_lines())
-                    if file_paths ~= nil and #file_paths > 0 then
-                        git_stage(file_paths)
-                        M.status_tray()
-                        to_normal_modes()
-                        state.last_cl = vim.fn.getpos(".")[2]
-                    end
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set({ "n", "x" }, "u", function()
-                    local file_paths = last_words_of_lines(buf.active_selection_lines())
-                    if file_paths ~= nil and #file_paths > 0 then
-                        git_restore(file_paths)
-                        M.status_tray()
-                        to_normal_modes()
-                        state.last_cl = vim.fn.getpos(".")[2]
-                    end
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "cc", function()
-                    local bufnr = floats.open({ height = 0.80, width = 0.88 })
-                    vim.fn.jobstart("git commit", { term = true })
-                    vim.cmd("startinsert")
-                    vim.api.nvim_create_autocmd("TermClose", {
-                        once = true,
-                        callback = function()
-                            M.status_tray()
-                            vim.api.nvim_buf_delete(bufnr, { force = true })
-                        end,
-                    })
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "PP", function()
-                    vim.cmd(string.format("Git push -u origin %s", common.head_branch_name()))
-                    refresh_tray_on_mini_cmd()
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "pp", function()
-                    vim.cmd(string.format("Git pull origin %s", common.head_branch_name()))
-                    refresh_tray_on_mini_cmd()
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "Pp", function()
-                    vim.cmd(string.format("Git push origin %s", common.head_branch_name()))
-                    refresh_tray_on_mini_cmd()
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "ll", function()
-                    vim.cmd("Git log --pretty=oneline")
-                    local bufnr = vim.api.nvim_get_current_buf()
-                    vim.keymap.set("n", "<enter>", function()
-                        require("mini.git").show_at_cursor()
-                        quick_close(vim.api.nvim_get_current_buf())
-                    end, { desc = "", buffer = bufnr })
-                    quick_close(bufnr)
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "x", function()
-                    local file_paths = last_words_of_lines(buf.active_selection_lines())
-                    if file_paths ~= nil and #file_paths > 0 then
-                        local file = file_paths[1]
-                        confirm.open("Are you sure you want to reset " .. file .. "?", function(accepted)
-                            if accepted then
-                                git_reset(file)
-                                M.status_tray()
-                            end
-                        end)
-                    end
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "o", function()
-                    open.remote_branch()
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "<enter>", function()
-                    local file_paths = last_words_of_lines(buf.active_selection_lines())
-                    if file_paths ~= nil and #file_paths > 0 then
-                        vim.api.nvim_buf_delete(state.bufnr, { force = true })
-                        vim.cmd(string.format("edit %s", file_paths[1]))
-                    end
-                end, { desc = "", buffer = state.bufnr })
-
-                vim.keymap.set("n", "<tab>", function()
-                    local open_term = vim.loop.hrtime()
-                    local file_paths = last_words_of_lines(buf.active_selection_lines())
-                    if file_paths ~= nil and #file_paths > 0 then
-                        local stage = stage_at_cursor(state.bufnr, state.winr)
-                        local bufnr = floats.open({ height = 0.99, width = 0.99 })
-                        git_diff(file_paths[1], stage)
-
-                        vim.api.nvim_create_autocmd("TermClose", {
-                            once = true,
-                            callback = function()
-                                local close_term = vim.loop.hrtime()
-                                local diff = math.floor((close_term - open_term) / 1e6)
-                                if diff > 250 then
-                                    vim.api.nvim_buf_delete(bufnr, { force = true })
-                                end
-                            end,
-                        })
-                    end
-                end, { desc = "", buffer = state.bufnr })
-            elseif state.last_cl > 0 then
-                local max = #vim.api.nvim_buf_get_lines(state.bufnr, 0, -1, false)
-                vim.api.nvim_win_set_cursor(state.winr, { math.min(state.last_cl, max), 0 })
-            end
-        end)
-    )
+    if tray and active(tray) and api.nvim_win_get_tabpage(tray.win) == api.nvim_get_current_tabpage() then
+        api.nvim_set_current_win(tray.win)
+        refresh(tray)
+        return
+    end
+    local result = vim.system({ "git", "rev-parse", "--show-toplevel" }):wait()
+    if result.code ~= 0 then
+        notify(result.stderr, vim.log.levels.ERROR)
+        return
+    end
+    local origin = api.nvim_get_current_win()
+    local width, height = dimensions(60, 3)
+    local bufnr, win = floats.open({
+        bufnr = api.nvim_create_buf(false, true),
+        title = " Git status ",
+        width = width,
+        height = height,
+        bo = { bufhidden = "wipe" },
+        wo = { cursorline = true, wrap = false, signcolumn = "no", foldcolumn = "0" },
+    })
+    local view = { buf = bufnr, win = win, root = result.stdout:gsub("\n$", ""), rows = {} }
+    local previous = tray
+    tray = view
+    if previous and api.nvim_win_is_valid(previous.win) then
+        api.nvim_win_close(previous.win, false)
+    end
+    vim.b[bufnr].minicursorword_disable = true
+    local function map(mode, key, action)
+        vim.keymap.set(mode, key, action, { buffer = bufnr })
+    end
+    map({ "n", "x" }, "<Tab>", function()
+        toggle(view)
+    end)
+    vim.keymap.set("n", ",c", function()
+        commit(view)
+    end, { buffer = bufnr, desc = "Commit staged changes" })
+    map("n", "<CR>", function()
+        local selected = view.rows[api.nvim_win_get_cursor(win)[1]]
+        if not selected then
+            return
+        end
+        local path = view.root .. "/" .. selected
+        if not vim.uv.fs_lstat(path) then
+            notify("File no longer exists: " .. vim.fn.strtrans(selected), vim.log.levels.WARN)
+            return
+        end
+        api.nvim_win_close(win, false)
+        if api.nvim_win_is_valid(origin) then
+            api.nvim_set_current_win(origin)
+        end
+        vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
+    end)
+    map("n", "<Esc>", function()
+        api.nvim_win_close(win, false)
+    end)
+    render(view, { files = {}, message = pending[view.root] and "Updating index…" or "Loading…" })
+    refresh(view)
 end
 
 return M
