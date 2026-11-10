@@ -5,6 +5,14 @@ M.is_floating_win = function(winr)
     return cfg.relative ~= "" or cfg.external
 end
 
+M.highlight_selection = function(winr)
+    local segment = vim.api.nvim_get_hl(0, { name = "CodeLensContentIcon", link = false, create = false })
+    vim.api.nvim_set_hl(0, "FloatSelection", { bg = segment.bg or "#192B24" })
+    vim.wo[winr].cursorline = true
+    vim.wo[winr].cursorlineopt = "line"
+    vim.wo[winr].winhighlight = "CursorLine:FloatSelection"
+end
+
 --- @class FloatOpts
 --- @field title string
 --- @field height ?number percent of editor or number of rows

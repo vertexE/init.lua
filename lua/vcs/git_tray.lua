@@ -25,6 +25,27 @@ local function active(view)
     return view == tray and api.nvim_win_is_valid(view.win)
 end
 
+local function hide_tray_cursor(buf)
+    api.nvim_set_hl(0, "GitTrayHiddenCursor", { blend = 100, nocombine = true })
+    local saved_cursor
+    local function hide()
+        if saved_cursor == nil then
+            saved_cursor = vim.o.guicursor
+            local prefix = saved_cursor == "" and "" or saved_cursor .. ","
+            vim.o.guicursor = prefix .. "n-v-ve:GitTrayHiddenCursor"
+        end
+    end
+    local function restore()
+        if saved_cursor ~= nil then
+            vim.o.guicursor = saved_cursor
+            saved_cursor = nil
+        end
+    end
+    api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, { buffer = buf, callback = hide })
+    api.nvim_create_autocmd({ "WinLeave", "BufLeave", "BufWipeout" }, { buffer = buf, callback = restore })
+    hide()
+end
+
 local function dimensions(width, height)
     return math.min(width, vim.o.columns - 2), math.min(height, math.max(1, vim.o.lines - vim.o.cmdheight - 2))
 end
@@ -310,8 +331,10 @@ M.status_tray = function()
         width = width,
         height = height,
         bo = { bufhidden = "wipe" },
-        wo = { cursorline = true, wrap = false, signcolumn = "no", foldcolumn = "0" },
+        wo = { wrap = false, signcolumn = "no", foldcolumn = "0" },
     })
+    floats.highlight_selection(win)
+    hide_tray_cursor(bufnr)
     local view = { buf = bufnr, win = win, root = result.stdout:gsub("\n$", ""), rows = {} }
     local previous = tray
     tray = view

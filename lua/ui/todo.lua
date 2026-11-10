@@ -5,7 +5,6 @@ local floats = require("ui.floats")
 
 local M = {}
 local ns = api.nvim_create_namespace("user.todo")
-local position_ns = api.nvim_create_namespace("user.todo.position")
 local active_win, refresh_active, writing
 
 local function float_width(content_width)
@@ -25,20 +24,12 @@ function M.open()
         width = float_width(content_width),
         height = 0.4,
         bo = { buflisted = false, bufhidden = "wipe", modifiable = false },
-        wo = { cursorline = false, cursorcolumn = false, wrap = true, linebreak = true },
+        wo = { cursorcolumn = false, wrap = true, linebreak = true },
     })
+    floats.highlight_selection(win)
     active_win = win
     local visible = {}
     local busy = false
-
-    local function update_position()
-        api.nvim_buf_clear_namespace(buf, position_ns, 0, -1)
-        api.nvim_buf_set_extmark(buf, position_ns, api.nvim_win_get_cursor(win)[1] - 1, 0, {
-            virt_text = { { "▎", "ReplaceMode" } },
-            virt_text_pos = "overlay",
-        })
-    end
-    api.nvim_create_autocmd("CursorMoved", { buffer = buf, callback = update_position })
 
     local function resize()
         local width = float_width(content_width)
@@ -116,7 +107,6 @@ function M.open()
             api.nvim_buf_clear_namespace(buf, ns, 0, -1)
             extmarks.write_vlines_as_content(buf, ns, lines)
             vim.bo[buf].modifiable = false
-            update_position()
             resize()
         end)
     end
