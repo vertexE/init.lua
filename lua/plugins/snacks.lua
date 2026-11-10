@@ -1,6 +1,8 @@
 local status = require("ui.status")
 
-local project_paths = {}
+local project_roots = {
+    -- "~/code",
+}
 
 local project_picker = {
     title = "Project Picker",
@@ -8,9 +10,17 @@ local project_picker = {
     layout = { preview = false },
     show_empty = true,
     finder = function()
-        return vim.tbl_map(function(path)
-            return { text = vim.fn.fnamemodify(vim.fs.normalize(path), ":p") }
-        end, project_paths)
+        local items = {}
+        for _, root in ipairs(project_roots) do
+            root = vim.fn.fnamemodify(vim.fs.normalize(root), ":p")
+            for name, kind in vim.fs.dir(root) do
+                local path = vim.fs.joinpath(root, name)
+                if kind == "directory" or (kind == "link" and vim.fn.isdirectory(path) == 1) then
+                    items[#items + 1] = { text = path }
+                end
+            end
+        end
+        return items
     end,
     confirm = function(picker, item)
         if not item then
