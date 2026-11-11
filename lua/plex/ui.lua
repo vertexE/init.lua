@@ -1,5 +1,6 @@
 local attention = require("plex.notify")
 local panes = require("plex.panes")
+local floats = require("ui.floats")
 local api = vim.api
 
 local M = {}
@@ -10,10 +11,8 @@ local spinner_frames = require("symbols").braille_spinner_frames
 local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIconsRed" }
 local label_highlight = "MiniIconsRed"
 local cursor_highlight = "PlexPickerHiddenCursor"
-local row_highlight = "PlexPickerCurrentRow"
 local left_keys, right_keys = "tsrag", "neiom"
 local ns = api.nvim_create_namespace("user.plex.picker")
-local row_ns = api.nvim_create_namespace("user.plex.picker.cursor")
 local active_win
 
 local function single_line(value)
@@ -81,20 +80,6 @@ function M.pick(tabs, on_select, strategy)
     local width, height
     local row_items = {}
 
-    local function underline_row()
-        local row = api.nvim_win_get_cursor(win)[1] - 1
-        local line = api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
-        local first = line:find("%S")
-        api.nvim_buf_clear_namespace(buf, row_ns, 0, -1)
-        if first then
-            api.nvim_buf_set_extmark(buf, row_ns, row, first - 1, {
-                end_col = #line,
-                hl_group = row_highlight,
-                priority = 200,
-            })
-        end
-    end
-
     local function layout()
         local columns = vim.o.columns
         local lines = vim.o.lines - vim.o.cmdheight
@@ -130,7 +115,7 @@ function M.pick(tabs, on_select, strategy)
         local selected_row
         row_items = {}
         spinner_marks = {}
-        width = math.max(25, vim.fn.strdisplaywidth(title))
+        width = math.max(40, vim.fn.strdisplaywidth(title))
 
         local function add_row(chunks, next_key)
             local i = #lines + 1
@@ -218,20 +203,14 @@ function M.pick(tabs, on_select, strategy)
             end
         end
         draw_spinners()
-        if win then
-            underline_row()
-        end
     end
 
     draw()
     win = api.nvim_open_win(buf, true, vim.tbl_extend("force", layout(), { style = "minimal" }))
     active_win = win
     vim.wo[win].wrap = false
-    vim.wo[win].cursorline = true
+    floats.highlight_selection(win)
     api.nvim_win_set_cursor(win, { 1, 0 })
-    api.nvim_set_hl(0, row_highlight, { underline = true, cterm = { underline = true } })
-    api.nvim_create_autocmd("CursorMoved", { buffer = buf, callback = underline_row })
-    underline_row()
 
     local saved_cursor
     local function hide_cursor()

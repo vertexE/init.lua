@@ -13,7 +13,7 @@ local dependencies = {
     { "folke/snacks.nvim", require("plugins.snacks") },
     { "akinsho/toggleterm.nvim", version = vim.version.range("2.*") },
     { "lewis6991/gitsigns.nvim", require("plugins.git") },
-    { "esmuellert/codediff.nvim", { cmd = "CodeDiff" } },
+    { "esmuellert/codediff.nvim", require("plugins.diff") },
     { "neovim/nvim-lspconfig", require("plugins.lsp") },
     { "williamboman/mason.nvim", { dependency = true } },
     { "mason-org/mason-lspconfig.nvim", { dependency = true } },
@@ -22,7 +22,7 @@ local dependencies = {
     { "saghen/blink.cmp", { dependency = true }, version = vim.version.range("1.*") },
     { "rafamadriz/friendly-snippets", { dependency = true } },
     { "mrcjkb/rustaceanvim", version = vim.version.range("^6") },
-    { "hedyhli/outline.nvim", require("plugins.outline") },
+    { "bassamsdata/namu.nvim", require("plugins.namu") },
     { "romus204/tree-sitter-manager.nvim", require("plugins.treesitter") },
     { "rose-pine/neovim", require("plugins.colorscheme"), name = "rose-pine" },
     { "rcarriga/nvim-dap-ui", require("plugins.dap") },
@@ -68,5 +68,4 @@ require("auto")
 require("ui.statusline").setup()
 require("ui.winbar").setup()
 
-require("assistant").setup()
 require("plex").setup()

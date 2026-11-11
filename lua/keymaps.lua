@@ -59,7 +59,10 @@ vim.keymap.set("n", "gp", '"+p', { desc = "Paste from system clipboard" })
 -- shortcuts
 vim.keymap.set("n", "<leader>mD", "delm ! | delm A-Z0-9", { desc = "clear all marks" })
 vim.keymap.set("n", "<leader>w", "<cmd>update<cr>", { desc = "save buffer" })
-vim.keymap.set("n", "<leader>q", "<cmd>cclose<cr>", { desc = "close quickfix window" })
+vim.keymap.set("n", "<leader>q", function()
+    local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
+    vim.api.nvim_buf_clear_namespace(0, mc_ns, 0, -1)
+end, { desc = "close quickfix window" })
 
 -- super commands
 vim.keymap.set({ "n" }, "<leader>cp", function()
@@ -129,66 +132,11 @@ vim.keymap.set("n", "<c-4>", function()
     require("navigation.goto").quick_open(4)
 end, { desc = "quick goto file 4" })
 
-vim.keymap.set("x", "<c-space>", function()
-    require("assistant.actions").completion()
-end, { desc = "llm: inline completion" })
-
-vim.keymap.set({ "n" }, "<localleader>a", function()
-    require("assistant.resources").next_agent()
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-    vim.cmd("redrawstatus")
-end, { desc = "llm: chang agent" })
-
-vim.keymap.set("n", "<localleader><localleader>s", function()
-    require("assistant.resources").toggle("selection")
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add selection to context" })
-
-vim.keymap.set("n", "<localleader><localleader>l", function()
-    require("assistant.resources").toggle("lsp_diagnostics")
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add lsp diagnostics to context" })
-
-vim.keymap.set("n", "<localleader><localleader>g", function()
-    require("assistant.resources").toggle("git_diff")
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add git diff to context" })
-
-vim.keymap.set("n", "<localleader><localleader>b", function()
-    require("assistant.resources").toggle("blocks")
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add blocks to context" })
-
-vim.keymap.set("x", "<localleader>b", function()
-    require("assistant.resources").add_block()
-    vim.api.nvim_command('normal! "+y')
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add block" })
-
-vim.keymap.set("n", "<localleader>z", function()
-    require("assistant.resources").clear_blocks()
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: clear blocks" })
-
-vim.keymap.set("n", "<localleader><localleader>f", function()
-    require("assistant.resources").toggle("buffers")
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: add buffers to context" })
-
-vim.keymap.set({ "n", "x" }, "<localleader>o", function()
-    require("assistant.resources").select_buffers()
-    vim.api.nvim_exec_autocmds("User", { pattern = "StatusRedraw" })
-end, { desc = "assistant: toggle buffers for context" })
-
--- vim.keymap.set({ "n", "x" }, "<localleader>c", function()
---     require("assistant.actions").ask()
--- end, { desc = "llm: ask agent a question" })
-
 vim.keymap.set("n", "<leader>S", function()
     status.toggle_split()
 end)
 
-vim.keymap.set("n", "<leader>O", "<CMD>topleft Outline!<CR>")
+vim.keymap.set("n", "<leader>O", "<cmd>Namu treesitter<cr>", { desc = "Namu: Tree-sitter symbols" })
 vim.keymap.set("n", "<leader>o", function()
     require("navigation.bufs").open()
 end)
@@ -256,11 +204,3 @@ end, { desc = "add code comment" })
 vim.keymap.set("n", "<localleader>R", function()
     comments.clear()
 end, { desc = "add code comment" })
-
-vim.keymap.set("n", "<localleader>r", function ()
-    require("assistant.actions").add_worktree_task()
-end)
-
-vim.keymap.set("n", "<localleader>l", function ()
-    require("assistant.actions").list_worktree_tasks()
-end)

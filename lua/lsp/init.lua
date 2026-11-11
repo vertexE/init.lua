@@ -45,7 +45,7 @@ end
 M.setup = function()
     require("lsp.diagnostics").setup()
     require("ui.codelens").setup()
-    local servers = require("lsp.lsp_settings")
+    local servers = require("lsp.servers")
 
     vim.api.nvim_create_autocmd({ "LspAttach" }, {
         group = vim.api.nvim_create_augroup("user.lsp.attach", { clear = true }),

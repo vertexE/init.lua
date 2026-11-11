@@ -1,5 +1,3 @@
-local buf = require("buf")
-
 --- @type PackSpec
 local M = {
     requires = {
@@ -20,40 +18,9 @@ local M = {
             },
         })
 
-        local state = {
-            req_bufnr = -1,
-            sel_start = -1,
-            sel_end = -1,
-        }
-
         vim.keymap.set({ "n", "x" }, "<leader>ac", function()
-            state.req_bufnr = vim.api.nvim_get_current_buf()
-            local sel_start, sel_end = buf.active_selection()
-            state.sel_start = sel_start
-            state.sel_end = sel_end
             require("sidekick.cli").toggle({ name = "codex", focus = true })
         end, { desc = "Sidekick Toggle Claude" })
-
-        vim.keymap.set("t", "<c-cr>", function()
-            require("assistant.terminal").msg_agent({
-                req_bufnr = state.req_bufnr,
-                sel_start = state.sel_start,
-                sel_end = state.sel_end,
-            })
-        end)
-
-        -- require("CopilotChat").setup({
-        --     mappings = {
-        --         accept_diff = {
-        --             normal = "<C-CR>",
-        --             insert = "<C-CR>",
-        --         },
-        --         reset = {
-        --             normal = "<C-r>",
-        --             insert = "<C-r>",
-        --         },
-        --     },
-        -- })
     end,
 }
 

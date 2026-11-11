@@ -1,13 +1,6 @@
 local M = {}
 
 local splits = require("ui.splits")
-local tbl = require("tbl")
-local assistant = require("assistant.resources")
-local agents = require("assistant.agents")
-local symbols = require("symbols")
-
-local animation_frame_index = 1
-local frames = symbols.braille_spinner_frames
 
 local STATUS_WIN_WIDTH = 30
 
@@ -19,6 +12,7 @@ local state = {
 }
 
 local draw = function()
+    -- TODO: swap to set win config instead
     vim.api.nvim_win_set_width(state.winr, STATUS_WIN_WIDTH)
 
     local ns = vim.api.nvim_create_namespace("user.status.window")
@@ -41,88 +35,7 @@ local draw = function()
 
     table.insert(v_lines, {
         {
-            "├─────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-    table.insert(v_lines, { { "│ ", "WinSeparator" }, { " 󰫣  context", "MiniIconsOrange" } })
-
-    for _, v_line in ipairs(assistant.status()) do
-        table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
-    end
-
-    table.insert(v_lines, {
-        {
-            "╰───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    table.insert(v_lines, {
-        {
-            "╭───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    table.insert(v_lines, {
-        { "│ ", "WinSeparator" },
-        { "  ", "MiniIconsGreen" },
-        { " - locked files", "Comment" },
-    })
-
-    table.insert(v_lines, {
-        {
-            "├───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    local locked_files_vlines = assistant.locked_files()
-    if #locked_files_vlines == 0 then
-        table.insert(v_lines, { { "│ ", "WinSeparator" } })
-    else
-        for _, v_line in ipairs(locked_files_vlines) do
-            table.insert(v_lines, tbl.merge({ { "│ ", "WinSeparator" } }, v_line))
-        end
-    end
-
-    table.insert(v_lines, {
-        {
-            "╰───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    table.insert(v_lines, {
-        {
-            "╭───────────────────────────────────────────────────",
-            "WinSeparator",
-        },
-    })
-
-    local agent_sessions = agents.list_agents("ACTIVE")
-    if #agent_sessions > 0 then
-        table.insert(v_lines, {
-            { "│ ", "WinSeparator" },
-            { string.format(" %s ", frames[animation_frame_index % #frames + 1]), "MiniIconsGreen" },
-            {
-                #agent_sessions == 1 and " - 1 session active" or string.format("%d sessions active", #agent_sessions),
-                "Comment",
-            },
-        })
-        animation_frame_index = animation_frame_index + 1
-    else
-        table.insert(v_lines, {
-            { "│ ", "WinSeparator" },
-            { " 󰫣 ", "MiniIconsGreen" },
-            { " - 0 sessions active", "Comment" },
-        })
-    end
-
-    table.insert(v_lines, {
-        {
-            "╰───────────────────────────────────────────────────",
+            "╰─────────────────────────────────────────────",
             "WinSeparator",
         },
     })
@@ -134,43 +47,6 @@ local draw = function()
         virt_lines = remaining,
         virt_text_pos = "overlay",
     })
-end
-
-local should_run_draw_loop = function()
-    return #agents.list_agents("ACTIVE") > 0 and M.is_open()
-end
-
-local draw_loop = function()
-    if state.is_draw_loop_running then
-        --- ensure we only have 1 draw_loop
-        return
-    end
-
-    state.is_draw_loop_running = true
-
-    local timer = vim.loop.new_timer()
-    if not timer then
-        state.is_draw_loop_running = false
-        vim.notify("ui.status: failed to create draw_loop timer", vim.log.levels.ERROR)
-        return
-    end
-
-    timer:start(
-        0,
-        100,
-        vim.schedule_wrap(function()
-            if not should_run_draw_loop() then
-                timer:stop()
-                timer:close()
-                state.is_draw_loop_running = false
-                if M.is_open() then
-                    draw()
-                end
-                return
-            end
-            draw()
-        end)
-    )
 end
 
 M.is_open = function()
@@ -233,17 +109,6 @@ M.toggle_split = function()
         callback = function()
             if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
                 draw()
-            end
-        end,
-    })
-
-    vim.api.nvim_create_autocmd({ "User" }, {
-        pattern = "AgentStatusChange",
-        group = vim.api.nvim_create_augroup("user.status.agents", { clear = true }),
-        callback = function()
-            if state.bufnr > -1 and vim.api.nvim_buf_is_loaded(state.bufnr) then
-                -- draw loop for agent status changes
-                draw_loop()
             end
         end,
     })
