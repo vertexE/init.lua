@@ -10,19 +10,22 @@ function M.build(pair)
         local height = math.max(hunk.lb - hunk.lt, hunk.rb - hunk.rt)
         local lpad = height - (hunk.lb - hunk.lt)
         local rpad = height - (hunk.rb - hunk.rt)
+        -- Anchor empty ends halfway through their padding. Later hunks use the full offset.
+        local ltip = hunk.lt == hunk.lb and math.ceil(lpad / 2) or 0
+        local rtip = hunk.rt == hunk.rb and math.ceil(rpad / 2) or 0
         pair.display_hunks[i] = {
-            lt = hunk.lt + lo,
-            lb = hunk.lb + lo + lpad,
-            rt = hunk.rt + ro,
-            rb = hunk.rb + ro + rpad,
+            lt = hunk.lt + lo + ltip,
+            lb = hunk.lb + lo + ltip,
+            rt = hunk.rt + ro + rtip,
+            rb = hunk.rb + ro + rtip,
             kind = hunk.kind,
         }
         if lpad > 0 then
-            left[#left + 1] = { boundary = hunk.lb, start = hunk.lb + lo, size = lpad }
+            left[#left + 1] = { boundary = hunk.lb, start = hunk.lb + lo, size = lpad, tip = ltip, kind = hunk.kind }
             lo = lo + lpad
         end
         if rpad > 0 then
-            right[#right + 1] = { boundary = hunk.rb, start = hunk.rb + ro, size = rpad }
+            right[#right + 1] = { boundary = hunk.rb, start = hunk.rb + ro, size = rpad, tip = rtip, kind = hunk.kind }
             ro = ro + rpad
         end
     end
@@ -35,7 +38,7 @@ function M.pad(buf, ns, pads)
         local row = above and pad.boundary or count - 1
         local lines = {}
         for i = 1, pad.size do
-            lines[i] = { { " " } }
+            lines[i] = i == pad.tip and { { "", "VcsRibbonOrigin" .. pad.kind } } or { { " " } }
         end
         api.nvim_buf_set_extmark(buf, ns, row, 0, {
             virt_lines = lines,
