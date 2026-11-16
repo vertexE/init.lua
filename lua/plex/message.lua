@@ -1,4 +1,3 @@
-local picker = require("plex")
 local textarea = require("ui.textarea")
 local api = vim.api
 
@@ -37,23 +36,21 @@ local function editor_context()
     return table.concat(context, "\n")
 end
 
-function M.pick()
+function M.open(tab, strategy)
     local context = editor_context()
-    picker.pick(function(tab, strategy)
-        textarea.open({
-            prompt = "Send message to " .. tab.tab_name:gsub("%c", " "),
-            height = 5,
-            submit_on_enter = true,
-        }, function(lines)
-            local message = table.concat(lines, "\n")
-            if vim.trim(message) == "" then
-                return
+    textarea.open({
+        prompt = "Send message to " .. tab.tab_name:gsub("%c", " "),
+        height = 5,
+        submit_on_enter = true,
+    }, function(lines)
+        local message = table.concat(lines, "\n")
+        if vim.trim(message) == "" then
+            return
+        end
+        strategy.send_message(tab.pane_id, message .. "\n\n" .. context, function(err)
+            if err then
+                vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
             end
-            strategy.send_message(tab.pane_id, message .. "\n\n" .. context, function(err)
-                if err then
-                    vim.notify(err.message, vim.log.levels.WARN, { title = "Plex" })
-                end
-            end)
         end)
     end)
 end

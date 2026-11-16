@@ -94,7 +94,13 @@ vertexE/hacked.nvim
 
 ## Plex
 
-`<C-t>` opens the tab picker. `<leader>am` sends a message with editor context.
+`<C-t>` shows Plex terminals in the status split and starts the dedicated session
+if needed. Each row shows its global Normal-mode shortcut, starting with
+`<localleader>j` (`,j` by default). Shortcuts stay active when the split closes.
+
+`<leader>am` prompts for a terminal shortcut and sends a message with editor
+context. `:PlexNew [directory]` opens a tab in the session. `:PlexTag` prompts
+for a terminal shortcut and edits its tag.
 Zellij is the default. To use tmux, change the setup call in `init.lua`.
 
 ```lua
@@ -105,7 +111,7 @@ require("plex").setup({ strategy = "tmux" })
 
 Delete the dedicated session with `zellij delete-session nvim-mux --force`
 
-No pinned commit required. Zellij must support `list-panes --all --json` and pane targeting used by picker.
+No pinned commit required. Zellij must support `list-panes --all --json` and pane targeting used by Plex.
 
 Native attention data drives notifications when available. Without native attention,
 Codex/Claude CLI panes notify once their viewport dump stays unchanged for at least

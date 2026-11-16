@@ -7,6 +7,9 @@ local strategy
 local terminal
 local busy = false
 local notification_opts
+local tabs = {}
+local listeners = {}
+local monitoring = false
 
 local function other_clients()
     return "Close other clients attached to " .. strategy.session_name() .. " before picking a tab"
@@ -92,7 +95,7 @@ local function ensure_terminal(callback)
 end
 
 function M.open_tab(tab)
-    if busy then
+    if busy or not tab then
         return
     end
     busy = true
@@ -119,33 +122,84 @@ function M.open_tab(tab)
     end)
 end
 
-function M.pick(on_select, opts)
-    if busy then
+local function start_monitor()
+    if not strategy or monitoring then
         return
     end
-    busy = true
-    local function show_picker()
-        panes.tabs(strategy, function(tabs, query_err)
-            busy = false
-            if query_err then
-                warn(query_err.message)
-                return
-            end
-            attention.start(strategy, notification_opts)
-            ui.pick(tabs, on_select, strategy)
-        end)
+    monitoring = true
+    attention.subscribe(function(current, err)
+        tabs = not err and panes.select_tabs(current or {}) or {}
+        ui.update_bindings(tabs, M.open_tab)
+        for callback in pairs(listeners) do
+            callback(tabs)
+        end
+    end)
+    attention.start(strategy, notification_opts)
+end
+
+function M.prepare()
+    start_monitor()
+    if not strategy or #tabs > 0 or busy then
+        return
     end
-    if opts and opts.attach then
-        ensure_terminal(function(term, err)
-            if not term then
-                busy = false
+
+    busy = true
+    panes.tabs(strategy, function(_, query_err)
+        if not query_err then
+            busy = false
+            return
+        end
+        ensure_terminal(function(_, err)
+            busy = false
+            if err then
                 warn(err)
-                return
             end
-            show_picker()
         end)
-    else
-        show_picker()
+    end)
+end
+
+function M.subscribe_tabs(callback)
+    listeners[callback] = true
+    start_monitor()
+    callback(tabs)
+    return function()
+        listeners[callback] = nil
+    end
+end
+
+function M.message()
+    local tab = ui.choose_tab()
+    if tab then
+        require("plex.message").open(tab, strategy)
+    end
+end
+
+local function new_tab(directory)
+    strategy.new_tab(vim.fn.fnamemodify(directory, ":p"), function(err)
+        if err then
+            warn(err.message)
+        end
+    end)
+end
+
+local function tag_tab()
+    local tab = ui.choose_tab()
+    if not tab then
+        return
+    end
+    local cancelled = "\n"
+    local value = vim.fn.input({ prompt = "Tag: ", default = tab.tab_tag or "", cancelreturn = cancelled })
+    if value == cancelled then
+        return
+    end
+    local tag = vim.trim(value:gsub("%c", " "))
+    tag = tag ~= "" and tag or nil
+    if tag ~= tab.tab_tag then
+        strategy.set_tab_tag(tab.tab_id, tab.tab_name, tag, function(_, err)
+            if err then
+                warn(err.message)
+            end
+        end)
     end
 end
 
@@ -167,6 +221,10 @@ function M.setup(opts)
             return terminal ~= nil and terminal:is_open() and terminal:is_focused()
         end,
     })
+    vim.api.nvim_create_user_command("PlexNew", function(args)
+        new_tab(args.args ~= "" and args.args or vim.fn.getcwd())
+    end, { nargs = "?", complete = "dir" })
+    vim.api.nvim_create_user_command("PlexTag", tag_tab, {})
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("user.plex", { clear = true }),
         callback = function()

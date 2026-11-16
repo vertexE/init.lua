@@ -35,12 +35,13 @@ vim.keymap.set({ "n" }, "<C-s>", "<C-w>-")
 -- Plex
 local plex = require("plex")
 vim.keymap.set("n", "<C-t>", function()
-    plex.pick(plex.open_tab, { attach = true })
-end, { desc = "plex: pick tab" })
+    if not status.is_open() then
+        status.toggle_split()
+    end
+    plex.prepare()
+end, { desc = "Plex: show terminals" })
 
-vim.keymap.set("n", "<leader>am", function()
-    require("plex.message").pick()
-end, { desc = "plex: send message" })
+vim.keymap.set("n", "<leader>am", plex.message, { desc = "Plex: send message" })
 
 -- editing
 vim.keymap.set("n", "<Esc>", "<CMD>nohlsearch<CR>")

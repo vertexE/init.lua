@@ -24,6 +24,22 @@ local function focus_rank(pane)
     return pane.is_floating and 2 or 1
 end
 
+function M.select_tabs(panes)
+    local by_tab = {}
+    for _, pane in ipairs(panes) do
+        local previous = by_tab[pane.tab_id]
+        if not previous or focus_rank(pane) > focus_rank(previous) then
+            by_tab[pane.tab_id] = pane
+        end
+    end
+
+    local tabs = vim.tbl_values(by_tab)
+    table.sort(tabs, function(a, b)
+        return a.tab_position < b.tab_position
+    end)
+    return tabs
+end
+
 function M.tabs(strategy, callback)
     strategy.panes(function(panes, err)
         if err then
@@ -31,19 +47,7 @@ function M.tabs(strategy, callback)
             return
         end
 
-        local by_tab = {}
-        for _, pane in ipairs(panes) do
-            local previous = by_tab[pane.tab_id]
-            if not previous or focus_rank(pane) > focus_rank(previous) then
-                by_tab[pane.tab_id] = pane
-            end
-        end
-
-        local tabs = vim.tbl_values(by_tab)
-        table.sort(tabs, function(a, b)
-            return a.tab_position < b.tab_position
-        end)
-        callback(tabs)
+        callback(M.select_tabs(panes))
     end)
 end
 
