@@ -77,10 +77,14 @@ local function raster(ribbons, cols, rows, palette, curve)
     local cell_width, cell_height = cell_size()
     local width, height = cols * cell_width, rows * cell_height
     local pixels = ffi.new("uint8_t[?]", width * height * 4)
+    local tip = math.min(3, cell_height)
     for x = 0, width - 1 do
-        local t = curve((x + 0.5) / width)
+        local t = curve(x / math.max(1, width - 1))
         for _, ribbon in ipairs(ribbons) do
-            local top = (ribbon.lt + (ribbon.rt - ribbon.lt) * t) * cell_height
+            -- Overlap the terminal underline inside the preceding cell.
+            local lt = ribbon.lt * cell_height - (ribbon.lt == ribbon.lb and tip or 0)
+            local rt = ribbon.rt * cell_height - (ribbon.rt == ribbon.rb and tip or 0)
+            local top = lt + (rt - lt) * t
             local bottom = (ribbon.lb + (ribbon.rb - ribbon.lb) * t) * cell_height
             if bottom - top < 1 then
                 local middle = (top + bottom) / 2

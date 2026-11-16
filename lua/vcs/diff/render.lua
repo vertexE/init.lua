@@ -1,6 +1,7 @@
 local M = {}
 local api = vim.api
 local graphics = require("vcs.diff.graphics")
+local alignment = require("vcs.diff.alignment")
 local canvas_ns = api.nvim_create_namespace("vcs.diff.canvas")
 local window_marks = {}
 
@@ -19,7 +20,7 @@ local function palette()
         local highlight = api.nvim_get_hl(0, { name = style.name, link = false })
         local color = highlight.bg or style.fallback
         colors[kind] = color
-        api.nvim_set_hl(0, "VcsRibbonFill" .. kind, { bg = color })
+        api.nvim_set_hl(0, "VcsRibbonFill" .. kind, highlight.bg and { link = style.name } or { bg = color })
         api.nvim_set_hl(0, "VcsRibbonNumber" .. kind, { fg = normal.fg, bg = color })
         api.nvim_set_hl(0, "VcsRibbonOrigin" .. kind, { sp = color, underline = true })
         api.nvim_set_hl(0, "VcsRibbonPoint" .. kind, { fg = number.fg, sp = color, underline = true })
@@ -55,6 +56,7 @@ function M.highlight(contexts)
         spans[pair.left] = {}
         spans[pair.right] = {}
     end
+    local padding = contexts[1].alignment or {}
     for _, pair in ipairs(contexts) do
         for _, hunk in ipairs(pair.hunks) do
             spans[pair.left][#spans[pair.left] + 1] = { hunk.lt, hunk.lb, hunk.kind }
@@ -71,10 +73,13 @@ function M.highlight(contexts)
             window_marks[win] = marks
         end
         api.nvim_buf_clear_namespace(buf, marks.ns, 0, -1)
+        if padding[win] then
+            alignment.pad(buf, marks.ns, padding[win])
+        end
         local count = api.nvim_buf_line_count(buf)
         for _, range in ipairs(ranges) do
             local first, last, kind = unpack(range)
-            if first == last and first > 0 and first <= count then
+            if not padding[win] and first == last and first > 0 and first <= count then
                 api.nvim_buf_set_extmark(buf, marks.ns, first - 1, 0, {
                     line_hl_group = "VcsRibbonOrigin" .. kind,
                     priority = 91,
@@ -96,9 +101,12 @@ local function glyphs(ribbons, cols, rows)
         cells[row] = {}
     end
     for col = 1, cols do
-        local t = curve((col - 0.5) / cols)
+        local t = curve((col - 1) / math.max(1, cols - 1))
         for _, ribbon in ipairs(ribbons) do
-            local top = ribbon.lt + (ribbon.rt - ribbon.lt) * t
+            -- Empty endpoints meet the underlined row above the boundary.
+            local lt = ribbon.lt == ribbon.lb and ribbon.lt - 0.5 or ribbon.lt
+            local rt = ribbon.rt == ribbon.rb and ribbon.rt - 0.5 or ribbon.rt
+            local top = lt + (rt - lt) * t
             local bottom = ribbon.lb + (ribbon.rb - ribbon.lb) * t
             local first = math.floor(top * 2)
             local last = math.max(first, math.ceil(bottom * 2) - 1)
@@ -130,11 +138,15 @@ local function glyphs(ribbons, cols, rows)
     return lines, marks
 end
 
-local function viewport_offset(info, gutter)
-    return info.topline - 1 - (info.winrow + info.winbar - gutter.winrow)
+local function viewport_offset(info, gutter, pads)
+    local top = info.topline - 1
+    if pads then
+        top = alignment.top(pads, api.nvim_win_call(info.winid, vim.fn.winsaveview))
+    end
+    return top - (info.winrow + info.winbar - gutter.winrow)
 end
 
-local function numbers(info, buf, offset, rows, width, ribbons, side)
+local function numbers(info, buf, offset, rows, width, ribbons, side, pads)
     local cells, highlights = {}, {}
     local count = api.nvim_buf_line_count(buf)
     for _, ribbon in ipairs(ribbons) do
@@ -148,7 +160,11 @@ local function numbers(info, buf, offset, rows, width, ribbons, side)
     end
     for row = 1, rows do
         local line = row + offset
-        local label = line >= info.topline and line <= count and tostring(line) or ""
+        local fill = 0
+        if pads then
+            line, fill = alignment.buffer_line(pads, line - 1)
+        end
+        local label = fill == 0 and line >= info.topline and line <= count and tostring(line) or ""
         label = #label < width and label or ""
         local padding = string.rep(" ", math.max(0, width - #label - 1))
         cells[row] = width == 0 and "" or (side == "l" and padding .. label .. " " or " " .. label .. padding)
@@ -163,7 +179,9 @@ function M.paint(pair)
     local rows, cols = gutter.height, gutter.width + 2
     local margin = math.min(pair.number_width, math.floor((cols - 1) / 2))
     local core = cols - 2 * margin
-    local l, r = viewport_offset(left, gutter), viewport_offset(right, gutter)
+    local lpads = pair.alignment and pair.alignment[pair.left]
+    local rpads = pair.alignment and pair.alignment[pair.right]
+    local l, r = viewport_offset(left, gutter, lpads), viewport_offset(right, gutter, rpads)
     local images = graphics.enabled()
     local viewport = { l, r, rows, cols, gutter.winrow, gutter.wincol, images and true or false }
     if vim.deep_equal(pair.viewport, viewport) then
@@ -188,11 +206,12 @@ function M.paint(pair)
         config.noautocmd = true
         pair.float = api.nvim_open_win(pair.canvas, false, config)
         vim.wo[pair.float].wrap = false
+        vim.wo[pair.float].winblend = 0
         vim.wo[pair.float].winhighlight = "NormalFloat:Normal,Normal:Normal"
     end
 
     local ribbons = {}
-    for _, hunk in ipairs(pair.hunks) do
+    for _, hunk in ipairs(pair.display_hunks or pair.hunks) do
         local lt, lb, rt, rb = hunk.lt - l, hunk.lb - l, hunk.rt - r, hunk.rb - r
         if (lb > 0 or rb > 0) and (lt < rows or rt < rows) then
             ribbons[#ribbons + 1] = { lt = lt, lb = lb, rt = rt, rb = rb, kind = hunk.kind }
@@ -212,8 +231,8 @@ function M.paint(pair)
         lines, marks = glyphs(ribbons, core, rows)
     end
 
-    local left_numbers, left_hl = numbers(left, left.bufnr, l, rows, margin, ribbons, "l")
-    local right_numbers, right_hl = numbers(right, right.bufnr, r, rows, margin, ribbons, "r")
+    local left_numbers, left_hl = numbers(left, left.bufnr, l, rows, margin, ribbons, "l", lpads)
+    local right_numbers, right_hl = numbers(right, right.bufnr, r, rows, margin, ribbons, "r", rpads)
     local canvas = {}
     for row, line in ipairs(lines) do
         canvas[row] = left_numbers[row] .. line .. right_numbers[row]

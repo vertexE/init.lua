@@ -2,6 +2,7 @@ local M = {}
 local api = vim.api
 local source = require("vcs.diff.source")
 local render = require("vcs.diff.render")
+local alignment = require("vcs.diff.alignment")
 local draft = require("vcs.diff.draft")
 local sessions = {}
 local drafts = {}
@@ -46,6 +47,7 @@ local function reference(session, text, direction, label)
         number = false,
         relativenumber = false,
         signcolumn = "no",
+        foldcolumn = "0",
         statuscolumn = "",
     })
 end
@@ -126,6 +128,26 @@ local function close(session)
     end
 end
 
+local function sync_aligned_scroll(session, anchor)
+    local pads = session.pairs[1].alignment
+    local current = api.nvim_get_current_win()
+    local moved = anchor
+    for _, win in ipairs(session.documents) do
+        local top = alignment.top(pads[win], api.nvim_win_call(win, vim.fn.winsaveview))
+        if not anchor and top ~= session.toplines[win] and (not moved or win == current) then
+            moved = win
+        end
+        session.toplines[win] = top
+    end
+    if moved then
+        for _, win in ipairs(session.documents) do
+            if win ~= moved then
+                session.toplines[win] = alignment.scroll(win, pads[win], session.toplines[moved])
+            end
+        end
+    end
+end
+
 local function refresh(session)
     for win, buf in pairs(session.windows) do
         if not api.nvim_win_is_valid(win) or api.nvim_win_get_buf(win) ~= buf then
@@ -144,8 +166,14 @@ local function refresh(session)
         render.hunks(session.pairs[1], session.ours, current)
         if session.theirs then
             render.hunks(session.pairs[2], current, session.theirs)
+        else
+            alignment.build(session.pairs[1])
         end
         render.highlight(session.pairs)
+        if not session.theirs then
+            local active = api.nvim_get_current_win()
+            sync_aligned_scroll(session, session.pairs[1].alignment[active] and active or session.target)
+        end
         session.tick, session.eol = tick, eol
     end
     for _, context in ipairs(session.pairs) do
@@ -163,11 +191,17 @@ local function sync_scroll(session)
     if api.nvim_get_current_tabpage() ~= session.tab then
         return
     end
-    local moved, delta
     for _, win in ipairs(session.documents) do
         if not api.nvim_win_is_valid(win) or api.nvim_win_get_buf(win) ~= session.windows[win] then
             return
         end
+    end
+    if session.pairs[1].alignment then
+        sync_aligned_scroll(session)
+        return
+    end
+    local moved, delta
+    for _, win in ipairs(session.documents) do
         local top = vim.fn.getwininfo(win)[1].topline
         local previous = session.toplines[win]
         session.toplines[win] = top
@@ -332,9 +366,15 @@ function M.open(merge, entry, branch)
             session.options[name] = vim.wo[target][name]
             vim.wo[target][name] = false
         end
-        for _, name in ipairs({ "number", "relativenumber", "statuscolumn" }) do
+        for name, value in pairs({
+            number = false,
+            relativenumber = false,
+            statuscolumn = "",
+            signcolumn = "no",
+            foldcolumn = "0",
+        }) do
             session.options[name] = vim.wo[target][name]
-            vim.wo[target][name] = name == "statuscolumn" and "" or false
+            vim.wo[target][name] = value
         end
         if branch or merge or vim.wo[target].winbar == "" then
             session.options.winbar = vim.wo[target].winbar
