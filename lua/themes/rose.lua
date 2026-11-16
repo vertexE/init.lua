@@ -1,67 +1,7 @@
 local M = {}
 
-local forest_canopy = function()
+local function apply(colors, syntax, diff, selection_bg, picker_selection_bg)
     local Color = require("color")
-
-    -- Canopy shadows, fern leaves, and sunlight through mist.
-    local colors = {
-        rosewater = "#DCE5C0",
-        flamingo = "#C9D5A3",
-        red = "#D98B78",
-        maroon = "#BF7868",
-        pink = "#B8C992",
-        mauve = "#A6C18A",
-        peach = "#D2C58C",
-        yellow = "#E3E7AE",
-        green = "#B4CF80",
-        teal = "#8FB89E",
-        sky = "#A6C9B5",
-        sapphire = "#79A99A",
-        blue = "#90B7AE",
-        lavender = "#CCD9B2",
-        text = "#DEE5D2",
-        subtext1 = "#BAC9AF",
-        subtext0 = "#99AF97",
-        overlay2 = "#A1B792",
-        overlay1 = "#80977B",
-        overlay0 = "#536D5E",
-        surface2 = "#30493B",
-        surface1 = "#23382E",
-        surface0 = "#192B24",
-        base = "#09110E",
-        mantle = "#0B1512",
-        crust = "#080F0D",
-    }
-
-    local syntax = {
-        keyword = colors.green,
-        operator = colors.subtext1,
-        func = Color:from_hex(colors.yellow):lighten(2):hex(),
-        method = colors.yellow,
-        string = Color:from_hex(colors.teal):lighten(10):hex(),
-        property = colors.overlay2,
-        type = colors.lavender,
-        constant = Color:from_hex(colors.peach):lighten(8):hex(),
-        number = colors.peach,
-        punctuation = colors.overlay1,
-        variable = colors.text,
-        parameter = Color:from_hex(colors.text):darken(8):hex(),
-        comment = colors.overlay1,
-    }
-
-    local selection_bg = colors.surface2
-    local picker_selection_bg = colors.surface1
-    local diff = {
-        add = "#D0F0A0",
-        add_bg = "#2D512F",
-        add_word_bg = "#4A7540",
-        change = "#E1D39A",
-        change_bg = "#363421",
-        change_word_bg = "#625B32",
-        delete = "#FFC0AD",
-        delete_bg = "#592B2B",
-        delete_word_bg = "#89433D",
-    }
 
     require("rose-pine").setup({
         variant = "auto", -- auto, main, moon, or dawn
@@ -383,8 +323,136 @@ local forest_canopy = function()
     vim.cmd("colorscheme rose-pine")
 end
 
-M.setup = function()
-    forest_canopy()
+local forest_canopy = function()
+    local Color = require("color")
+
+    -- Canopy shadows, fern leaves, and sunlight through mist.
+    local colors = {
+        rosewater = "#DCE5C0",
+        flamingo = "#C9D5A3",
+        red = "#D98B78",
+        maroon = "#BF7868",
+        pink = "#B8C992",
+        mauve = "#A6C18A",
+        peach = "#D2C58C",
+        yellow = "#E3E7AE",
+        green = "#B4CF80",
+        teal = "#8FB89E",
+        sky = "#A6C9B5",
+        sapphire = "#79A99A",
+        blue = "#90B7AE",
+        lavender = "#CCD9B2",
+        text = "#DEE5D2",
+        subtext1 = "#BAC9AF",
+        subtext0 = "#99AF97",
+        overlay2 = "#A1B792",
+        overlay1 = "#80977B",
+        overlay0 = "#536D5E",
+        surface2 = "#30493B",
+        surface1 = "#23382E",
+        surface0 = "#192B24",
+        base = "#09110E",
+        mantle = "#0B1512",
+        crust = "#080F0D",
+    }
+
+    local syntax = {
+        keyword = colors.green,
+        operator = colors.subtext1,
+        func = Color:from_hex(colors.yellow):lighten(2):hex(),
+        method = colors.yellow,
+        string = Color:from_hex(colors.teal):lighten(10):hex(),
+        property = colors.overlay2,
+        type = colors.lavender,
+        constant = Color:from_hex(colors.peach):lighten(8):hex(),
+        number = colors.peach,
+        punctuation = colors.overlay1,
+        variable = colors.text,
+        parameter = Color:from_hex(colors.text):darken(8):hex(),
+        comment = colors.overlay1,
+    }
+
+    local selection_bg = colors.surface2
+    local picker_selection_bg = colors.surface1
+    local diff = {
+        add = "#D0F0A0",
+        add_bg = "#2D512F",
+        add_word_bg = "#4A7540",
+        change = "#E1D39A",
+        change_bg = "#363421",
+        change_word_bg = "#625B32",
+        delete = "#FFC0AD",
+        delete_bg = "#592B2B",
+        delete_word_bg = "#89433D",
+    }
+
+    apply(colors, syntax, diff, selection_bg, picker_selection_bg)
+end
+
+local function kanagawa()
+    local Color = require("color")
+
+    -- Kanagawa Wave palette from rebelot/kanagawa.nvim.
+    local colors = {
+        red = "#E46876",
+        pink = "#D27E99",
+        peach = "#FFA066",
+        yellow = "#E6C384",
+        green = "#98BB6C",
+        teal = "#7AA89F",
+        lavender = "#957FB8",
+        text = "#DCD7BA",
+        subtext1 = "#C8C093",
+        subtext0 = "#9CABCA",
+        overlay2 = "#938AA9",
+        overlay1 = "#727169",
+        overlay0 = "#54546D",
+        surface2 = "#363646",
+        surface1 = "#2A2A37",
+        surface0 = "#252535",
+        base = "#1F1F28",
+    }
+
+    local syntax = {
+        keyword = colors.lavender,
+        operator = "#C0A36E",
+        func = "#7E9CD8",
+        method = "#7E9CD8",
+        string = colors.green,
+        property = colors.yellow,
+        type = colors.teal,
+        constant = colors.peach,
+        number = colors.pink,
+        punctuation = colors.subtext0,
+        variable = colors.text,
+        parameter = "#B8B4D0",
+        comment = colors.overlay1,
+    }
+
+    local diff = {
+        add = "#76946A",
+        add_bg = "#2B3328",
+        change = "#DCA561",
+        change_bg = "#49443C",
+        delete = "#FF5D62",
+        delete_bg = "#43242B",
+    }
+    diff.add_word_bg = Color:from_hex(diff.add_bg):lighten(12):hex()
+    diff.change_word_bg = Color:from_hex(diff.change_bg):lighten(12):hex()
+    diff.delete_word_bg = Color:from_hex(diff.delete_bg):lighten(12):hex()
+
+    apply(colors, syntax, diff, "#2D4F67", "#223249")
+end
+
+local variants = {
+    forest_canopy = forest_canopy,
+    kanagawa = kanagawa,
+}
+
+M.setup = function(variant)
+    variant = variant or "forest_canopy"
+    local setup = assert(variants[variant], "Unknown rose theme variant: " .. tostring(variant))
+    setup()
 end
 
 return M
