@@ -2,6 +2,14 @@ local stream = require("editor.stream")
 
 vim.api.nvim_create_user_command("Symbols", "new | put=execute('digraphs')->split('\\n')[1:]", {})
 
+vim.api.nvim_create_user_command("RibbonDiff", function()
+    require("vcs.diff").open(false)
+end, { desc = "Compare the current file against Git HEAD with ribbons" })
+
+vim.api.nvim_create_user_command("RibbonMerge", function()
+    require("vcs.diff").open(true)
+end, { desc = "Open the current Git conflict with ribbons" })
+
 vim.api.nvim_create_user_command("Todo", function()
     require("ui.todo").open()
 end, {})
