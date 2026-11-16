@@ -426,13 +426,15 @@ M.status_tray = function()
     vim.keymap.set("n", ",c", function()
         commit(view)
     end, { buffer = bufnr, desc = "Commit staged changes" })
-    map("n", "<CR>", function()
+    local function open_selected(diff)
         local selected = view.rows[api.nvim_win_get_cursor(win)[1]]
         if not selected then
             return
         end
         local path = view.root .. "/" .. selected
-        if not vim.uv.fs_lstat(path) then
+        local file = view.status and view.status.files[selected]
+        local deleted = file and (file.index == "D" or file.worktree == "D")
+        if not vim.uv.fs_lstat(path) and not (diff and deleted) then
             notify("File no longer exists: " .. vim.fn.strtrans(selected), vim.log.levels.WARN)
             return
         end
@@ -447,8 +449,19 @@ M.status_tray = function()
                 vim.cmd("rightbelow vsplit")
             end
         end
-        vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
-    end)
+        if api.nvim_buf_get_name(0) ~= path then
+            vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
+        end
+        if diff and selected:sub(-1) ~= "/" and vim.bo.buftype == "" then
+            require("vcs.diff").open(nil, { root = view.root, path = selected })
+        end
+    end
+    vim.keymap.set("n", "<CR>", function()
+        open_selected(true)
+    end, { buffer = bufnr, desc = "Open Ribbon Diff" })
+    vim.keymap.set("n", ",e", function()
+        open_selected(false)
+    end, { buffer = bufnr, desc = "Edit file" })
     map("n", "q", function()
         api.nvim_buf_delete(bufnr, { force = true })
     end)

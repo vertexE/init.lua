@@ -19,20 +19,28 @@ local function unmerged(cwd, name)
     return git(cwd, { "ls-files", "--unmerged", "-z", "--", name })
 end
 
-function M.unmerged(buf)
+function M.unmerged(buf, entry)
+    if entry then
+        return unmerged(entry.root, entry.path) ~= ""
+    end
     local path = vim.api.nvim_buf_get_name(buf)
     return unmerged(vim.fs.dirname(path), vim.fs.basename(path)) ~= ""
 end
 
-function M.read(buf, merge)
+function M.read(buf, merge, entry)
     local path = vim.api.nvim_buf_get_name(buf)
     if path == "" or vim.bo[buf].buftype ~= "" or vim.bo[buf].binary then
         error("Open a text file in a Git worktree first", 0)
     end
 
     local cwd, name = vim.fs.dirname(path), vim.fs.basename(path)
-    local prefix = git(cwd, { "rev-parse", "--show-prefix" }):gsub("\n$", "")
-    local relative = prefix .. name
+    local relative
+    if entry then
+        cwd, name, relative = entry.root, entry.path, entry.path
+    else
+        local prefix = git(cwd, { "rev-parse", "--show-prefix" }):gsub("\n$", "")
+        relative = prefix .. name
+    end
     local dos = vim.bo[buf].fileformat == "dos"
     local function blob(revision)
         return text(git(cwd, { "show", revision .. relative }), dos)

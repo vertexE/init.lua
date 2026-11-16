@@ -243,10 +243,10 @@ local function watch(session)
     })
 end
 
-local function stage_command(session)
+local function stage_command(session, entry)
     local name = "RibbonStageHunk"
     api.nvim_buf_create_user_command(session.buf, name, function(opts)
-        if source.unmerged(session.buf) then
+        if source.unmerged(session.buf, entry) then
             warn("Use :RibbonMerge to resolve the conflict first")
             return
         end
@@ -261,9 +261,17 @@ local function stage_command(session)
     table.insert(session.commands, name)
 end
 
-function M.open(merge)
+function M.open(merge, entry)
     local current = api.nvim_get_current_buf()
     local buf = vim.b[current].ribbon_original or current
+    if merge == nil and entry then
+        local ok, result = pcall(source.unmerged, buf, entry)
+        if not ok then
+            warn(result)
+            return
+        end
+        merge = result
+    end
     if current ~= buf and not merge then
         warn("Open the working file to compare it against HEAD")
         return
@@ -278,7 +286,7 @@ function M.open(merge)
         return
     end
 
-    local ok, ours, theirs, marker_width = pcall(source.read, buf, merge)
+    local ok, ours, theirs, marker_width = pcall(source.read, buf, merge, entry)
     if not ok then
         warn(ours)
         return
@@ -338,7 +346,7 @@ function M.open(merge)
         sync_scroll(session)
         watch(session)
         if not merge then
-            stage_command(session)
+            stage_command(session, entry)
         end
         refresh(session)
     end)
