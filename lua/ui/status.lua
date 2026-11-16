@@ -108,16 +108,6 @@ M.toggle_split = function()
         end,
     })
 
-    vim.api.nvim_create_autocmd({ "TabEnter" }, {
-        group = vim.api.nvim_create_augroup("user.status.tab.change", { clear = true }),
-        callback = function()
-            if M.is_open() then
-                M.toggle_split()
-                M.toggle_split()
-            end
-        end,
-    })
-
     vim.api.nvim_create_autocmd({ "User" }, {
         pattern = "StatusRedraw",
         group = vim.api.nvim_create_augroup("user.status.window.draw.force", { clear = true }),
