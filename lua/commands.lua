@@ -10,6 +10,14 @@ vim.api.nvim_create_user_command("RibbonMerge", function()
     require("vcs.diff").open(true)
 end, { desc = "Open the current Git conflict with ribbons" })
 
+vim.api.nvim_create_user_command("RibbonDiffBranch", function(opts)
+    require("vcs.diff").open(false, nil, opts.args)
+end, { nargs = 1, desc = "Compare the current file at HEAD and a Git branch with ribbons" })
+
+vim.api.nvim_create_user_command("GitStatus", function(opts)
+    require("vcs.git_tray").status_tray(opts.args ~= "" and opts.args or nil)
+end, { nargs = "?", desc = "Open Git status or list changes between HEAD and a branch" })
+
 vim.api.nvim_create_user_command("Todo", function()
     require("ui.todo").open()
 end, {})

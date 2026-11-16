@@ -27,28 +27,58 @@ function M.unmerged(buf, entry)
     return unmerged(vim.fs.dirname(path), vim.fs.basename(path)) ~= ""
 end
 
-function M.read(buf, merge, entry)
+local function file_path(buf)
     local path = vim.api.nvim_buf_get_name(buf)
     if path == "" or vim.bo[buf].buftype ~= "" or vim.bo[buf].binary then
         error("Open a text file in a Git worktree first", 0)
     end
+    return path
+end
 
-    local cwd, name = vim.fs.dirname(path), vim.fs.basename(path)
-    local relative
+local function location(path, entry)
     if entry then
-        cwd, name, relative = entry.root, entry.path, entry.path
-    else
-        local prefix = git(cwd, { "rev-parse", "--show-prefix" }):gsub("\n$", "")
-        relative = prefix .. name
+        return entry.root, entry.path, entry.path
     end
+    local cwd, name = vim.fs.dirname(path), vim.fs.basename(path)
+    local prefix = git(cwd, { "rev-parse", "--show-prefix" }):gsub("\n$", "")
+    return cwd, name, prefix .. name
+end
+
+local function tree_file(cwd, revision, path, dos)
+    local entry = git(cwd, { "ls-tree", "-z", "--full-tree", revision, "--", path })
+    if not entry:match("^%d+ blob ") then
+        return ""
+    end
+    local contents = git(cwd, { "show", revision .. ":" .. path })
+    return text(contents, dos)
+end
+
+function M.branch_ref(cwd, branch)
+    for _, prefix in ipairs({ "refs/heads/", "refs/remotes/" }) do
+        local ok, hash = pcall(git, cwd, { "show-ref", "--verify", "--hash", "--", prefix .. branch })
+        if ok then
+            return vim.trim(hash)
+        end
+    end
+    error("Unknown Git branch: " .. vim.fn.strtrans(branch), 0)
+end
+
+function M.read_branch(buf, branch, entry)
+    local cwd, _, path = location(not entry and file_path(buf), entry)
+    local head = entry and entry.head or vim.trim(git(cwd, { "rev-parse", "--verify", "HEAD" }))
+    local revision = entry and entry.revision or M.branch_ref(cwd, branch)
+    return tree_file(cwd, head, path, true), tree_file(cwd, revision, path, true), path
+end
+
+function M.read(buf, merge, entry)
+    local cwd, name, relative = location(file_path(buf), entry)
     local dos = vim.bo[buf].fileformat == "dos"
     local function blob(revision)
         return text(git(cwd, { "show", revision .. relative }), dos)
     end
 
     if not merge then
-        local entry = git(cwd, { "ls-tree", "-z", "--full-tree", "HEAD", "--", relative })
-        return entry == "" and "" or blob("HEAD:")
+        return tree_file(cwd, "HEAD", relative, dos)
     end
 
     local stages = {}

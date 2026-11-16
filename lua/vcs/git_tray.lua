@@ -55,6 +55,9 @@ local function render(view, status)
         or (status.upstream and "Upstream unavailable")
         or "No upstream"
     local heading = status.message and "Git status" or (status.head or "Git status") .. "  " .. summary
+    if view.branch then
+        heading = "HEAD → " .. vim.fn.strtrans(view.branch)
+    end
     local files = {}
     for path, file in pairs(status.files) do
         local display_path = path
@@ -135,12 +138,38 @@ local function read_status(root, callback)
     end)
 end
 
+local function read_branch(view, callback)
+    local ok, revision = pcall(require("vcs.diff.source").branch_ref, view.root, view.branch)
+    if not ok then
+        callback(nil, revision)
+        return
+    end
+    git(view.root, { "rev-parse", "--verify", "HEAD" }, function(head)
+        if head.code ~= 0 then
+            callback(nil, head.stderr)
+            return
+        end
+        local oid = vim.trim(head.stdout)
+        git(view.root, { "diff", "--name-status", "-z", "--no-renames", oid, revision, "--" }, function(result)
+            if result.code ~= 0 then
+                callback(nil, result.stderr)
+                return
+            end
+            local files = {}
+            for status, path in result.stdout:gmatch("([^%z]+)%z([^%z]+)%z") do
+                files[path] = { index = ".", worktree = status }
+            end
+            callback({ files = files, head = oid, revision = revision })
+        end)
+    end)
+end
+
 local function refresh(view)
-    if view.reading or pending[view.root] then
+    if view.reading or (not view.branch and pending[view.root]) then
         return
     end
     view.reading = true
-    read_status(view.root, function(status, err)
+    local function loaded(status, err)
         view.reading = false
         if not active(view) then
             return
@@ -150,7 +179,12 @@ local function refresh(view)
         if err then
             notify(err, vim.log.levels.ERROR)
         end
-    end)
+    end
+    if view.branch then
+        read_branch(view, loaded)
+    else
+        read_status(view.root, loaded)
+    end
 end
 
 local function expected_files(status, paths, stage)
@@ -251,7 +285,7 @@ local function toggle(view)
     git(view.root, args, function(result)
         read_status(view.root, function(status, err)
             pending[view.root] = nil
-            if tray and tray.root == view.root and active(tray) then
+            if tray and not tray.branch and tray.root == view.root and active(tray) then
                 tray.status = status
                 render(tray, status or { files = {}, message = "Status unavailable" })
             end
@@ -382,8 +416,10 @@ local function commit(view)
     end)
 end
 
-M.status_tray = function()
-    if tray and active(tray) and api.nvim_win_get_tabpage(tray.win) == api.nvim_get_current_tabpage() then
+M.status_tray = function(branch)
+    if tray and tray.branch == branch and active(tray)
+        and api.nvim_win_get_tabpage(tray.win) == api.nvim_get_current_tabpage()
+    then
         api.nvim_set_current_win(tray.win)
         return
     end
@@ -392,7 +428,7 @@ M.status_tray = function()
         notify(result.stderr, vim.log.levels.ERROR)
         return
     end
-    local origin = api.nvim_get_current_win()
+    local origin = tray and api.nvim_get_current_win() == tray.win and tray.origin or api.nvim_get_current_win()
     local bufnr = api.nvim_create_buf(false, true)
     vim.bo[bufnr].bufhidden = "wipe"
     local win = api.nvim_open_win(bufnr, true, {
@@ -407,7 +443,9 @@ M.status_tray = function()
     vim.wo[win].foldcolumn = "0"
     floats.highlight_selection(win)
     hide_tray_cursor(bufnr)
-    local view = { buf = bufnr, win = win, root = result.stdout:gsub("\n$", ""), rows = {} }
+    local view = {
+        buf = bufnr, win = win, origin = origin, root = result.stdout:gsub("\n$", ""), rows = {}, branch = branch,
+    }
     local previous = tray
     tray = view
     if previous and api.nvim_win_is_valid(previous.win) and api.nvim_win_get_buf(previous.win) == previous.buf then
@@ -417,18 +455,29 @@ M.status_tray = function()
     local function map(mode, key, action)
         vim.keymap.set(mode, key, action, { buffer = bufnr })
     end
-    map({ "n", "x" }, "<Tab>", function()
-        toggle(view)
-    end)
-    vim.keymap.set("n", "dd", function()
-        discard(view)
-    end, { buffer = bufnr, desc = "Discard changes" })
-    vim.keymap.set("n", ",c", function()
-        commit(view)
-    end, { buffer = bufnr, desc = "Commit staged changes" })
+    if not branch then
+        map({ "n", "x" }, "<Tab>", function()
+            toggle(view)
+        end)
+        vim.keymap.set("n", "dd", function()
+            discard(view)
+        end, { buffer = bufnr, desc = "Discard changes" })
+        vim.keymap.set("n", ",c", function()
+            commit(view)
+        end, { buffer = bufnr, desc = "Commit staged changes" })
+    end
     local function open_selected(diff)
         local selected = view.rows[api.nvim_win_get_cursor(win)[1]]
         if not selected then
+            return
+        end
+        if branch and diff then
+            require("vcs.diff").open(false, {
+                root = view.root,
+                path = selected,
+                head = view.status.head,
+                revision = view.status.revision,
+            }, branch)
             return
         end
         local path = view.root .. "/" .. selected
@@ -468,7 +517,7 @@ M.status_tray = function()
     vim.keymap.set("n", ",r", function()
         refresh(view)
     end, { buffer = bufnr, desc = "Refresh Git status" })
-    render(view, { files = {}, message = pending[view.root] and "Updating index…" or "Loading…" })
+    render(view, { files = {}, message = not branch and pending[view.root] and "Updating index…" or "Loading…" })
     refresh(view)
 end
 

@@ -31,12 +31,16 @@ local function split(session, buf, direction, options)
     return win
 end
 
-local function reference(session, text, direction, label)
-    local buf = scratch()
+local function fill_reference(buf, text, filetype)
     local lines = vim.split(text:gsub("\n$", ""), "\n", { plain = true })
     api.nvim_buf_set_lines(buf, 0, -1, false, lines)
     vim.bo[buf].modifiable = false
-    vim.bo[buf].filetype = vim.bo[session.buf].filetype
+    vim.bo[buf].filetype = filetype
+end
+
+local function reference(session, text, direction, label)
+    local buf = scratch()
+    fill_reference(buf, text, vim.bo[session.buf].filetype)
     return split(session, buf, direction, {
         winbar = label,
         number = false,
@@ -136,7 +140,7 @@ local function refresh(session)
     local eol = vim.bo[session.buf].endofline
     local changed = tick ~= session.tick or eol ~= session.eol
     if changed then
-        local current = source.buffer_text(session.buf)
+        local current = session.branch_text or source.buffer_text(session.buf)
         render.hunks(session.pairs[1], session.ours, current)
         if session.theirs then
             render.hunks(session.pairs[2], current, session.theirs)
@@ -261,7 +265,7 @@ local function stage_command(session, entry)
     table.insert(session.commands, name)
 end
 
-function M.open(merge, entry)
+function M.open(merge, entry, branch)
     local current = api.nvim_get_current_buf()
     local buf = vim.b[current].ribbon_original or current
     if merge == nil and entry then
@@ -272,11 +276,11 @@ function M.open(merge, entry)
         end
         merge = result
     end
-    if current ~= buf and not merge then
+    if current ~= buf and not merge and not branch then
         warn("Open the working file to compare it against HEAD")
         return
     end
-    local existing = sessions[buf]
+    local existing = not branch and sessions[buf]
     if existing then
         if (existing.theirs ~= nil) == merge and api.nvim_win_is_valid(existing.target) then
             api.nvim_set_current_win(existing.target)
@@ -286,7 +290,12 @@ function M.open(merge, entry)
         return
     end
 
-    local ok, ours, theirs, marker_width = pcall(source.read, buf, merge, entry)
+    local ok, ours, theirs, marker_width, path
+    if branch then
+        ok, ours, theirs, path = pcall(source.read_branch, buf, branch, entry)
+    else
+        ok, ours, theirs, marker_width = pcall(source.read, buf, merge, entry)
+    end
     if not ok then
         warn(ours)
         return
@@ -294,12 +303,16 @@ function M.open(merge, entry)
 
     vim.cmd("tab split")
     local target = api.nvim_get_current_win()
+    if branch then
+        buf = scratch()
+    end
     local session = {
         buf = buf,
         tab = api.nvim_get_current_tabpage(),
         target = target,
         ours = ours,
-        theirs = theirs,
+        theirs = not branch and theirs or nil,
+        branch_text = branch and theirs or nil,
         original = buf,
         windows = { [target] = current },
         pairs = {},
@@ -310,6 +323,11 @@ function M.open(merge, entry)
     }
     sessions[buf] = session
     local opened, err = pcall(function()
+        if branch then
+            api.nvim_win_set_buf(target, buf)
+            session.windows[target] = buf
+            fill_reference(buf, theirs, vim.filetype.match({ filename = path }) or "")
+        end
         for _, name in ipairs({ "diff", "scrollbind", "cursorbind", "wrap", "foldenable", "winfixwidth" }) do
             session.options[name] = vim.wo[target][name]
             vim.wo[target][name] = false
@@ -318,9 +336,10 @@ function M.open(merge, entry)
             session.options[name] = vim.wo[target][name]
             vim.wo[target][name] = name == "statuscolumn" and "" or false
         end
-        if merge or vim.wo[target].winbar == "" then
+        if branch or merge or vim.wo[target].winbar == "" then
             session.options.winbar = vim.wo[target].winbar
-            vim.wo[target].winbar = merge and " Result" or " Worktree"
+            vim.wo[target].winbar = branch and (" " .. branch:gsub("%%", "%%%%"))
+                or (merge and " Result" or " Worktree")
         end
         if merge then
             session.buf = drafts[buf]
@@ -345,7 +364,7 @@ function M.open(merge, entry)
         vim.cmd.wincmd("=")
         sync_scroll(session)
         watch(session)
-        if not merge then
+        if not merge and not branch then
             stage_command(session, entry)
         end
         refresh(session)

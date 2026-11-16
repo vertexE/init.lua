@@ -252,15 +252,36 @@ function M.open()
                     },
                 },
             },
-            { label = "Status", icon = "", keymap = ",s", on_select = require("vcs.git_tray").status_tray },
+            {
+                label = "Status",
+                icon = "",
+                keymap = ",s",
+                on_select = function()
+                    require("vcs.git_tray").status_tray()
+                end,
+            },
+            {
+                label = "Status Against Branch",
+                icon = "",
+                keymap = ",S",
+                on_select = function()
+                    vim.ui.input({ prompt = "Compare HEAD against branch: " }, function(branch)
+                        if branch and vim.trim(branch) ~= "" then
+                            require("vcs.git_tray").status_tray(vim.trim(branch))
+                        end
+                    end)
+                end,
+            },
             { label = "Stage", icon = "", keymap = ",a", on_select = stage_file },
             { label = "Sync", icon = "", keymap = ",y", on_select = sync },
             {
                 label = "Hooks",
+                icon = "",
                 keymap = ",k",
                 children = {
                     {
                         label = "Pre-commit",
+                        icon = "",
                         keymap = ",c",
                         on_select = function()
                             run_hook("Pre-commit", { "git", "hook", "run", "pre-commit" })
@@ -268,6 +289,7 @@ function M.open()
                     },
                     {
                         label = "Pre-push (dry run)",
+                        icon = "",
                         keymap = ",p",
                         on_select = function()
                             run_hook("Pre-push dry run", { "git", "push", "--dry-run", "--verify", "--recurse-submodules=no" })
