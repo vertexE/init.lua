@@ -506,13 +506,7 @@ M.status_tray = function(branch)
         end
     end
     vim.keymap.set("n", "<CR>", function()
-        local ok, err = pcall(open_selected, true)
-        if active(view) and api.nvim_get_current_win() ~= win then
-            api.nvim_set_current_win(win)
-        end
-        if not ok then
-            error(err, 0)
-        end
+        open_selected(true)
     end, { buffer = bufnr, desc = "Open Ribbon Diff" })
     vim.keymap.set("n", ",e", function()
         open_selected(false)
