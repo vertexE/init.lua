@@ -410,7 +410,7 @@ local function kanagawa()
         surface2 = "#393836",
         surface1 = "#282727",
         surface0 = "#1D1C19",
-        base = "#181616",
+        base = "#16161D", -- Kanagawa sumiInk0
     }
 
     local syntax = {
