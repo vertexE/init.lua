@@ -40,12 +40,12 @@ local function group_tabs(tabs)
     return groups
 end
 
-local function terminal_chunks(pane, spinner)
+local function terminal_chunks(pane, pulse_highlight)
     local indicator = attention.from_pane(pane).indicator
     local glyph = (indicator == "orange" or indicator == "red") and notification_bell or bell
     local indicator_hl = highlights[indicator]
     if indicator == "spinner" then
-        glyph, indicator_hl = spinner, "MiniIconsGreen"
+        glyph, indicator_hl = "●", pulse_highlight
     end
     local chunks = {
         { glyph, indicator_hl },
@@ -136,22 +136,22 @@ function M.choose_tab()
     return tab
 end
 
-function M.status_rows(tabs, spinner)
-    local rows, spinners = {}, {}
+function M.status_rows(tabs, pulse_highlight)
+    local rows, dots = {}, {}
     for _, group in ipairs(group_tabs(tabs)) do
         rows[#rows + 1] = {}
         rows[#rows + 1] = { { single_line(group.directory), "MiniIconsGreen" } }
         for _, tab in ipairs(group.tabs) do
-            local chunks, spinner_chunk = terminal_chunks(tab, spinner)
-            if spinner_chunk then
-                spinners[#spinners + 1] = spinner_chunk
+            local chunks, dot = terminal_chunks(tab, pulse_highlight)
+            if dot then
+                dots[#dots + 1] = dot
             end
             local binding = bindings[tab.tab_id]
             table.insert(chunks, 1, { binding and ("  " .. binding.lhs .. " ") or "  ", label_highlight })
             rows[#rows + 1] = chunks
         end
     end
-    return rows, spinners
+    return rows, dots
 end
 
 return M

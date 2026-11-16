@@ -3,7 +3,35 @@ local M = {}
 local plex = require("plex")
 local plex_ui = require("plex.ui")
 local splits = require("ui.splits")
-local pulse_frames = { "·", "•", "●", "•" }
+local pulse_frames = {
+    "PlexPulseFull",
+    "PlexPulseBright",
+    "PlexPulseMedium",
+    "PlexPulseDim",
+    "PlexPulseFaint",
+    "PlexPulseDim",
+    "PlexPulseMedium",
+    "PlexPulseBright",
+}
+
+local function set_pulse_highlights()
+    local function highlight(name)
+        return vim.api.nvim_get_hl(0, { name = name, link = false, create = false })
+    end
+    local green = highlight("MiniIconsGreen").fg or 0x00D787
+    local background = highlight("NormalNC").bg or highlight("Normal").bg
+        or (vim.o.background == "light" and 0xFFFFFF or 0x000000)
+
+    for index, opacity in ipairs({ 1, 0.85, 0.55, 0.25, 0.08 }) do
+        local color = 0
+        for _, place in ipairs({ 65536, 256, 1 }) do
+            local fg = math.floor(green / place) % 256
+            local bg = math.floor(background / place) % 256
+            color = color + math.floor(bg + (fg - bg) * opacity + 0.5) * place
+        end
+        vim.api.nvim_set_hl(0, pulse_frames[index], { fg = color })
+    end
+end
 
 local STATUS_WIN_WIDTH = 30
 
@@ -75,15 +103,16 @@ M.toggle_split = function()
     state.winr = winr
 
     local frame = 1
-    local spinners = {}
+    local dots = {}
+    set_pulse_highlights()
     local timer = assert(vim.uv.new_timer())
     local animate = vim.schedule_wrap(function()
-        if timer:is_closing() or #spinners == 0 or not vim.api.nvim_win_is_valid(winr) then
+        if timer:is_closing() or #dots == 0 or not vim.api.nvim_win_is_valid(winr) then
             return
         end
         frame = frame % #pulse_frames + 1
-        for _, chunk in ipairs(spinners) do
-            chunk[1] = pulse_frames[frame]
+        for _, chunk in ipairs(dots) do
+            chunk[2] = pulse_frames[frame]
         end
         draw()
     end)
@@ -92,16 +121,16 @@ M.toggle_split = function()
             return
         end
         local rows, working = plex_ui.status_rows(tabs, pulse_frames[frame])
-        spinners = working
+        dots = working
         local changed = not vim.deep_equal(rows, state.terminal_rows)
         state.terminal_rows = rows
         if changed then
             draw()
         end
-        if #spinners == 0 then
+        if #dots == 0 then
             timer:stop()
         elseif not timer:is_active() then
-            timer:start(150, 150, animate)
+            timer:start(100, 100, animate)
         end
     end)
     vim.api.nvim_create_autocmd("BufWipeout", {
@@ -117,8 +146,13 @@ M.toggle_split = function()
         end,
     })
 
+    local draw_group = vim.api.nvim_create_augroup("user.status.window.draw", { clear = true })
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        group = draw_group,
+        callback = set_pulse_highlights,
+    })
     vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufWrite", "DiagnosticChanged" }, {
-        group = vim.api.nvim_create_augroup("user.status.window.draw", { clear = true }),
+        group = draw_group,
         callback = function()
             if vim.api.nvim_get_current_win() == state.winr then
                 -- move out of the window if we can
