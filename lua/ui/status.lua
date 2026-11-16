@@ -3,6 +3,7 @@ local M = {}
 local plex = require("plex")
 local plex_ui = require("plex.ui")
 local splits = require("ui.splits")
+local pulse_frames = { "·", "•", "●", "•" }
 
 local STATUS_WIN_WIDTH = 30
 
@@ -14,7 +15,9 @@ local state = {
 
 local draw = function()
     -- TODO: swap to set win config instead
-    vim.api.nvim_win_set_width(state.winr, STATUS_WIN_WIDTH)
+    if vim.api.nvim_win_get_width(state.winr) ~= STATUS_WIN_WIDTH then
+        vim.api.nvim_win_set_width(state.winr, STATUS_WIN_WIDTH)
+    end
 
     local ns = vim.api.nvim_create_namespace("user.status.window")
     vim.api.nvim_buf_clear_namespace(state.bufnr, ns, 0, -1)
@@ -71,17 +74,42 @@ M.toggle_split = function()
     state.bufnr = bufnr
     state.winr = winr
 
+    local frame = 1
+    local spinners = {}
+    local timer = assert(vim.uv.new_timer())
+    local animate = vim.schedule_wrap(function()
+        if timer:is_closing() or #spinners == 0 or not vim.api.nvim_win_is_valid(winr) then
+            return
+        end
+        frame = frame % #pulse_frames + 1
+        for _, chunk in ipairs(spinners) do
+            chunk[1] = pulse_frames[frame]
+        end
+        draw()
+    end)
     local unsubscribe = plex.subscribe_tabs(function(tabs)
-        local rows = plex_ui.status_rows(tabs)
-        if vim.api.nvim_win_is_valid(winr) and not vim.deep_equal(rows, state.terminal_rows) then
-            state.terminal_rows = rows
+        if not vim.api.nvim_win_is_valid(winr) then
+            return
+        end
+        local rows, working = plex_ui.status_rows(tabs, pulse_frames[frame])
+        spinners = working
+        local changed = not vim.deep_equal(rows, state.terminal_rows)
+        state.terminal_rows = rows
+        if changed then
             draw()
+        end
+        if #spinners == 0 then
+            timer:stop()
+        elseif not timer:is_active() then
+            timer:start(150, 150, animate)
         end
     end)
     vim.api.nvim_create_autocmd("BufWipeout", {
         buffer = bufnr,
         once = true,
         callback = function()
+            timer:stop()
+            timer:close()
             unsubscribe()
             state.bufnr = -1
             state.winr = -1

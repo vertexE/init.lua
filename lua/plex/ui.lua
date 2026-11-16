@@ -5,7 +5,6 @@ local M = {}
 
 local bell = ""
 local notification_bell = ""
-local spinner = require("symbols").braille_spinner_frames[1]
 local highlights = { gray = "Comment", orange = "MiniIconsOrange", red = "MiniIconsRed" }
 local label_highlight = "MiniIconsRed"
 local keys = "asdfghjkl"
@@ -41,7 +40,7 @@ local function group_tabs(tabs)
     return groups
 end
 
-local function terminal_chunks(pane)
+local function terminal_chunks(pane, spinner)
     local indicator = attention.from_pane(pane).indicator
     local glyph = (indicator == "orange" or indicator == "red") and notification_bell or bell
     local indicator_hl = highlights[indicator]
@@ -60,7 +59,7 @@ local function terminal_chunks(pane)
             { "", "CodeLensSeparator" },
         })
     end
-    return chunks
+    return chunks, indicator == "spinner" and chunks[1] or nil
 end
 
 function M.update_bindings(tabs, on_select)
@@ -137,19 +136,22 @@ function M.choose_tab()
     return tab
 end
 
-function M.status_rows(tabs)
-    local rows = {}
+function M.status_rows(tabs, spinner)
+    local rows, spinners = {}, {}
     for _, group in ipairs(group_tabs(tabs)) do
         rows[#rows + 1] = {}
         rows[#rows + 1] = { { single_line(group.directory), "MiniIconsGreen" } }
         for _, tab in ipairs(group.tabs) do
-            local chunks = terminal_chunks(tab)
+            local chunks, spinner_chunk = terminal_chunks(tab, spinner)
+            if spinner_chunk then
+                spinners[#spinners + 1] = spinner_chunk
+            end
             local binding = bindings[tab.tab_id]
             table.insert(chunks, 1, { binding and ("  " .. binding.lhs .. " ") or "  ", label_highlight })
             rows[#rows + 1] = chunks
         end
     end
-    return rows
+    return rows, spinners
 end
 
 return M
