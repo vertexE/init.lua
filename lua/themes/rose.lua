@@ -392,32 +392,32 @@ end
 local function kanagawa()
     local Color = require("color")
 
-    -- Kanagawa Wave palette from rebelot/kanagawa.nvim.
+    -- Kanagawa Dragon palette from rebelot/kanagawa.nvim.
     local colors = {
-        red = "#E46876",
-        pink = "#D27E99",
-        peach = "#FFA066",
-        yellow = "#E6C384",
-        green = "#98BB6C",
-        teal = "#7AA89F",
-        lavender = "#957FB8",
-        text = "#DCD7BA",
+        red = "#C4746E",
+        pink = "#A292A3",
+        peach = "#B6927B",
+        yellow = "#C4B28A",
+        green = "#8A9A7B",
+        teal = "#8EA4A2",
+        lavender = "#8992A7",
+        text = "#C5C9C5",
         subtext1 = "#C8C093",
-        subtext0 = "#9CABCA",
-        overlay2 = "#938AA9",
-        overlay1 = "#727169",
-        overlay0 = "#54546D",
-        surface2 = "#363646",
-        surface1 = "#2A2A37",
-        surface0 = "#252535",
-        base = "#1F1F28",
+        subtext0 = "#9E9B93",
+        overlay2 = "#7A8382",
+        overlay1 = "#737C73",
+        overlay0 = "#625E5A",
+        surface2 = "#393836",
+        surface1 = "#282727",
+        surface0 = "#1D1C19",
+        base = "#181616",
     }
 
     local syntax = {
         keyword = colors.lavender,
-        operator = "#C0A36E",
-        func = "#7E9CD8",
-        method = "#7E9CD8",
+        operator = colors.red,
+        func = "#8BA4B0",
+        method = "#8BA4B0",
         string = colors.green,
         property = colors.yellow,
         type = colors.teal,
@@ -425,7 +425,7 @@ local function kanagawa()
         number = colors.pink,
         punctuation = colors.subtext0,
         variable = colors.text,
-        parameter = "#B8B4D0",
+        parameter = "#A6A69C",
         comment = colors.overlay1,
     }
 
@@ -433,15 +433,15 @@ local function kanagawa()
         add = "#76946A",
         add_bg = "#2B3328",
         change = "#DCA561",
-        change_bg = "#49443C",
-        delete = "#FF5D62",
+        change_bg = "#252535",
+        change_word_bg = "#49443C",
+        delete = "#C34043",
         delete_bg = "#43242B",
     }
     diff.add_word_bg = Color:from_hex(diff.add_bg):lighten(12):hex()
-    diff.change_word_bg = Color:from_hex(diff.change_bg):lighten(12):hex()
     diff.delete_word_bg = Color:from_hex(diff.delete_bg):lighten(12):hex()
 
-    apply(colors, syntax, diff, "#2D4F67", "#223249")
+    apply(colors, syntax, diff, "#223249", "#2D4F67")
 end
 
 local variants = {
