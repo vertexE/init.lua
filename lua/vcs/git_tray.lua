@@ -429,18 +429,13 @@ M.status_tray = function(branch)
         return
     end
     local origin = tray and api.nvim_get_current_win() == tray.win and tray.origin or api.nvim_get_current_win()
-    local bufnr = api.nvim_create_buf(false, true)
-    vim.bo[bufnr].bufhidden = "wipe"
-    local win = api.nvim_open_win(bufnr, true, {
-        split = "left",
-        win = -1,
-        width = math.floor(vim.o.columns / 4),
+    local bufnr, win = floats.open({
+        bufnr = api.nvim_create_buf(false, true),
+        width = 0.65,
+        height = 0.5,
+        bo = { bufhidden = "wipe" },
+        wo = { wrap = false },
     })
-    vim.wo[win].wrap = false
-    vim.wo[win].number = false
-    vim.wo[win].relativenumber = false
-    vim.wo[win].signcolumn = "no"
-    vim.wo[win].foldcolumn = "0"
     floats.highlight_selection(win)
     hide_tray_cursor(bufnr)
     local view = {
@@ -466,12 +461,28 @@ M.status_tray = function(branch)
             commit(view)
         end, { buffer = bufnr, desc = "Commit staged changes" })
     end
+    local function focus_editor()
+        local tab = api.nvim_win_get_tabpage(win)
+        if api.nvim_win_is_valid(origin) and api.nvim_win_get_tabpage(origin) == tab
+            and not floats.is_floating_win(origin)
+        then
+            api.nvim_set_current_win(origin)
+            return
+        end
+        for _, candidate in ipairs(api.nvim_tabpage_list_wins(tab)) do
+            if not floats.is_floating_win(candidate) then
+                api.nvim_set_current_win(candidate)
+                return
+            end
+        end
+    end
     local function open_selected(diff)
         local selected = view.rows[api.nvim_win_get_cursor(win)[1]]
         if not selected then
             return
         end
         if branch and diff then
+            focus_editor()
             require("vcs.diff").open(false, {
                 root = view.root,
                 path = selected,
@@ -487,22 +498,14 @@ M.status_tray = function(branch)
             notify("File no longer exists: " .. vim.fn.strtrans(selected), vim.log.levels.WARN)
             return
         end
-        if api.nvim_win_is_valid(origin)
-            and api.nvim_win_get_tabpage(origin) == api.nvim_win_get_tabpage(win)
-            and api.nvim_win_get_config(origin).relative == ""
-        then
-            api.nvim_set_current_win(origin)
-        else
-            vim.cmd.wincmd("l")
-            if api.nvim_get_current_win() == win then
-                vim.cmd("rightbelow vsplit")
-            end
-        end
+        focus_editor()
         if api.nvim_buf_get_name(0) ~= path then
             vim.cmd.edit({ args = { path }, magic = { file = false, bar = false }, mods = { hide = true } })
         end
         if diff and selected:sub(-1) ~= "/" and vim.bo.buftype == "" then
             require("vcs.diff").open(nil, { root = view.root, path = selected })
+        elseif active(view) then
+            api.nvim_win_close(win, false)
         end
     end
     vim.keymap.set("n", "<CR>", function()
@@ -511,9 +514,6 @@ M.status_tray = function(branch)
     vim.keymap.set("n", ",e", function()
         open_selected(false)
     end, { buffer = bufnr, desc = "Edit file" })
-    map("n", "q", function()
-        api.nvim_buf_delete(bufnr, { force = true })
-    end)
     vim.keymap.set("n", ",r", function()
         refresh(view)
     end, { buffer = bufnr, desc = "Refresh Git status" })
