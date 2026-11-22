@@ -68,62 +68,6 @@ function M.subscribe(callback)
     end
 end
 
-local function native_attention(pane)
-    local attention = pane.attention
-    return type(attention) == "table"
-        and type(attention.status) == "string"
-        and type(attention.seen) == "boolean"
-        and type(attention.changed_ms) == "number"
-end
-
-local function sample_fallback(strategy, panes, samples, active_panes, callback)
-    local remaining = 1
-    local present = {}
-    local function done()
-        remaining = remaining - 1
-        if remaining == 0 then
-            for id in pairs(samples) do
-                if not present[id] then
-                    samples[id] = nil
-                end
-            end
-            callback()
-        end
-    end
-    for _, pane in ipairs(panes) do
-        local id = pane.pane_id
-        if not native_attention(pane) and (pane.command == "codex" or pane.command == "claude") then
-            present[id] = true
-            remaining = remaining + 1
-            strategy.dump_pane(id, function(dump, err)
-                local now = vim.uv.hrtime() / 1e6
-                local previous = samples[id]
-                if err then
-                    samples[id] = nil
-                    pane.attention = nil
-                else
-                    if not previous or previous.dump ~= dump or previous.command ~= pane.command then
-                        previous = { dump = dump, command = pane.command, since = now }
-                        samples[id] = previous
-                    end
-                    local ready = now - previous.since >= 2000
-                    if active_panes[id] then
-                        previous.seen = true
-                    end
-                    pane.attention = {
-                        status = ready and "Done" or "Working",
-                        seen = previous.seen == true,
-                        changed_ms = previous.since,
-                        source = "PaneIdle",
-                    }
-                end
-                done()
-            end)
-        end
-    end
-    done()
-end
-
 function M.start(strategy, opts)
     if timer then
         return
@@ -136,7 +80,6 @@ function M.start(strategy, opts)
     local function is_active(pane_id)
         return opts.is_terminal_focused and opts.is_terminal_focused() and active_panes[pane_id]
     end
-    local samples = {}
     local last_events = {}
     local last_statuses = {}
     local baseline = true
@@ -154,74 +97,63 @@ function M.start(strategy, opts)
                 if timer ~= monitor then
                     return
                 end
-                local function process()
-                    pending = false
-                    if timer ~= monitor then
-                        return
-                    end
-                    if panes then
-                        for _, pane in ipairs(panes) do
-                            local active = is_active(pane.pane_id)
-                            if active then
-                                cancel_debounce(pane.pane_id)
+                pending = false
+                if panes then
+                    for _, pane in ipairs(panes) do
+                        local active = is_active(pane.pane_id)
+                        if active then
+                            cancel_debounce(pane.pane_id)
+                        end
+                        local state = M.from_pane(pane)
+                        local previous_status = last_statuses[pane.pane_id]
+                        local finished = previous_status == "working"
+                            and state.status == "done"
+                            and pane.attention.source ~= "PaneIdle"
+                        last_statuses[pane.pane_id] = state.status
+                        local alert = alerts[state.status]
+                        if alert then
+                            local message = pane.attention.source == "PaneIdle" and "ready to be looked at" or alert.text
+                            if state.status == "needs_input" then
+                                message = input_messages[state.kind]
+                                    or (pane.attention.source == "Bell" and "rang bell")
+                                    or message
                             end
-                            local state = M.from_pane(pane)
-                            local previous_status = last_statuses[pane.pane_id]
-                            local finished = previous_status == "working"
-                                and state.status == "done"
-                                and pane.attention.source ~= "PaneIdle"
-                            last_statuses[pane.pane_id] = state.status
-                            local alert = alerts[state.status]
-                            if alert then
-                                local message = pane.attention.source == "PaneIdle" and "ready to be looked at" or alert.text
-                                if state.status == "needs_input" then
-                                    message = input_messages[state.kind]
-                                        or (pane.attention.source == "Bell" and "rang bell")
-                                        or message
-                                end
-                                local events = last_events[pane.pane_id] or {}
-                                last_events[pane.pane_id] = events
-                                local changed_ms = pane.attention.changed_ms
-                                if events[state.status] ~= changed_ms then
-                                    events[state.status] = changed_ms
-                                    cancel_debounce(pane.pane_id)
-                                    if (state.unread or finished) and not baseline and not active then
-                                        local function notify()
-                                            debounces[pane.pane_id] = nil
-                                            if timer ~= monitor or is_active(pane.pane_id) then
-                                                return
-                                            end
-                                            vim.notify(
-                                                ("%s · %s %s"):format(pane.directory, pane.command, message),
-                                                alert.level,
-                                                { title = "Plex" }
-                                            )
-                                            if sound then
-                                                pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
-                                            end
+                            local events = last_events[pane.pane_id] or {}
+                            last_events[pane.pane_id] = events
+                            local changed_ms = pane.attention.changed_ms
+                            if events[state.status] ~= changed_ms then
+                                events[state.status] = changed_ms
+                                cancel_debounce(pane.pane_id)
+                                if (state.unread or finished) and not baseline and not active then
+                                    local function notify()
+                                        debounces[pane.pane_id] = nil
+                                        if timer ~= monitor or is_active(pane.pane_id) then
+                                            return
                                         end
-                                        if pane.attention.source == "PaneIdle" then
-                                            notify()
-                                        else
-                                            debounces[pane.pane_id] = vim.defer_fn(notify, 2000)
+                                        vim.notify(
+                                            ("%s · %s %s"):format(pane.directory, pane.command, message),
+                                            alert.level,
+                                            { title = "Plex" }
+                                        )
+                                        if sound then
+                                            pcall(vim.system, { "afplay", sound_path }, { detach = true }, function() end)
                                         end
                                     end
+                                    if pane.attention.source == "PaneIdle" then
+                                        notify()
+                                    else
+                                        debounces[pane.pane_id] = vim.defer_fn(notify, 2000)
+                                    end
                                 end
-                            else
-                                cancel_debounce(pane.pane_id)
                             end
+                        else
+                            cancel_debounce(pane.pane_id)
                         end
-                        baseline = false
                     end
-                    for callback in pairs(subscribers) do
-                        callback(panes, err)
-                    end
+                    baseline = false
                 end
-                if panes and strategy.dump_pane then
-                    sample_fallback(strategy, panes, samples, active_panes, process)
-                else
-                    samples = {}
-                    process()
+                for callback in pairs(subscribers) do
+                    callback(panes, err)
                 end
             end, active_panes)
         end
