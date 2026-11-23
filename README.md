@@ -99,8 +99,8 @@ if needed. Each row shows its global Normal-mode shortcut, starting with
 `<localleader>j` (`,j` by default). Shortcuts stay active when the split closes.
 
 `<leader>am` prompts for a terminal shortcut and sends a message with editor
-context. `:PlexNew [directory]` opens a tab in the session. `:PlexTag` prompts
-for a terminal shortcut and edits its tag.
+context. `:PlexNew` prompts for a directory, prefilled with current directory,
+and opens a tab in the session. Popup-local `,t` edits selected process tag.
 Zellij is the default. To use tmux, change the setup call in `init.lua`.
 
 ```lua
@@ -127,6 +127,34 @@ Plex reads OSC 7501 reports from tmux control mode, including reports from
 background windows. Codex CLI 0.167.0 and tmux 3.8 were tested together.
 Panes that emit no OSC 7501 reports show no agent status. Claude Code's
 status emission depends on terminal support for its OSC 7501 probe.
+
+## Spotify
+
+Requires macOS Keychain, `curl`, Spotify Premium, and Neovim with `vim.net.request`
+and `vim.async.run` / `vim.async.await`.
+
+Create a Spotify developer app with Web API enabled. Register redirect URI
+`http://127.0.0.1:8888/callback` and add your Spotify account to its user allowlist.
+Export credentials before launching Neovim:
+
+```sh
+export SPOTIFY_CLIENT_ID="$(security find-generic-password -s nvim.spotify.credentials -a client-id -w)"                                                         
+export SPOTIFY_CLIENT_SECRET="$(security find-generic-password -s nvim.spotify.credentials -a client-secret -w)"                                                 
+```
+
+Run `:SpotifyLogin` to authorize through browser. Refresh token persists in macOS
+Keychain under service `nvim.spotify`, account matching client ID. Access token
+stays in memory and refreshes automatically. Expired/revoked authorization needs
+`:SpotifyLogin` again; browser never opens automatically.
+
+`<leader>S` opens status panel: Spotify shows `login`, `idle`, or track/artist with
+rounded progress bar and time. Progress updates locally each second while playing;
+API polls every 10 seconds while panel remains open, plus focus/control/track-end
+refreshes. `<leader>sp` toggles play/pause; `<leader>sn` skips next track. Controls
+target an existing Spotify playback device.
+
+Current `vim.net.request` exposes body only. Client handles Spotify JSON error
+statuses and waits 60 seconds on rate limits; exact `Retry-After` is unavailable.
 
 ## Claude
 

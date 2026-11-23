@@ -3,7 +3,10 @@ local M = {}
 local api = vim.api
 local snapshot = require("vcs.git_snapshot")
 local namespace = api.nvim_create_namespace("user.status.window")
-local WIDTH = 30
+local spotify_namespace = api.nvim_create_namespace("user.status.spotify")
+local WIDTH = 35
+-- Group prefix consumes two cells; reserve one cell at right edge.
+local CONTENT_WIDTH = WIDTH - 3
 local state = { bufnr = -1, winr = -1, generation = 0 }
 
 local function active()
@@ -52,6 +55,12 @@ local function draw()
             { " −" .. status.deleted, "MiniIconsRed" },
         })
     end
+    local git_end = #lines
+    table.insert(lines, {})
+    local spotify_start = #lines + 1
+    local spotify_rows, progress_row = require("spotify.ui").rows(CONTENT_WIDTH)
+    vim.list_extend(lines, spotify_rows)
+    local spotify_end = #lines
     table.insert(lines, {})
     table.insert(lines, { { "   goto", "Title" } })
     local goto_start = #lines
@@ -73,12 +82,56 @@ local function draw()
     end
     group(1, 1)
     table.insert(grouped, {})
-    group(3, goto_start - 2)
+    state.spotify_row = #grouped + 1
+    state.spotify_progress = progress_row
+    group(spotify_start, spotify_end)
+    table.insert(grouped, {})
+    group(3, git_end)
     table.insert(grouped, {})
     group(goto_start, #lines)
     vim.bo[state.bufnr].modifiable = true
     api.nvim_buf_clear_namespace(state.bufnr, namespace, 0, -1)
+    api.nvim_buf_clear_namespace(state.bufnr, spotify_namespace, 0, -1)
     require("ui.extmarks").write_vlines_as_content(state.bufnr, namespace, grouped)
+    vim.bo[state.bufnr].modifiable = false
+end
+
+local function draw_progress()
+    if not active() or not state.spotify_row then
+        return
+    end
+    local rows, progress_row = require("spotify.ui").rows(CONTENT_WIDTH)
+    if not progress_row then
+        return
+    end
+    if progress_row ~= state.spotify_progress then
+        draw()
+        return
+    end
+    -- Only progress/time rows change. Preserve Git, goto and metadata extmarks.
+    local first = state.spotify_row + progress_row - 1
+    local content = {}
+    for i = progress_row, progress_row + 1 do
+        table.insert(rows[i], 1, { "│ ", "WinSeparator" })
+        local chunks = {}
+        for _, chunk in ipairs(rows[i]) do
+            chunks[#chunks + 1] = chunk[1]
+        end
+        content[#content + 1] = table.concat(chunks)
+    end
+    vim.bo[state.bufnr].modifiable = true
+    api.nvim_buf_clear_namespace(state.bufnr, namespace, first, first + 2)
+    api.nvim_buf_clear_namespace(state.bufnr, spotify_namespace, first, first + 2)
+    api.nvim_buf_set_lines(state.bufnr, first, first + 2, false, content)
+    for i = progress_row, progress_row + 1 do
+        local col = 0
+        for _, chunk in ipairs(rows[i]) do
+            api.nvim_buf_set_extmark(state.bufnr, spotify_namespace, first + i - progress_row, col, {
+                end_col = col + #chunk[1], hl_group = chunk[2],
+            })
+            col = col + #chunk[1]
+        end
+    end
     vim.bo[state.bufnr].modifiable = false
 end
 
@@ -135,6 +188,7 @@ M.toggle_split = function()
         buffer = bufnr,
         once = true,
         callback = function()
+            require("spotify").stop()
             timer:stop()
             timer:close()
             state.bufnr, state.winr = -1, -1
@@ -163,8 +217,17 @@ M.toggle_split = function()
     })
     api.nvim_create_autocmd("User", { group = group, pattern = "GitStatusChanged", callback = request_refresh })
     api.nvim_create_autocmd("User", { group = group, pattern = { "GotoChanged", "StatusRedraw" }, callback = draw })
+    api.nvim_create_autocmd("User", { group = group, pattern = "SpotifyChanged", callback = draw })
+    api.nvim_create_autocmd("User", { group = group, pattern = "SpotifyProgress", callback = draw_progress })
+    api.nvim_create_autocmd("ColorScheme", { group = group, callback = function()
+        require("spotify.ui").highlights()
+        draw()
+    end })
+    require("spotify.ui").highlights()
+    require("spotify").setup()
     draw()
     refresh()
+    require("spotify").start()
 end
 
 return M

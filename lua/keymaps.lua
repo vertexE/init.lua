@@ -139,17 +139,15 @@ vim.keymap.set("n", "<leader>o", function()
     require("navigation.bufs").open()
 end)
 
-vim.keymap.set("n", "<leader>sP", function()
-    vim.system({ "sh", "-c", "echo pause > /tmp/fifoplayer-control" })
-end, { desc = "spotify-player: pause track" })
-
 vim.keymap.set("n", "<leader>sp", function()
-    vim.system({ "sh", "-c", "echo play > /tmp/fifoplayer-control" })
-end, { desc = "spotify-player: play track" })
+    require("spotify").setup()
+    require("spotify").toggle()
+end, { desc = "Spotify: play/pause" })
 
 vim.keymap.set("n", "<leader>sn", function()
-    vim.system({ "sh", "-c", "echo next > /tmp/fifoplayer-control" })
-end, { desc = "spotify-player: next track" })
+    require("spotify").setup()
+    require("spotify").next()
+end, { desc = "Spotify: next track" })
 
 vim.keymap.set({ "x", "n" }, "<leader>ex", function()
     local start_line, end_line = buf.active_selection()

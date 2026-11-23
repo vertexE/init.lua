@@ -1,5 +1,10 @@
 local stream = require("editor.stream")
 
+vim.api.nvim_create_user_command("SpotifyLogin", function()
+    require("spotify").setup()
+    require("spotify").login()
+end, { desc = "Authorize Spotify through browser and save refresh token in Keychain" })
+
 vim.api.nvim_create_user_command("Symbols", "new | put=execute('digraphs')->split('\\n')[1:]", {})
 
 vim.api.nvim_create_user_command("RibbonDiff", function()

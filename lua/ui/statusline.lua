@@ -3,22 +3,14 @@ local M = {}
 local git_common = require("vcs.git_common")
 local diagnostics = require("ui.diagnostics")
 
-local FIFO_PIPE_UPDATE_TIME = 3000
-
 local cache = {
-    spotify = "No track currently playing",
     tools = {},
     git_branch = "",
 }
 
 local valid = {
-    spotify = true,
     tools = false,
     git_branch = false,
-}
-
-local loading = {
-    spotify = false,
 }
 
 --- @param vlines table<table<string,string>>
@@ -30,45 +22,6 @@ local vlines_to_inline_hl = function(vlines)
         content = content .. string.format("%%#%s#%s", hl, s)
     end
     return content
-end
-
-local spotify = function()
-    if valid.spotify then
-        return #cache.spotify > 0
-                and {
-                    { "", "CodeLensSeparator" },
-                    { "󰓇  ", "CodeLensContentIcon" },
-                    { cache.spotify, "CodeLensContentIcon" },
-                    { "", "CodeLensSeparator" },
-                }
-            or {}
-    end
-
-    -- this is a fifo pipe, will block until read/write pair go through
-    if not loading.spotify then
-        vim.system({ "cat", "/tmp/fifoplayer-track" }, { text = true }, function(result)
-            if #result.stdout > 0 then
-                cache.spotify = result.stdout
-                valid.spotify = true
-                loading.spotify = false
-            end
-        end)
-        loading.spotify = true
-    end
-
-    return #cache.spotify > 0
-            and {
-                { "", "CodeLensSeparator" },
-                { "󰓇  ", "CodeLensContentIcon" },
-                { cache.spotify, "CodeLensContentIcon" },
-                { "", "CodeLensSeparator" },
-            }
-        or {}
-end
-
-M.spotify = function()
-    local segments = spotify()
-    return vlines_to_inline_hl(segments)
 end
 
 M.directory = function()
@@ -232,7 +185,6 @@ M.active = function()
         "%{%v:lua.require'ui.statusline'.mode()%}",
         "%{%v:lua.require'ui.statusline'.directory()%}",
         "%{%v:lua.require'ui.statusline'.diagnostics()%}",
-        "%{%v:lua.require'ui.statusline'.spotify()%}",
         "%=",
         "%{%v:lua.require'ui.statusline'.tabs()%}",
         "%{%v:lua.require'ui.statusline'.tools()%}",
@@ -273,15 +225,6 @@ M.setup = function()
             valid.git_branch = false
         end,
     })
-
-    local timer = vim.uv.new_timer()
-    timer:start(
-        0,
-        FIFO_PIPE_UPDATE_TIME,
-        vim.schedule_wrap(function()
-            valid.spotify = false
-        end)
-    )
 end
 
 return M
