@@ -34,6 +34,7 @@ local function highlights()
     local surface = hl("CodeLensContentIcon").bg or blend(0xFFFFFF, base, 0.1)
     local focus = blend(hl("MiniIconsGreen").fg or 0x00D787, surface, 0.18)
     local green = hl("MiniIconsGreen").fg or 0x00D787
+    local purple = hl("MiniIconsPurple").fg or 0xB875FF
     local blue = hl("MiniIconsBlue").fg or 0x5FAFFF
     local orange = hl("MiniIconsOrange").fg or 0xFFAF00
     for _, item in ipairs({ { "NoFocus", surface }, { "Focus", focus }, { "Menu", hl("MenuNormal").bg or surface } }) do
@@ -43,8 +44,8 @@ local function highlights()
         api.nvim_set_hl(0, prefix .. "Separator", { fg = bg, bg = base })
         api.nvim_set_hl(0, prefix .. "Attention", { fg = orange, bg = bg })
         api.nvim_set_hl(0, prefix .. "Done", { fg = blue, bg = bg })
-        for i = 0, 8 do
-            api.nvim_set_hl(0, prefix .. "Pulse" .. i, { fg = blend(green, bg, 0.15 + i * 0.10625), bg = bg })
+        for i = 0, 30 do
+            api.nvim_set_hl(0, prefix .. "Pulse" .. i, { fg = blend(purple, bg, 0.25 + i * 0.02), bg = bg })
         end
     end
 end
@@ -71,9 +72,8 @@ local function process(pane, prefix)
     elseif state == "done" then
         group = prefix .. "Done"
     elseif active and command ~= "lazygit" then
-        -- Agents double-pulse; ordinary foreground commands breathe continuously.
-        local phase = agent and ({ 0, 4, 8, 4, 0, 4, 8, 4, 0, 0, 0, 0 })[frame % 12 + 1]
-            or math.floor((math.sin(frame * math.pi / 8) + 1) * 4 + 0.5)
+        -- Smooth two-second breath, sampled every 50 ms.
+        local phase = math.floor((math.sin(frame * math.pi / 20) + 1) * 15 + 0.5)
         group = prefix .. "Pulse" .. phase
     end
     return icon, group, active, needs, state
@@ -276,7 +276,7 @@ function M.setup()
         refresh()
     end)
     timer = assert(vim.uv.new_timer())
-    timer:start(100, 100, vim.schedule_wrap(function()
+    timer:start(50, 50, vim.schedule_wrap(function()
         if timer:is_closing() then return end
         for _, directory in ipairs(groups) do
             for _, pane in ipairs(directory.tabs) do

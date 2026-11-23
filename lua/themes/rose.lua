@@ -29,6 +29,7 @@ local function apply(colors, syntax, diff, selection_bg, picker_selection_bg)
             },
         },
         highlight_groups = {
+            MiniIconsPurple = { fg = colors.purple or colors.pink },
             HighlightYank = { bg = colors.overlay2 },
             LineNr = { fg = colors.overlay0 },
             TabLineFill = { bg = colors.base },
@@ -373,6 +374,7 @@ local forest_canopy = function()
         red = "#D98B78",
         maroon = "#BF7868",
         pink = "#B8C992",
+        purple = "#B7A0C9",
         mauve = "#A6C18A",
         peach = "#D2C58C",
         yellow = "#E3E7AE",
