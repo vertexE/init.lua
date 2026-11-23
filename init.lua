@@ -69,3 +69,5 @@ require("ui.statusline").setup()
 require("ui.winbar").setup()
 
 require("plex").setup()
+
+require("ui.tabline").setup()

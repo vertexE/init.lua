@@ -16,15 +16,25 @@ local function palette()
     local number = api.nvim_get_hl(0, { name = "LineNr", link = false })
     local normal = api.nvim_get_hl(0, { name = "Normal", link = false })
     api.nvim_set_hl(0, "VcsRibbonNumber", { fg = number.fg or normal.fg })
+    local text = api.nvim_get_hl(0, { name = "DiffText", link = false })
     for kind, style in pairs(styles) do
         local highlight = api.nvim_get_hl(0, { name = style.name, link = false })
         local color = highlight.bg or style.fallback
         colors[kind] = color
-        api.nvim_set_hl(0, "VcsRibbonFill" .. kind, highlight.bg and { link = style.name } or { bg = color })
+        api.nvim_set_hl(0, "VcsRibbonFill" .. kind, { bg = color })
         api.nvim_set_hl(0, "VcsRibbonNumber" .. kind, { fg = normal.fg, bg = color })
         api.nvim_set_hl(0, "VcsRibbonOrigin" .. kind, { sp = color, underline = true })
         api.nvim_set_hl(0, "VcsRibbonPoint" .. kind, { fg = number.fg, sp = color, underline = true })
         api.nvim_set_hl(0, "VcsRibbon" .. kind, { fg = color, nocombine = true })
+        local word = 0
+        for shift = 0, 2 do
+            local channel = math.floor(color / 256 ^ shift) % 256
+            word = word + math.floor(channel + (255 - channel) * 0.2) * 256 ^ shift
+        end
+        local suffix = kind == "change" and "Text" or kind == "delete" and "Delete" or "Add"
+        api.nvim_set_hl(0, "VcsRibbonWord" .. suffix, {
+            bg = kind == "change" and text.bg and text.bg ~= color and text.bg or word,
+        })
     end
     return colors
 end
@@ -38,26 +48,64 @@ local function curve(x)
     return t * t * (3 - 2 * t)
 end
 
+local function characters(line)
+    local chars = vim.fn.split(line, "\\zs")
+    local offsets = { 0 }
+    for i, char in ipairs(chars) do
+        offsets[i + 1] = offsets[i] + #char
+    end
+    return table.concat(chars, "\n") .. (#chars > 0 and "\n" or ""), offsets
+end
+
+local function word_ranges(left, right, lrow, rrow, words)
+    local a, acols = characters(left)
+    local b, bcols = characters(right)
+    for _, change in ipairs(vim.text.diff(a, b, { result_type = "indices", algorithm = "minimal" })) do
+        local first, count, other, length = unpack(change)
+        local group = count > 0 and length > 0 and "Text" or count > 0 and "Delete" or "Add"
+        if count > 0 then
+            words.left[#words.left + 1] = { lrow, acols[first], acols[first + count], group }
+        end
+        if length > 0 then
+            words.right[#words.right + 1] = { rrow, bcols[other], bcols[other + length], group }
+        end
+    end
+end
+
 function M.hunks(pair, left, right)
     pair.hunks = {}
+    pair.words = { left = {}, right = {} }
+    local left_lines = vim.split(left, "\n", { plain = true })
+    local right_lines = vim.split(right, "\n", { plain = true })
     for _, hunk in ipairs(vim.diff(left, right, { result_type = "indices", algorithm = "histogram" })) do
         local a, na, b, nb = unpack(hunk)
         local kind = na == 0 and "add" or nb == 0 and "delete" or "change"
         local l = na == 0 and a or a - 1
         local r = nb == 0 and b or b - 1
         pair.hunks[#pair.hunks + 1] = { lt = l, lb = l + na, rt = r, rb = r + nb, kind = kind }
+        if kind == "change" then
+            for row = 0, math.min(na, nb) - 1 do
+                word_ranges(left_lines[a + row], right_lines[b + row], l + row, r + row, pair.words)
+            end
+        end
     end
     pair.viewport = nil
 end
 
 function M.highlight(contexts)
     local spans = {}
+    local words = {}
     for _, pair in ipairs(contexts) do
         spans[pair.left] = {}
         spans[pair.right] = {}
+        words[pair.left] = {}
+        words[pair.right] = {}
     end
     local padding = contexts[1].alignment or {}
     for _, pair in ipairs(contexts) do
+        for _, side in ipairs({ "left", "right" }) do
+            vim.list_extend(words[pair[side]], pair.words[side])
+        end
         for _, hunk in ipairs(pair.hunks) do
             spans[pair.left][#spans[pair.left] + 1] = { hunk.lt, hunk.lb, hunk.kind }
             spans[pair.right][#spans[pair.right] + 1] = { hunk.rt, hunk.rb, hunk.kind }
@@ -87,10 +135,20 @@ function M.highlight(contexts)
             end
             for row = first, math.min(last, count) - 1 do
                 api.nvim_buf_set_extmark(buf, marks.ns, row, 0, {
-                    line_hl_group = "VcsRibbonFill" .. kind,
+                    end_row = row + 1,
+                    end_col = 0,
+                    hl_group = "VcsRibbonFill" .. kind,
+                    hl_eol = true,
                     priority = 90,
                 })
             end
+        end
+        for _, range in ipairs(words[win]) do
+            api.nvim_buf_set_extmark(buf, marks.ns, range[1], range[2], {
+                end_col = range[3],
+                hl_group = "VcsRibbonWord" .. range[4],
+                priority = 100,
+            })
         end
     end
 end

@@ -73,29 +73,82 @@ function M.destroy(state)
     end
 end
 
+local function linear_channel(value)
+    value = value / 255
+    return value <= 0.04045 and value / 12.92 or ((value + 0.055) / 1.055) ^ 2.4
+end
+
+local function encoded_channel(value)
+    value = value <= 0.0031308 and 12.92 * value or 1.055 * value ^ (1 / 2.4) - 0.055
+    return math.floor(math.max(0, math.min(1, value)) * 255 + 0.5)
+end
+
+local function srgb_to_p3(color)
+    local r = linear_channel(bit.band(bit.rshift(color, 16), 255))
+    local g = linear_channel(bit.band(bit.rshift(color, 8), 255))
+    local b = linear_channel(bit.band(color, 255))
+    -- Linear sRGB -> XYZ D65 -> linear Display P3; both use sRGB transfer curves.
+    return {
+        encoded_channel(0.8224619687 * r + 0.1775380313 * g),
+        encoded_channel(0.0331941989 * r + 0.9668058011 * g),
+        encoded_channel(0.0170826307 * r + 0.0723974407 * g + 0.9105199286 * b),
+    }
+end
+
+local function underline_metrics(cell_height)
+    -- CommitMono450: 1000 units/em, ascent 900, descent -200, line gap 0,
+    -- underline position -100, thickness 50. Ghostty adjust-cell-height = 12%.
+    -- Recover integer font pixels from the adjusted cell height (includes Retina scaling).
+    local face_cell = math.floor(cell_height / 1.12 + 0.5)
+    local em = math.floor(face_cell / 1.1 + 0.5)
+    local face_height = em * 1.1
+    face_cell = math.floor(face_height + 0.5)
+    local face_baseline = em * 0.2
+    local baseline = math.floor(face_baseline - (face_cell - face_height) / 2 + 0.5)
+    local position = math.floor(face_cell - baseline + em * 0.1 + 0.5)
+    -- Ghostty centers added cell padding; odd padding follows the baseline rounding error.
+    local padding = (cell_height - face_cell) / 2
+    local face_y = baseline - face_baseline
+    position = position + (face_y > (face_cell - face_height) / 2 and math.ceil(padding) or math.floor(padding))
+    position = math.max(0, math.min(cell_height - 1, position))
+    local thickness = math.min(cell_height - position, math.max(1, math.ceil(em * 0.05)))
+    return position, thickness
+end
+
 local function raster(ribbons, cols, rows, palette, curve)
     local cell_width, cell_height = cell_size()
     local width, height = cols * cell_width, rows * cell_height
     local pixels = ffi.new("uint8_t[?]", width * height * 4)
-    local tip = math.min(3, cell_height)
+    local underline, thickness = underline_metrics(cell_height)
+    local colors = {}
+    for kind, color in pairs(palette) do
+        colors[kind] = srgb_to_p3(color)
+    end
     for x = 0, width - 1 do
         local t = curve(x / math.max(1, width - 1))
         for _, ribbon in ipairs(ribbons) do
-            -- Overlap the terminal underline inside the preceding cell.
-            local lt = ribbon.lt * cell_height - (ribbon.lt == ribbon.lb and tip or 0)
-            local rt = ribbon.rt * cell_height - (ribbon.rt == ribbon.rb and tip or 0)
+            -- Empty endpoints occupy the native underline in the preceding cell.
+            local lt, lb = ribbon.lt * cell_height, ribbon.lb * cell_height
+            local rt, rb = ribbon.rt * cell_height, ribbon.rb * cell_height
+            if ribbon.lt == ribbon.lb then
+                lt = lt - cell_height + underline
+                lb = lt + thickness
+            end
+            if ribbon.rt == ribbon.rb then
+                rt = rt - cell_height + underline
+                rb = rt + thickness
+            end
             local top = lt + (rt - lt) * t
-            local bottom = (ribbon.lb + (ribbon.rb - ribbon.lb) * t) * cell_height
+            local bottom = lb + (rb - lb) * t
             if bottom - top < 1 then
                 local middle = (top + bottom) / 2
                 top, bottom = middle - 0.5, middle + 0.5
             end
-            local color = palette[ribbon.kind]
-            local r, g, b = bit.rshift(color, 16), bit.band(bit.rshift(color, 8), 255), bit.band(color, 255)
+            local color = colors[ribbon.kind]
             for y = math.max(0, math.floor(top)), math.min(height, math.ceil(bottom)) - 1 do
                 local index = (y * width + x) * 4
                 local coverage = math.min(y + 1, bottom) - math.max(y, top)
-                pixels[index], pixels[index + 1], pixels[index + 2] = r, g, b
+                pixels[index], pixels[index + 1], pixels[index + 2] = color[1], color[2], color[3]
                 pixels[index + 3] = math.floor(255 * coverage + 0.5)
             end
         end

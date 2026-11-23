@@ -476,6 +476,14 @@ M.status_tray = function(branch)
             end
         end
     end
+    local function remember_tray_focus()
+        if active(view) then
+            local tab = api.nvim_win_get_tabpage(win)
+            if tab ~= api.nvim_get_current_tabpage() then
+                api.nvim_tabpage_set_win(tab, win)
+            end
+        end
+    end
     local function open_selected(diff)
         local selected = view.rows[api.nvim_win_get_cursor(win)[1]]
         if not selected then
@@ -489,6 +497,7 @@ M.status_tray = function(branch)
                 head = view.status.head,
                 revision = view.status.revision,
             }, branch)
+            remember_tray_focus()
             return
         end
         local path = view.root .. "/" .. selected
@@ -504,6 +513,7 @@ M.status_tray = function(branch)
         end
         if diff and selected:sub(-1) ~= "/" and vim.bo.buftype == "" then
             require("vcs.diff").open(nil, { root = view.root, path = selected })
+            remember_tray_focus()
         elseif active(view) then
             api.nvim_win_close(win, false)
         end

@@ -49,7 +49,17 @@ local function apply(colors, syntax, diff, selection_bg, picker_selection_bg)
             Visual = { bg = selection_bg },
             Pmenu = { bg = colors.base, fg = colors.text },
             PmenuSel = { bg = picker_selection_bg, fg = colors.yellow, bold = true },
-            BlinkCmpMenuSelection = { bg = picker_selection_bg, fg = colors.yellow, bold = true },
+            MenuNormal = { bg = colors.base, fg = colors.text },
+            MenuBorder = { bg = colors.base, fg = colors.overlay0 },
+            MenuSelection = { bg = picker_selection_bg, fg = colors.yellow, bold = true },
+            BlinkCmpMenu = { link = "MenuNormal" },
+            BlinkCmpMenuBorder = { link = "MenuBorder" },
+            BlinkCmpMenuSelection = { link = "MenuSelection" },
+            BlinkCmpDoc = { link = "MenuNormal" },
+            BlinkCmpDocBorder = { link = "MenuBorder" },
+            BlinkCmpDocSeparator = { bg = colors.base, fg = colors.overlay0 },
+            BlinkCmpSignatureHelp = { link = "MenuNormal" },
+            BlinkCmpSignatureHelpBorder = { link = "MenuBorder" },
             SnacksPicker = { bg = colors.base },
             SnacksPickerInput = { bg = colors.base },
             SnacksPickerList = { bg = colors.base },
@@ -94,19 +104,49 @@ local function apply(colors, syntax, diff, selection_bg, picker_selection_bg)
             NeogitDiffDeleteHighlight = { link = "DiffDelete" },
             NeogitDiffContextHighlight = { bg = colors.base },
             MiniDiffOverAdd = { fg = diff.add, bg = diff.add_bg, bold = true, blend = 75 },
-            MiniDiffOverChange = { fg = colors.text, bg = diff.delete_word_bg, bold = true, underline = true, blend = 75 },
-            MiniDiffOverChangeBuf = { fg = colors.text, bg = diff.add_word_bg, bold = true, underline = true, blend = 75 },
+            MiniDiffOverChange = {
+                fg = colors.text,
+                bg = diff.delete_word_bg,
+                bold = true,
+                underline = true,
+                blend = 75,
+            },
+            MiniDiffOverChangeBuf = {
+                fg = colors.text,
+                bg = diff.add_word_bg,
+                bold = true,
+                underline = true,
+                blend = 75,
+            },
             MiniDiffOverDelete = { fg = diff.delete, bg = diff.delete_bg, bold = true, blend = 75 },
             MiniDiffOverAddText = { fg = colors.text, bg = diff.add_word_bg, bold = true, underline = true, blend = 75 },
-            MiniDiffOverChangeText = { fg = colors.text, bg = diff.change_word_bg, bold = true, underline = true, blend = 75 },
-            MiniDiffOverDeleteText = { fg = colors.text, bg = diff.delete_word_bg, bold = true, underline = true, blend = 75 },
+            MiniDiffOverChangeText = {
+                fg = colors.text,
+                bg = diff.change_word_bg,
+                bold = true,
+                underline = true,
+                blend = 75,
+            },
+            MiniDiffOverDeleteText = {
+                fg = colors.text,
+                bg = diff.delete_word_bg,
+                bold = true,
+                underline = true,
+                blend = 75,
+            },
             MiniDiffOverContext = { bg = colors.base },
             MiniDiffOverContextBuf = { bg = colors.base },
             MiniDiffSignAdd = { fg = diff.add, bold = true },
             MiniDiffSignChange = { fg = diff.change, bold = true },
             MiniDiffSignDelete = { fg = diff.delete, bold = true },
             DeltaDiffAddedWord = { fg = colors.text, bg = diff.add_word_bg, bold = true, underline = true, blend = 75 },
-            DeltaDiffRemovedWord = { fg = colors.text, bg = diff.delete_word_bg, bold = true, underline = true, blend = 75 },
+            DeltaDiffRemovedWord = {
+                fg = colors.text,
+                bg = diff.delete_word_bg,
+                bold = true,
+                underline = true,
+                blend = 75,
+            },
             Folded = { link = "TextDimmer" },
             MsgArea = { link = "TextDim" },
             ModeMsg = { link = "TextDim" },
@@ -434,19 +474,75 @@ local function kanagawa()
         add_bg = "#2B3328",
         change = "#DCA561",
         change_bg = "#252535",
-        change_word_bg = "#49443C",
         delete = "#C34043",
         delete_bg = "#43242B",
     }
     diff.add_word_bg = Color:from_hex(diff.add_bg):lighten(12):hex()
+    diff.change_word_bg = Color:from_hex(diff.change_bg):saturate(15):lighten(25):hex()
     diff.delete_word_bg = Color:from_hex(diff.delete_bg):lighten(12):hex()
 
     apply(colors, syntax, diff, "#223249", "#2D4F67")
 end
 
+local function gruvbox()
+    local Color = require("color")
+
+    -- Gruvbox hard dark palette from morhetz/gruvbox.
+    local colors = {
+        red = "#fb4934",
+        pink = "#d3869b",
+        peach = "#fe8019",
+        yellow = "#fabd2f",
+        green = "#b8bb26",
+        teal = "#8ec07c",
+        lavender = "#83a598",
+        text = "#ebdbb2",
+        subtext1 = "#d5c4a1",
+        subtext0 = "#bdae93",
+        overlay2 = "#a89984",
+        overlay1 = "#928374",
+        overlay0 = "#7c6f64",
+        surface2 = "#504945",
+        surface1 = "#3c3836",
+        surface0 = "#282828",
+        base = "#1d2021",
+    }
+
+    local syntax = {
+        keyword = colors.red,
+        operator = colors.teal,
+        func = colors.green,
+        method = colors.green,
+        string = colors.green,
+        property = colors.text,
+        type = colors.yellow,
+        constant = colors.pink,
+        number = colors.pink,
+        punctuation = colors.overlay2,
+        variable = colors.text,
+        parameter = colors.subtext1,
+        comment = colors.overlay1,
+    }
+
+    local diff = {
+        add = colors.green,
+        add_bg = "#32361a",
+        change = colors.lavender,
+        change_bg = "#24332c",
+        delete = colors.red,
+        delete_bg = "#3c1f1e",
+    }
+    diff.add_word_bg = Color:from_hex(diff.add_bg):lighten(12):hex()
+    diff.change_word_bg = Color:from_hex(diff.change_bg):lighten(12):hex()
+    diff.delete_word_bg = Color:from_hex(diff.delete_bg):lighten(12):hex()
+
+    apply(colors, syntax, diff, colors.surface2, colors.surface1)
+end
+
 local variants = {
     forest_canopy = forest_canopy,
     kanagawa = kanagawa,
+    gruvbox = gruvbox,
 }
 
 M.setup = function(variant)

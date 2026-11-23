@@ -35,11 +35,8 @@ vim.keymap.set({ "n" }, "<C-s>", "<C-w>-")
 -- Plex
 local plex = require("plex")
 vim.keymap.set("n", "<C-t>", function()
-    if not status.is_open() then
-        status.toggle_split()
-    end
-    plex.prepare()
-end, { desc = "Plex: show terminals" })
+    require("ui.tabline").open()
+end, { desc = "Plex: switch directory" })
 
 vim.keymap.set("n", "<leader>am", plex.message, { desc = "Plex: send message" })
 

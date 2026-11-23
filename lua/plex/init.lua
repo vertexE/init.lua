@@ -175,32 +175,46 @@ function M.message()
 end
 
 local function new_tab(directory)
-    strategy.new_tab(vim.fn.fnamemodify(directory, ":p"), function(err)
-        if err then
-            warn(err.message)
-        end
-    end)
-end
-
-local function tag_tab()
-    local tab = ui.choose_tab()
-    if not tab then
-        return
-    end
-    local cancelled = "\n"
-    local value = vim.fn.input({ prompt = "Tag: ", default = tab.tab_tag or "", cancelreturn = cancelled })
-    if value == cancelled then
-        return
-    end
-    local tag = vim.trim(value:gsub("%c", " "))
-    tag = tag ~= "" and tag or nil
-    if tag ~= tab.tab_tag then
-        strategy.set_tab_tag(tab.tab_id, tab.tab_name, tag, function(_, err)
+    local function create()
+        strategy.new_tab(vim.fn.fnamemodify(directory, ":p"), function(err)
             if err then
                 warn(err.message)
             end
         end)
     end
+    strategy.panes(function(_, query_err)
+        if not query_err then
+            create()
+            return
+        end
+        ensure_terminal(function(term, err)
+            if not term then
+                warn(err)
+                return
+            end
+            create()
+        end)
+    end)
+end
+
+function M.tag_tab(tab)
+    if not tab then
+        return
+    end
+    require("snacks").input({ prompt = "Tag", default = tab.tab_tag or "" }, function(value)
+        if value == nil then
+            return
+        end
+        local tag = vim.trim(value:gsub("%c", " "))
+        tag = tag ~= "" and tag or nil
+        if tag ~= tab.tab_tag then
+            strategy.set_tab_tag(tab.tab_id, tab.tab_name, tag, function(_, err)
+                if err then
+                    warn(err.message)
+                end
+            end)
+        end
+    end)
 end
 
 function M.setup(opts)
@@ -221,10 +235,13 @@ function M.setup(opts)
             return terminal ~= nil and terminal:is_open() and terminal:is_focused()
         end,
     })
-    vim.api.nvim_create_user_command("PlexNew", function(args)
-        new_tab(args.args ~= "" and args.args or vim.fn.getcwd())
-    end, { nargs = "?", complete = "dir" })
-    vim.api.nvim_create_user_command("PlexTag", tag_tab, {})
+    vim.api.nvim_create_user_command("PlexNew", function()
+        require("snacks").input({ prompt = "Directory", default = vim.fn.getcwd(), completion = "dir" }, function(directory)
+            if directory and vim.trim(directory) ~= "" then
+                new_tab(vim.fn.expand(directory))
+            end
+        end)
+    end, {})
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = vim.api.nvim_create_augroup("user.plex", { clear = true }),
         callback = function()

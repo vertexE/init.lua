@@ -48,8 +48,9 @@ local M = {
                 nerd_font_variant = "mono",
             },
             completion = {
-                documentation = { auto_show = true },
+                documentation = { auto_show = true, window = { border = "rounded" } },
                 menu = {
+                    border = "rounded",
                     draw = {
                         -- treesitter = { "lsp" }, -- https://github.com/Saghen/blink.cmp/issues/2205
                         columns = {
@@ -83,7 +84,7 @@ local M = {
                     },
                 },
             },
-            signature = { enabled = true, window = { show_documentation = false } },
+            signature = { enabled = true, window = { show_documentation = false, border = "rounded" } },
             sources = {
                 default = { "lsp", "path", "snippets", "buffer" },
             },
