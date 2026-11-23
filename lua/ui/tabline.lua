@@ -202,11 +202,10 @@ function M.open()
     vim.bo[buffer].bufhidden = "wipe"
     popup = api.nvim_open_win(buffer, true, { relative = "editor", row = 1, col = 0,
         width = 24, height = 1, style = "minimal", border = "rounded" })
-    vim.wo[popup].winhighlight = "Normal:MenuNormal,NormalFloat:MenuNormal,FloatBorder:MenuBorder,CursorLine:MenuSelection"
+    vim.wo[popup].winhighlight = "Normal:MenuNormal,NormalFloat:MenuNormal,FloatBorder:MenuBorder"
     vim.wo[popup].wrap = false
     vim.wo[popup].winblend = 0
-    vim.wo[popup].cursorline = true
-    vim.wo[popup].cursorlineopt = "line"
+    vim.wo[popup].cursorline = false
     saved_cursor = vim.o.guicursor
     vim.o.guicursor = (saved_cursor ~= "" and saved_cursor .. "," or "") .. "a:TabHiddenCursor"
     api.nvim_create_autocmd("CursorMoved", { buffer = buffer, callback = draw_popup })
