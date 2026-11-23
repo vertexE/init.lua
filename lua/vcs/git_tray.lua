@@ -16,7 +16,13 @@ end
 local function git(root, args, callback, stdin)
     local cmd = { "git", "--literal-pathspecs" }
     vim.list_extend(cmd, args)
-    local ok, err = pcall(vim.system, cmd, { cwd = root, stdin = stdin }, vim.schedule_wrap(callback))
+    local ok, err = pcall(vim.system, cmd, { cwd = root, stdin = stdin }, vim.schedule_wrap(function(result)
+        callback(result)
+        local action = args[1]
+        if action == "add" or action == "reset" or action == "restore" or action == "clean" or action == "commit" then
+            api.nvim_exec_autocmds("User", { pattern = "GitStatusChanged", data = { root = root } })
+        end
+    end))
     if not ok then
         callback({ code = -1, stderr = tostring(err) })
     end

@@ -33,6 +33,23 @@ local state = {
     cursor_pos_by_buf = {},
 }
 
+--- Saved files in quick-open order, scoped to current working directory.
+M.list = function()
+    local content = fs.read(filepath())
+    local files = {}
+    for line in (content or ""):gmatch("[^\n]+") do
+        local file = parse_line(line)
+        if file then
+            table.insert(files, file)
+        end
+    end
+    return files
+end
+
+local function changed()
+    vim.api.nvim_exec_autocmds("User", { pattern = "GotoChanged" })
+end
+
 --- add the current buffer to the file list
 M.add = function()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -45,6 +62,7 @@ M.add = function()
     local cl = vim.fn.getpos(".")[2]
     fs.append_line(filepath(), string.format("%s:%d", fpath, cl))
     state.should_refresh_cached_goto_list = true
+    changed()
 end
 
 --- check if goto supports this buf type
@@ -63,6 +81,7 @@ H.sync = function(files)
     end
     fs.write(filepath(), content)
     state.should_refresh_cached_goto_list = true
+    changed()
 end
 
 --- goto the provided index and open in the corresponding window
@@ -170,6 +189,8 @@ M.menu = function()
         buffer = float_buf,
         group = vim.api.nvim_create_augroup("user.goto.notif", { clear = true }),
         callback = function()
+            state.should_refresh_cached_goto_list = true
+            changed()
             vim.notify("saved!")
         end,
     })
