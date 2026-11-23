@@ -66,7 +66,7 @@ local function process(pane, prefix)
     local group = prefix .. "Content"
     if needs then
         group = prefix .. "Attention"
-    elseif active then
+    elseif active and command ~= "lazygit" then
         -- Agents double-pulse; ordinary foreground commands breathe continuously.
         local phase = agent and ({ 0, 4, 8, 4, 0, 4, 8, 4, 0, 0, 0, 0 })[frame % 12 + 1]
             or math.floor((math.sin(frame * math.pi / 8) + 1) * 4 + 0.5)
