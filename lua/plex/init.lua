@@ -1,6 +1,5 @@
 local attention = require("plex.notify")
 local panes = require("plex.panes")
-local ui = require("plex.ui")
 
 local M = {}
 local strategy
@@ -129,7 +128,6 @@ local function start_monitor()
     monitoring = true
     attention.subscribe(function(current, err)
         tabs = not err and panes.select_tabs(current or {}) or {}
-        ui.update_bindings(tabs, M.open_tab)
         for callback in pairs(listeners) do
             callback(tabs)
         end
@@ -168,10 +166,20 @@ function M.subscribe_tabs(callback)
 end
 
 function M.message()
-    local tab = ui.choose_tab()
-    if tab then
-        require("plex.message").open(tab, strategy)
+    if #tabs == 0 then
+        warn("No Plex tabs available")
+        return
     end
+    vim.ui.select(tabs, {
+        prompt = "Send message to",
+        format_item = function(tab)
+            return ("%s · %s · %s"):format(tab.directory, tab.tab_name, tab.command)
+        end,
+    }, function(tab)
+        if tab then
+            require("plex.message").open(tab, strategy)
+        end
+    end)
 end
 
 local function new_tab(directory)
