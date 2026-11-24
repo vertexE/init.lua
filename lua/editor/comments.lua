@@ -8,12 +8,41 @@ local ns = vim.api.nvim_create_namespace("user.editor.comments")
 local draft_ns = vim.api.nvim_create_namespace("user.editor.comments.draft")
 local preview_ns = vim.api.nvim_create_namespace("user.editor.comments.preview")
 local comments_by_bufnr = {}
-local virtual_lines_overflow = vim.fn.has("nvim-0.13") == 1 and "wrap" or nil
+local function virtual_lines(lines, bufnr, row)
+    local indent = string.rep(" ", vim.api.nvim_buf_call(bufnr, function()
+        return vim.fn.indent(row + 1)
+    end))
+    local wrapped = {}
+    local width = 0
+    for _, line in ipairs(lines) do
+        local current = ""
+        for word in line:gmatch("%S+") do
+            local next_line = current == "" and word or current .. " " .. word
+            if current ~= "" and vim.fn.strdisplaywidth(next_line) > 50 then
+                table.insert(wrapped, current)
+                width = math.max(width, vim.fn.strdisplaywidth(current))
+                current = word
+            else
+                current = next_line
+            end
+        end
+        table.insert(wrapped, current)
+        width = math.max(width, vim.fn.strdisplaywidth(current))
+    end
 
-local function virtual_lines(lines)
-    return vim.tbl_map(function(line)
-        return { { line, "Comment" } }
-    end, lines)
+    local icon = "󰄼 "
+    local icon_width = vim.fn.strdisplaywidth(icon)
+    local result = { { { indent .. "╭" .. string.rep("─", width + icon_width + 2) .. "╮", "FloatBorder" } } }
+    for index, line in ipairs(wrapped) do
+        table.insert(result, {
+            { indent .. "│ ", "FloatBorder" },
+            { index == 1 and icon or string.rep(" ", icon_width), "Comment" },
+            { line .. string.rep(" ", width - vim.fn.strdisplaywidth(line)), "Comment" },
+            { " │", "FloatBorder" },
+        })
+    end
+    table.insert(result, { { indent .. "╰" .. string.rep("─", width + icon_width + 2) .. "╯", "FloatBorder" } })
+    return result
 end
 
 local function get_range(bufnr, namespace, id)
@@ -64,12 +93,23 @@ end
 M.add = function()
     local bufnr = vim.api.nvim_get_current_buf()
     local first = vim.api.nvim_win_get_cursor(0)[1] - 1
+    local cursor_row = first
     local last = first
     local mode = vim.fn.mode()
     if mode == "v" or mode == "V" or mode == "\22" then
         local anchor = vim.fn.line("v") - 1
         first, last = math.min(first, anchor), math.max(first, anchor)
         vim.cmd.normal({ "\27", bang = true })
+    end
+
+    local existing
+    for _, comment in ipairs(comments_by_bufnr[bufnr] or {}) do
+        local start_row, end_row = get_range(bufnr, ns, comment.id)
+        if start_row and cursor_row >= start_row and cursor_row <= end_row then
+            existing = comment
+            first, last = start_row, end_row
+            break
+        end
     end
 
     local screen_height = vim.o.lines - math.max(1, vim.o.cmdheight)
@@ -105,7 +145,8 @@ M.add = function()
 
     local draft = vim.api.nvim_buf_set_extmark(bufnr, draft_ns, first, 0, { end_row = last + 1, end_col = 0 })
     local _, input_win = textarea.open({
-        prompt = " Comment ",
+        prompt = existing and " Edit Comment " or " Comment ",
+        content = existing and table.concat(existing.lines, "\n") or nil,
         row = row + height + 2,
         col = col,
         height = input_height,
@@ -120,15 +161,19 @@ M.add = function()
         end
 
         local id = vim.api.nvim_buf_set_extmark(bufnr, ns, start_row, 0, {
+            id = existing and existing.id or nil,
             end_row = end_row + 1,
             end_col = 0,
-            virt_lines = virtual_lines(lines),
-            virt_lines_overflow = virtual_lines_overflow,
+            virt_lines = virtual_lines(lines, bufnr, start_row),
             -- Virtual lines above the first buffer line are outside the viewport.
             virt_lines_above = start_row > 0,
         })
-        comments_by_bufnr[bufnr] = comments_by_bufnr[bufnr] or {}
-        table.insert(comments_by_bufnr[bufnr], { id = id, lines = lines })
+        if existing then
+            existing.lines = lines
+        else
+            comments_by_bufnr[bufnr] = comments_by_bufnr[bufnr] or {}
+            table.insert(comments_by_bufnr[bufnr], { id = id, lines = lines })
+        end
     end)
 
     vim.api.nvim_create_autocmd("WinClosed", {
@@ -235,8 +280,7 @@ M.pick = function()
 
             fill_preview(ctx.buf, item.buf, first, last)
             vim.api.nvim_buf_set_extmark(ctx.buf, preview_ns, first, 0, {
-                virt_lines = virtual_lines(item.comment.lines),
-                virt_lines_overflow = virtual_lines_overflow,
+                virt_lines = virtual_lines(item.comment.lines, item.buf, first),
             })
             ctx.preview:set_title(item.location)
             local context = math.min(M.context_lines, math.max(0, vim.api.nvim_win_get_height(ctx.win) - 2))
